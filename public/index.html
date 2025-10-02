@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>PROFSTORATEPH — Find Professors & Notes</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- ✅ fixed path -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>PROFSTORATEPH.com</h1>
+    <div id="auth-area">
+      <button id="btn-show-login">Login</button>
+      <button id="btn-show-signup">Sign up</button>
+      <button id="btn-logout" style="display:none;">Logout</button>
+      <span id="user-name" style="display:none;"></span>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="search-panel">
+      <input id="subject-search" placeholder="Type course code or name (eg. CS101, Calculus)..." />
+      <button id="btn-search">Search Subjects</button>
+      <button id="btn-list-all">List All Subjects</button>
+    </section>
+
+    <section id="subjects-list" class="results"></section>
+
+    <section id="global-search" class="search-panel">
+      <input id="prof-search" placeholder="Or search professor name or subject..." />
+      <button id="btn-prof-search">Find Professors</button>
+    </section>
+
+    <section id="prof-list" class="results"></section>
+
+    <hr />
+    <section id="upload-section" class="panel">
+      <h3>Upload Notes (requires login)</h3>
+      <form id="upload-form">
+        <input type="text" id="upload-subject-id" placeholder="Subject ID (optional)" />
+        <input type="text" id="upload-prof-id" placeholder="Professor ID (optional)" />
+        <input type="file" id="upload-file" required />
+        <input type="text" id="upload-desc" placeholder="Short description" />
+        <button>Upload</button>
+      </form>
+      <div id="upload-result"></div>
+    </section>
+  </main>
+
+  <!-- Simple modals for login/signup -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-inner">
+      <button id="modal-close">X</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- ✅ fixed path -->
+  <script src="js/app.js"></script>
+</body>
+</html>
