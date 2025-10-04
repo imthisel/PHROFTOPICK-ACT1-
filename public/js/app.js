@@ -1,15 +1,21 @@
-// app.js - frontend interactions for index.html
+// app.js
 const api = {
   searchSubjects: q => fetch('/api/subjects' + (q ? '?q=' + encodeURIComponent(q) : '')).then(r => r.json()),
   listSubjects: () => fetch('/api/subjects').then(r => r.json()),
   getProfsForSubject: id => fetch('/api/subjects/' + id + '/profs').then(r => r.json()),
   searchProfs: q => fetch('/api/profs/search?q=' + encodeURIComponent(q)).then(r => r.json()),
   uploadNote: (formData, token) => fetch('/api/upload', { method: 'POST', headers: token ? { 'Authorization': 'Bearer ' + token } : {}, body: formData }).then(r => r.json()),
-  login: (body) => fetch('/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(r => r.json()),
-  signup: (body) => fetch('/api/auth/signup', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(r => r.json())
+  login: body => fetch('/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(r => r.json()),
+  signup: body => fetch('/api/auth/signup', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(r => r.json()),
+  getComments: profId => fetch('/api/profs/' + profId).then(r => r.json()).then(data => data.comments || []),
+  postComment: (profId, content, token) => fetch('/api/profs/' + profId + '/rate', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) },
+    body: JSON.stringify({ stars: 5, comment: content })
+  }).then(r => r.json())
 };
 
-// element refs
+// Element references
 const subjectSearch = document.getElementById('subject-search');
 const btnSearch = document.getElementById('btn-search');
 const btnListAll = document.getElementById('btn-list-all');
@@ -31,23 +37,23 @@ const userNameSpan = document.getElementById('user-name');
 const uploadForm = document.getElementById('upload-form');
 const uploadResult = document.getElementById('upload-result');
 
+// Modal
 function showModal(html) {
   modalContent.innerHTML = html;
   modal.classList.remove('hidden');
 }
 modalClose.addEventListener('click', ()=> modal.classList.add('hidden'));
-modal.addEventListener('click', (e)=> { if (e.target === modal) modal.classList.add('hidden'); });
+modal.addEventListener('click', e => { if(e.target === modal) modal.classList.add('hidden'); });
 
-// auth UI
+// Auth UI
 function updateAuthUI() {
   const token = localStorage.getItem('token');
-  if (token) {
+  if(token){
     btnShowLogin.style.display = 'none';
     btnShowSignup.style.display = 'none';
     btnLogout.style.display = 'inline-block';
     userNameSpan.style.display = 'inline-block';
-    const name = localStorage.getItem('user_display') || 'You';
-    userNameSpan.textContent = name;
+    userNameSpan.textContent = localStorage.getItem('user_display') || 'You';
   } else {
     btnShowLogin.style.display = 'inline-block';
     btnShowSignup.style.display = 'inline-block';
@@ -58,48 +64,48 @@ function updateAuthUI() {
 }
 updateAuthUI();
 
+// Login
 btnShowLogin.onclick = () => {
   showModal(`
     <h3>Login</h3>
     <form id="login-form">
-      <input name="school_id_or_email" placeholder="School ID or school email" required />
-      <input name="password" placeholder="Password" type="password" required />
+      <input name="school_id_or_email" placeholder="School ID or Email" required />
+      <input name="password" type="password" placeholder="Password" required />
       <button>Login</button>
     </form>
-    <p style="font-size:12px;color:#9aa;">You may sign up if you don't have an account.</p>
   `);
   setTimeout(() => {
     const f = document.getElementById('login-form');
-    f.addEventListener('submit', async (e)=>{
+    f.addEventListener('submit', async e => {
       e.preventDefault();
       const fd = new FormData(f);
       const body = { school_id_or_email: fd.get('school_id_or_email'), password: fd.get('password') };
       const res = await api.login(body);
-      if (res.error) return alert(res.error);
+      if(res.error) return alert(res.error);
       localStorage.setItem('token', res.token);
       localStorage.setItem('user_display', res.user.display_name || res.user.school_id_or_email);
       updateAuthUI();
       modal.classList.add('hidden');
       alert('Logged in');
     });
-  }, 30);
+  },30);
 };
 
+// Signup
 btnShowSignup.onclick = () => {
   showModal(`
     <h3>Sign up</h3>
     <form id="signup-form">
-      <input name="school_id_or_email" placeholder="School ID or school email" required />
-      <input name="password" placeholder="Password" type="password" required />
+      <input name="school_id_or_email" placeholder="School ID or Email" required />
+      <input name="password" type="password" placeholder="Password" required />
       <input name="display_name" placeholder="Display name (optional)" />
       <label><input type="checkbox" name="anonymous" /> Join as anonymous</label>
       <button>Sign up</button>
     </form>
-    <p style="font-size:12px;color:#9aa;">Your email/id will be used for login only.</p>
   `);
   setTimeout(() => {
     const f = document.getElementById('signup-form');
-    f.addEventListener('submit', async (e)=>{
+    f.addEventListener('submit', async e => {
       e.preventDefault();
       const fd = new FormData(f);
       const body = {
@@ -109,16 +115,17 @@ btnShowSignup.onclick = () => {
         anonymous: !!fd.get('anonymous')
       };
       const res = await api.signup(body);
-      if (res.error) return alert(res.error);
+      if(res.error) return alert(res.error);
       localStorage.setItem('token', res.token);
       localStorage.setItem('user_display', res.user.display_name || res.user.school_id_or_email);
       updateAuthUI();
       modal.classList.add('hidden');
       alert('Account created & logged in');
     });
-  }, 30);
+  },30);
 };
 
+// Logout
 btnLogout.onclick = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user_display');
@@ -126,68 +133,110 @@ btnLogout.onclick = () => {
   alert('Logged out');
 };
 
-/* Subjects search */
+// Subjects
 btnSearch.onclick = async () => {
   const q = subjectSearch.value.trim();
   const data = await api.searchSubjects(q);
   renderSubjects(data.subjects || []);
 };
-
 btnListAll.onclick = async () => {
   const data = await api.listSubjects();
   renderSubjects(data.subjects || []);
 };
 
-function renderSubjects(list) {
-  if (!list || list.length === 0) {
-    subjectsList.innerHTML = '<div class="card">No subjects found</div>';
+function renderSubjects(list){
+  if(!list || list.length===0){
+    subjectsList.innerHTML='<div class="card">No subjects found</div>';
     return;
   }
-  subjectsList.innerHTML = list.map(s => `
+  subjectsList.innerHTML = list.map(s=>`
     <div class="card">
       <h3>${s.code || '—'} — ${s.name}</h3>
       <p>Difficulty (avg): ${s.difficulty_avg ? Number(s.difficulty_avg).toFixed(2) : 'N/A'}</p>
       <button data-subid="${s.id}" class="btn-view-profs">View professors</button>
+      <div class="prof-sublist" id="prof-sublist-${s.id}"></div>
     </div>
   `).join('');
 
   document.querySelectorAll('.btn-view-profs').forEach(b => {
-    b.addEventListener('click', async (ev) => {
+    b.addEventListener('click', async ev => {
       const id = ev.currentTarget.dataset.subid;
       const res = await api.getProfsForSubject(id);
-      renderProfList(res.professors || []);
+      renderProfList(res.professors || [], document.getElementById(`prof-sublist-${id}`));
     });
   });
 }
 
-/* Global prof search */
+// Global professor search
 btnProfSearch.onclick = async () => {
   const q = profSearchInput.value.trim();
-  if (!q) return alert('Type a query');
+  if(!q) return alert('Type a query');
   const res = await api.searchProfs(q);
-  renderProfList(res.professors || []);
+  renderProfList(res.professors || [], profList);
 };
 
-function renderProfList(list) {
-  if (!list || list.length === 0) {
-    profList.innerHTML = '<div class="card">No professors found</div>';
+// Render professors
+async function renderProfList(list, container){
+  if(!list || list.length===0){
+    container.innerHTML='<div class="card">No professors found</div>';
     return;
   }
-  profList.innerHTML = list.map(p => `
-    <div class="card">
+
+  container.innerHTML='';
+  for(let p of list){
+    const card = document.createElement('div');
+    card.classList.add('card');
+    card.innerHTML = `
+      ${p.photo_path ? `<img src="${p.photo_path}" class="prof-photo" alt="${p.name}">` : ''}
       <h3>${p.name}</h3>
-      <p>${p.subject_code || ''} - ${p.subject_name || ''}</p>
-      <p>Rating: ${p.rating_avg ? Number(p.rating_avg).toFixed(2) : 'N/A'}</p>
+      <p><strong>Department:</strong> N/A</p>
+      <p><strong>Courses:</strong> ${p.subject_code ? p.subject_code + ' - ' + p.subject_name : 'N/A'}</p>
       <a href="/prof.html?id=${p.id}"><button>Open profile</button></a>
+      <div class="panel" id="comments-panel-${p.id}">
+        <h4>Comments</h4>
+        <form id="comment-form-${p.id}">
+          <input type="text" placeholder="Write a comment..." required />
+          <button type="submit">Post</button>
+        </form>
+        <div id="comments-list-${p.id}"></div>
+      </div>
+    `;
+    container.appendChild(card);
+
+    loadComments(p.id);
+
+    document.getElementById(`comment-form-${p.id}`).addEventListener('submit', async e=>{
+      e.preventDefault();
+      const input = e.target.querySelector('input');
+      const content = input.value.trim();
+      if(!content) return;
+      const token = localStorage.getItem('token');
+      const res = await api.postComment(p.id, content, token);
+      if(res.error) return alert(res.error);
+      input.value='';
+      loadComments(p.id);
+    });
+  }
+}
+
+// Load comments
+async function loadComments(profId){
+  const container = document.getElementById(`comments-list-${profId}`);
+  if(!container) return;
+  const comments = await api.getComments(profId);
+  container.innerHTML = comments.map(c=>`
+    <div class="comment-item">
+      <strong>${c.display_name || 'Anonymous'}:</strong> ${c.comment}
+      <span style="font-size:12px;color:#999;"> • ${new Date(c.created_at).toLocaleString()}</span>
     </div>
   `).join('');
 }
 
-/* Upload notes */
-uploadForm.addEventListener('submit', async (e) => {
+// Upload notes
+uploadForm.addEventListener('submit', async e => {
   e.preventDefault();
   const fileInput = document.getElementById('upload-file');
-  if (!fileInput.files.length) return alert('Select a file');
+  if(!fileInput.files.length) return alert('Select a file');
   const fd = new FormData();
   fd.append('note', fileInput.files[0]);
   fd.append('prof_id', document.getElementById('upload-prof-id').value || '');
@@ -195,13 +244,12 @@ uploadForm.addEventListener('submit', async (e) => {
   fd.append('description', document.getElementById('upload-desc').value || '');
   const token = localStorage.getItem('token');
   const res = await api.uploadNote(fd, token);
-  if (res.error) uploadResult.innerText = 'Upload failed: ' + res.error;
-  else uploadResult.innerHTML = `Uploaded. <a href="${res.path}" target="_blank">Open file</a>`;
+  if(res.error) uploadResult.innerText='Upload failed: '+res.error;
+  else uploadResult.innerHTML=`Uploaded. <a href="${res.path}" target="_blank">Open file</a>`;
 });
 
-/* initial load */
-(async function() {
-  // list top subjects by default
+// Initial load
+(async function(){
   const d = await api.listSubjects();
   renderSubjects(d.subjects || []);
 })();

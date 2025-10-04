@@ -1,0 +1,11 @@
+[33mcommit 9e66dd63e0c3ea6f942d8292a767a9e253ffd2b7[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: Ziongit config --global user.email <imthisel@gmail.com>
+Date:   Thu Oct 2 23:10:11 2025 +0800
+
+    2nd version, see subjects and professors
+
+[33mcommit 64ee661fe1d3dd8017091ab935e868ed2d1efcdf[m
+Author: Ziongit config --global user.email <imthisel@gmail.com>
+Date:   Thu Oct 2 14:16:33 2025 +0800
+
+    Initial commit

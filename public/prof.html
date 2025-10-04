@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Professor Details</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1>Professor Details</h1>
+    <nav>
+      <a href="index.html">Home</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <!-- Professor info -->
+    <div id="prof-details" class="card"></div>
+
+    <!-- Rating form -->
+    <div class="panel">
+      <h3>Rate this professor</h3>
+      <form id="rating-form">
+        <label for="stars">Stars (1–5):</label>
+        <input type="number" id="stars" min="1" max="5" required>
+        <br><br>
+        <label for="comment">Comment:</label><br>
+        <textarea id="comment" rows="3" style="width:100%"></textarea>
+        <br>
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+
+    <!-- Comments list -->
+    <div class="panel">
+      <h3>Comments</h3>
+      <div id="comments"></div>
+    </div>
+
+    <!-- Notes list -->
+    <div class="panel">
+      <h3>Notes</h3>
+      <div id="notes"></div>
+    </div>
+  </div>
+
+  <script>
+    const profId = new URLSearchParams(window.location.search).get("id");
+    const token = localStorage.getItem("token");
+
+    async function loadProfessor() {
+      const res = await fetch(`/api/profs/${profId}`);
+      const data = await res.json();
+
+      // Show prof info
+      const prof = data.prof;
+      const details = document.getElementById("prof-details");
+      details.innerHTML = `
+        <h2>${prof.name}</h2>
+        <p><strong>Subject:</strong> ${prof.subject_code} - ${prof.subject_name}</p>
+        ${prof.photo_path ? `<img src="${prof.photo_path}" class="prof-photo">` : ""}
+        <p><strong>Workload:</strong> ${prof.workload || "N/A"}</p>
+        <p><strong>Teaching Style:</strong> ${prof.teaching_style || "N/A"}</p>
+        <p><strong>Tips:</strong> ${prof.tips || "N/A"}</p>
+        <p><strong>Plus Points:</strong> ${prof.plus_points || "N/A"}</p>
+        <p><strong>Average Rating:</strong> ${prof.rating_avg?.toFixed(1) || "No ratings yet"} (${prof.rating_count} ratings)</p>
+      `;
+
+      // Show comments
+      const commentsDiv = document.getElementById("comments");
+      commentsDiv.innerHTML = data.comments.length
+        ? data.comments.map(c => `
+            <div class="comment-item">
+              <strong>${c.anonymous ? "Anonymous" : c.display_name}</strong>
+              <span>⭐ ${c.stars}</span>
+              <p>${c.comment || ""}</p>
+              <small>${new Date(c.created_at).toLocaleString()}</small>
+            </div>
+          `).join("")
+        : "<p>No comments yet.</p>";
+
+      // Show notes
+      const notesDiv = document.getElementById("notes");
+      notesDiv.innerHTML = data.notes.length
+        ? data.notes.map(n => `
+            <div class="note-item">
+              <a href="${n.path}" target="_blank">${n.original_name}</a>
+              <p>${n.description || ""}</p>
+              <small>Uploaded by ${n.anonymous ? "Anonymous" : n.display_name} on ${new Date(n.created_at).toLocaleString()}</small>
+            </div>
+          `).join("")
+        : "<p>No notes yet.</p>";
+    }
+
+    // Handle rating submit
+    document.getElementById("rating-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const stars = document.getElementById("stars").value;
+      const comment = document.getElementById("comment").value;
+
+      if (!token) {
+        alert("You must be logged in to rate.");
+        return;
+      }
+
+      const res = await fetch(`/api/profs/${profId}/rate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({ stars, comment })
+      });
+
+      const data = await res.json();
+      if (data.ok) {
+        alert("Thanks for your rating!");
+        loadProfessor();
+        document.getElementById("rating-form").reset();
+      } else {
+        alert(data.error || "Error submitting rating");
+      }
+    });
+
+    loadProfessor();
+  </script>
+</body>
+</html>

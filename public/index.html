@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <title>PROFSTORATEPH — Find Professors & Notes</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <!-- ✅ fixed path -->
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -19,6 +19,7 @@
   </header>
 
   <main class="container">
+    <!-- Subject Search -->
     <section class="search-panel">
       <input id="subject-search" placeholder="Type course code or name (eg. CS101, Calculus)..." />
       <button id="btn-search">Search Subjects</button>
@@ -27,6 +28,7 @@
 
     <section id="subjects-list" class="results"></section>
 
+    <!-- Professor Search -->
     <section id="global-search" class="search-panel">
       <input id="prof-search" placeholder="Or search professor name or subject..." />
       <button id="btn-prof-search">Find Professors</button>
@@ -35,6 +37,8 @@
     <section id="prof-list" class="results"></section>
 
     <hr />
+
+    <!-- Upload Notes -->
     <section id="upload-section" class="panel">
       <h3>Upload Notes (requires login)</h3>
       <form id="upload-form">
