@@ -8,11 +8,16 @@ const api = {
   login: body => fetch('/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(r => r.json()),
   signup: body => fetch('/api/auth/signup', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(r => r.json()),
   getComments: profId => fetch('/api/profs/' + profId).then(r => r.json()).then(data => data.comments || []),
-  postComment: (profId, content, token) => fetch('/api/profs/' + profId + '/rate', {
-    method: 'POST',
-    headers: { 'Content-Type':'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) },
-    body: JSON.stringify({ stars: 5, comment: content })
-  }).then(r => r.json())
+  postComment: (profId, content, token, anonymous=false) => fetch('/api/profs/' + profId + '/rate', {
+  method: 'POST',
+  headers: {
+    'Content-Type':'application/json',
+    ...(token ? { 'Authorization': 'Bearer ' + token } : {}),
+    'x-user-display': localStorage.getItem('user_display') || 'Anonymous'
+  },
+  body: JSON.stringify({ stars: 5, comment: content, anonymous })
+}).then(r => r.json())
+
 };
 
 // Element references
@@ -67,19 +72,35 @@ updateAuthUI();
 // Login
 btnShowLogin.onclick = () => {
   showModal(`
-    <h3>Login</h3>
-    <form id="login-form">
-      <input name="school_id_or_email" placeholder="School ID or Email" required />
-      <input name="password" type="password" placeholder="Password" required />
-      <button>Login</button>
-    </form>
+    <div class="auth-modal">
+      <h2>Welcome back 👋</h2>
+      <p class="auth-sub">Sign in to continue</p>
+      <form id="login-form" class="auth-form">
+        <label>
+          <span>School ID or Email</span>
+          <input name="school_id_or_email" type="text" required />
+        </label>
+        <label>
+          <span>Password</span>
+          <input name="password" type="password" required />
+        </label>
+        <button class="auth-btn">Login</button>
+        <p class="auth-footer">Don’t have an account?
+          <a href="#" id="link-to-signup">Sign up here</a>
+        </p>
+      </form>
+    </div>
   `);
+
   setTimeout(() => {
     const f = document.getElementById('login-form');
     f.addEventListener('submit', async e => {
       e.preventDefault();
       const fd = new FormData(f);
-      const body = { school_id_or_email: fd.get('school_id_or_email'), password: fd.get('password') };
+      const body = {
+        school_id_or_email: fd.get('school_id_or_email'),
+        password: fd.get('password')
+      };
       const res = await api.login(body);
       if(res.error) return alert(res.error);
       localStorage.setItem('token', res.token);
@@ -88,21 +109,46 @@ btnShowLogin.onclick = () => {
       modal.classList.add('hidden');
       alert('Logged in');
     });
-  },30);
+
+    document.getElementById('link-to-signup').onclick = (e) => {
+      e.preventDefault();
+      btnShowSignup.click();
+    };
+  }, 30);
 };
+
 
 // Signup
 btnShowSignup.onclick = () => {
   showModal(`
-    <h3>Sign up</h3>
-    <form id="signup-form">
-      <input name="school_id_or_email" placeholder="School ID or Email" required />
-      <input name="password" type="password" placeholder="Password" required />
-      <input name="display_name" placeholder="Display name (optional)" />
-      <label><input type="checkbox" name="anonymous" /> Join as anonymous</label>
-      <button>Sign up</button>
-    </form>
+    <div class="auth-modal">
+      <h2>Create Account 🪪</h2>
+      <p class="auth-sub">Join and start rating professors!</p>
+      <form id="signup-form" class="auth-form">
+        <label>
+          <span>School ID or Email</span>
+          <input name="school_id_or_email" type="text" required />
+        </label>
+        <label>
+          <span>Password</span>
+          <input name="password" type="password" required />
+        </label>
+        <label>
+          <span>Display Name (optional)</span>
+          <input name="display_name" type="text" />
+        </label>
+        <label class="check-line">
+          <input type="checkbox" name="anonymous" />
+          <span>Join as anonymous</span>
+        </label>
+        <button class="auth-btn">Sign up</button>
+        <p class="auth-footer">Already have an account?
+          <a href="#" id="link-to-login">Login here</a>
+        </p>
+      </form>
+    </div>
   `);
+
   setTimeout(() => {
     const f = document.getElementById('signup-form');
     f.addEventListener('submit', async e => {
@@ -122,8 +168,14 @@ btnShowSignup.onclick = () => {
       modal.classList.add('hidden');
       alert('Account created & logged in');
     });
-  },30);
+
+    document.getElementById('link-to-login').onclick = (e) => {
+      e.preventDefault();
+      btnShowLogin.click();
+    };
+  }, 30);
 };
+
 
 // Logout
 btnLogout.onclick = () => {
@@ -154,17 +206,32 @@ function renderSubjects(list){
       <h3>${s.code || '—'} — ${s.name}</h3>
       <p>Difficulty (avg): ${s.difficulty_avg ? Number(s.difficulty_avg).toFixed(2) : 'N/A'}</p>
       <button data-subid="${s.id}" class="btn-view-profs">View professors</button>
+      <a href="/subject.html?id=${s.id}"><button>Open Subject Page</button></a>
+
       <div class="prof-sublist" id="prof-sublist-${s.id}"></div>
     </div>
   `).join('');
 
   document.querySelectorAll('.btn-view-profs').forEach(b => {
-    b.addEventListener('click', async ev => {
-      const id = ev.currentTarget.dataset.subid;
-      const res = await api.getProfsForSubject(id);
-      renderProfList(res.professors || [], document.getElementById(`prof-sublist-${id}`));
-    });
+  b.addEventListener('click', async ev => {
+    const id = ev.currentTarget.dataset.subid;
+    const container = document.getElementById(`prof-sublist-${id}`);
+
+    // ✅ Toggle visibility
+    if (container.style.display === 'block') {
+      container.style.display = 'none';
+      b.textContent = 'View professors';
+      return;
+    }
+
+    // Otherwise, show professors
+    const res = await api.getProfsForSubject(id);
+    renderProfList(res.professors || [], container);
+    container.style.display = 'block';
+    b.textContent = 'Hide professors';
   });
+ });
+
 }
 
 // Global professor search
@@ -195,9 +262,13 @@ async function renderProfList(list, container){
       <div class="panel" id="comments-panel-${p.id}">
         <h4>Comments</h4>
         <form id="comment-form-${p.id}">
-          <input type="text" placeholder="Write a comment..." required />
-          <button type="submit">Post</button>
-        </form>
+  <input type="text" placeholder="Write a comment..." required />
+  <label style="font-size:13px;">
+    <input type="checkbox" /> Comment anonymously
+  </label>
+  <button type="submit">Post</button>
+</form>
+
         <div id="comments-list-${p.id}"></div>
       </div>
     `;
@@ -206,16 +277,19 @@ async function renderProfList(list, container){
     loadComments(p.id);
 
     document.getElementById(`comment-form-${p.id}`).addEventListener('submit', async e=>{
-      e.preventDefault();
-      const input = e.target.querySelector('input');
-      const content = input.value.trim();
-      if(!content) return;
-      const token = localStorage.getItem('token');
-      const res = await api.postComment(p.id, content, token);
-      if(res.error) return alert(res.error);
-      input.value='';
-      loadComments(p.id);
-    });
+  e.preventDefault();
+  const input = e.target.querySelector('input');
+  const anonCheckbox = e.target.querySelector('input[type="checkbox"]');
+  const content = input.value.trim();
+  if(!content) return;
+  const token = localStorage.getItem('token');
+  const anonymous = anonCheckbox ? anonCheckbox.checked : false;
+  const res = await api.postComment(p.id, content, token, anonymous);
+  if(res.error) return alert(res.error);
+  input.value='';
+  loadComments(p.id);
+   });
+
   }
 }
 

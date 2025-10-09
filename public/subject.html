@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subject Details</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1>Subject Details</h1>
+    <nav>
+      <a href="index.html">Home</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <!-- Subject info -->
+    <div id="subject-details" class="card"></div>
+
+    <!-- Notes Upload -->
+    <div class="panel">
+      <h3>Upload Notes for this Subject</h3>
+      <form id="upload-subject-form">
+        <input type="file" id="note-file" required>
+        <input type="text" id="note-desc" placeholder="Short description (optional)">
+        <button type="submit">Upload</button>
+      </form>
+      <div id="upload-result"></div>
+    </div>
+
+    <!-- Notes list -->
+    <div class="panel">
+      <h3>All Notes for this Subject</h3>
+      <div id="notes"></div>
+    </div>
+  </div>
+
+  <script>
+    const subjectId = new URLSearchParams(window.location.search).get('id');
+    const token = localStorage.getItem('token');
+
+    async function loadSubject() {
+      const res = await fetch(`/api/subjects/${subjectId}`);
+      const data = await res.json();
+
+      const subject = data.subject;
+      document.getElementById('subject-details').innerHTML = `
+        <h2>${subject.code} — ${subject.name}</h2>
+        <p><strong>Average Difficulty:</strong> ${subject.difficulty_avg?.toFixed(2) || 'N/A'}</p>
+      `;
+
+      const notesDiv = document.getElementById('notes');
+      if (!data.notes.length) {
+        notesDiv.innerHTML = '<p>No notes uploaded yet.</p>';
+      } else {
+        notesDiv.innerHTML = data.notes.map(n => `
+          <div class="note-item">
+            <a href="${n.path}" target="_blank">${n.original_name}</a>
+            <p>${n.description || ''}</p>
+            <small>Uploaded by ${n.display_name || 'Anonymous'} on ${new Date(n.created_at).toLocaleString()}</small>
+          </div>
+        `).join('');
+      }
+    }
+
+    document.getElementById('upload-subject-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (!token) return alert('You must be logged in to upload notes.');
+
+      const file = document.getElementById('note-file').files[0];
+      if (!file) return alert('Select a file first.');
+
+      const desc = document.getElementById('note-desc').value;
+      const fd = new FormData();
+      fd.append('note', file);
+      fd.append('subject_id', subjectId);
+      fd.append('description', desc);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: fd
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        document.getElementById('upload-result').textContent = 'Upload failed: ' + data.error;
+      } else {
+        document.getElementById('upload-result').innerHTML = `Uploaded! <a href="${data.path}" target="_blank">View note</a>`;
+        loadSubject(); // refresh notes list
+      }
+    });
+
+    loadSubject();
+  </script>
+</body>
+</html>
