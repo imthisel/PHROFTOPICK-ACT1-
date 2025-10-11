@@ -1,24 +1,61 @@
-// app.js
-const api = {
-  searchSubjects: q => fetch('/api/subjects' + (q ? '?q=' + encodeURIComponent(q) : '')).then(r => r.json()),
-  listSubjects: () => fetch('/api/subjects').then(r => r.json()),
-  getProfsForSubject: id => fetch('/api/subjects/' + id + '/profs').then(r => r.json()),
-  searchProfs: q => fetch('/api/profs/search?q=' + encodeURIComponent(q)).then(r => r.json()),
-  uploadNote: (formData, token) => fetch('/api/upload', { method: 'POST', headers: token ? { 'Authorization': 'Bearer ' + token } : {}, body: formData }).then(r => r.json()),
-  login: body => fetch('/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(r => r.json()),
-  signup: body => fetch('/api/auth/signup', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(r => r.json()),
-  getComments: profId => fetch('/api/profs/' + profId).then(r => r.json()).then(data => data.comments || []),
-  postComment: (profId, content, token, anonymous=false) => fetch('/api/profs/' + profId + '/rate', {
-  method: 'POST',
-  headers: {
-    'Content-Type':'application/json',
-    ...(token ? { 'Authorization': 'Bearer ' + token } : {}),
-    'x-user-display': localStorage.getItem('user_display') || 'Anonymous'
-  },
-  body: JSON.stringify({ stars: 5, comment: content, anonymous })
-}).then(r => r.json())
+// ==================== SCHOOL THEME LOADING ====================
+// Use the same school value loaded by theme-loader.js
+const school = window.__SELECTED_SCHOOL || localStorage.getItem('selectedSchool') || 'dlsu';
+const link = document.createElement("link");
+link.rel = "stylesheet";
+link.href = `css/style-${school}.css`;
+document.head.appendChild(link);
 
+// Change page name & logo
+document.addEventListener("DOMContentLoaded", () => {
+  const header = document.querySelector(".site-header h1");
+  const logoArea = document.querySelector(".logo-area");
+
+  if (header) header.textContent = `${school.toUpperCase()} — PROFS TO RATE PH`;
+  if (logoArea) logoArea.innerHTML = `<img src="images/${school}-logo.png" class="school-logo" alt="${school} logo">`;
+});
+
+
+// ==================== API FUNCTIONS ====================
+
+// ==================== API FUNCTIONS (fixed for live switching) ====================
+function currentSchool() {
+  return localStorage.getItem('selectedSchool') || 'dlsu';
+}
+
+const api = {
+  searchSubjects: q => fetch(`/api/subjects?school=${currentSchool()}` + (q ? '&q=' + encodeURIComponent(q) : '')).then(r => r.json()),
+  listSubjects: () => fetch(`/api/subjects?school=${currentSchool()}`).then(r => r.json()),
+  getProfsForSubject: id => fetch(`/api/subjects/${id}/profs?school=${currentSchool()}`).then(r => r.json()),
+  searchProfs: q => fetch(`/api/profs/search?school=${currentSchool()}&q=${encodeURIComponent(q)}`).then(r => r.json()),
+  uploadNote: (formData, token) => fetch(`/api/upload?school=${currentSchool()}`, { 
+      method: 'POST', 
+      headers: token ? { 'Authorization': 'Bearer ' + token } : {}, 
+      body: formData 
+  }).then(r => r.json()),
+  login: body => fetch(`/api/auth/login?school=${currentSchool()}`, { 
+      method: 'POST', 
+      headers: {'Content-Type':'application/json'}, 
+      body: JSON.stringify(body) 
+  }).then(r => r.json()),
+  signup: body => fetch(`/api/auth/signup?school=${currentSchool()}`, { 
+      method: 'POST', 
+      headers: {'Content-Type':'application/json'}, 
+      body: JSON.stringify(body) 
+  }).then(r => r.json()),
+  getComments: profId => fetch(`/api/profs/${profId}?school=${currentSchool()}`).then(r => r.json()).then(data => data.comments || []),
+  postComment: (profId, content, token, anonymous=false) => fetch(`/api/profs/${profId}/rate?school=${currentSchool()}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':'application/json',
+        ...(token ? { 'Authorization': 'Bearer ' + token } : {}),
+        'x-user-display': localStorage.getItem('user_display') || 'Anonymous'
+      },
+      body: JSON.stringify({ stars: 5, comment: content, anonymous })
+  }).then(r => r.json())
 };
+
+
 
 // Element references
 const subjectSearch = document.getElementById('subject-search');
@@ -50,10 +87,12 @@ function showModal(html) {
 modalClose.addEventListener('click', ()=> modal.classList.add('hidden'));
 modal.addEventListener('click', e => { if(e.target === modal) modal.classList.add('hidden'); });
 
+// ======= AUTH SYSTEM (restored from old version) =======
+
 // Auth UI
 function updateAuthUI() {
   const token = localStorage.getItem('token');
-  if(token){
+  if (token) {
     btnShowLogin.style.display = 'none';
     btnShowSignup.style.display = 'none';
     btnLogout.style.display = 'inline-block';
@@ -69,7 +108,7 @@ function updateAuthUI() {
 }
 updateAuthUI();
 
-// Login
+// Login Modal
 btnShowLogin.onclick = () => {
   showModal(`
     <div class="auth-modal">
@@ -102,7 +141,7 @@ btnShowLogin.onclick = () => {
         password: fd.get('password')
       };
       const res = await api.login(body);
-      if(res.error) return alert(res.error);
+      if (res.error) return alert(res.error);
       localStorage.setItem('token', res.token);
       localStorage.setItem('user_display', res.user.display_name || res.user.school_id_or_email);
       updateAuthUI();
@@ -117,8 +156,7 @@ btnShowLogin.onclick = () => {
   }, 30);
 };
 
-
-// Signup
+// Signup Modal
 btnShowSignup.onclick = () => {
   showModal(`
     <div class="auth-modal">
@@ -161,7 +199,7 @@ btnShowSignup.onclick = () => {
         anonymous: !!fd.get('anonymous')
       };
       const res = await api.signup(body);
-      if(res.error) return alert(res.error);
+      if (res.error) return alert(res.error);
       localStorage.setItem('token', res.token);
       localStorage.setItem('user_display', res.user.display_name || res.user.school_id_or_email);
       updateAuthUI();
@@ -176,7 +214,6 @@ btnShowSignup.onclick = () => {
   }, 30);
 };
 
-
 // Logout
 btnLogout.onclick = () => {
   localStorage.removeItem('token');
@@ -184,6 +221,7 @@ btnLogout.onclick = () => {
   updateAuthUI();
   alert('Logged out');
 };
+
 
 // Subjects
 btnSearch.onclick = async () => {
@@ -322,8 +360,9 @@ uploadForm.addEventListener('submit', async e => {
   else uploadResult.innerHTML=`Uploaded. <a href="${res.path}" target="_blank">Open file</a>`;
 });
 
-// Initial load
-(async function(){
+// Initial load — show subjects right away after selecting school
+document.addEventListener('DOMContentLoaded', async () => {
   const d = await api.listSubjects();
   renderSubjects(d.subjects || []);
-})();
+});
+

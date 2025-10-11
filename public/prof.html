@@ -1,91 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Professor Details</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/base.css" />
+  <script src="js/theme-loader.js" defer></script>
+  <script>
+    // keep theme loading early
+    const school = localStorage.getItem("selectedSchool") || "dlsu";
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = `css/style-${school}.css`;
+    document.head.appendChild(link);
+  </script>
+  <style>
+    .star-rating { display:flex; gap:4px; font-size:28px; cursor:pointer; }
+    .star { color:#ccc; transition: color .18s; }
+    .star.selected, .star.hovered { color: #FFD700; }
+    .prof-photo { max-width:120px; border-radius:8px; display:block; margin:8px 0; }
+  </style>
 </head>
 <body>
   <header class="site-header">
     <h1>Professor Details</h1>
     <nav>
       <a href="index.html">Home</a>
+      <button onclick="changeSchool()">Change School</button>
+      <script>
+        function changeSchool() {
+          localStorage.removeItem('selectedSchool');
+          window.location.href = 'school.html';
+        }
+      </script>
     </nav>
   </header>
 
   <div class="container">
-    <!-- Professor info -->
     <div id="prof-details" class="card"></div>
 
-    <!-- Rating form -->
     <form id="rating-form">
-  <div id="star-container" class="star-rating">
-    <span data-star="1" class="star">&#9734;</span>
-    <span data-star="2" class="star">&#9734;</span>
-    <span data-star="3" class="star">&#9734;</span>
-    <span data-star="4" class="star">&#9734;</span>
-    <span data-star="5" class="star">&#9734;</span>
-  </div>
-  <input type="hidden" id="stars" value="0" />
-  <br>
-  <label for="comment">Comment:</label><br>
-  <textarea id="comment" rows="3" style="width:100%"></textarea>
-  <br>
-  <button type="submit">Submit</button>
-</form>
+      <div id="star-container" class="star-rating">
+        <span data-star="1" class="star">&#9734;</span>
+        <span data-star="2" class="star">&#9734;</span>
+        <span data-star="3" class="star">&#9734;</span>
+        <span data-star="4" class="star">&#9734;</span>
+        <span data-star="5" class="star">&#9734;</span>
+      </div>
+      <input type="hidden" id="stars" value="0" />
+      <br/>
+      <label for="comment">Comment:</label><br/>
+      <textarea id="comment" rows="3" style="width:100%"></textarea>
+      <br/>
+      <button type="submit">Submit</button>
+    </form>
 
-<style>
-  .star-rating {
-    display: flex;
-    gap: 4px;
-    font-size: 28px;
-    cursor: pointer;
-  }
-  .star {
-    color: #ccc;
-    transition: color 0.2s;
-  }
-  .star.selected, .star.hovered {
-    color: #FFD700;
-  }
-</style>
-
-<script>
-  const starContainer = document.getElementById('star-container');
-  const hiddenStarsInput = document.getElementById('stars');
-  let selectedStars = 0;
-
-  starContainer.querySelectorAll('.star').forEach(star => {
-    star.addEventListener('mouseover', e => {
-      const value = parseInt(e.target.dataset.star);
-      starContainer.querySelectorAll('.star').forEach(s => {
-        s.classList.toggle('hovered', parseInt(s.dataset.star) <= value);
-      });
-    });
-
-    star.addEventListener('mouseout', () => {
-      starContainer.querySelectorAll('.star').forEach(s => s.classList.remove('hovered'));
-    });
-
-    star.addEventListener('click', e => {
-      selectedStars = parseInt(e.target.dataset.star);
-      hiddenStarsInput.value = selectedStars;
-      starContainer.querySelectorAll('.star').forEach(s => {
-        s.classList.toggle('selected', parseInt(s.dataset.star) <= selectedStars);
-      });
-    });
-  });
-</script>
-
-
-    <!-- Comments list -->
     <div class="panel">
       <h3>Comments</h3>
       <div id="comments"></div>
     </div>
 
-    <!-- Notes list -->
     <div class="panel">
       <h3>Notes</h3>
       <div id="notes"></div>
@@ -93,116 +67,156 @@
   </div>
 
   <script>
+  // All DOM logic runs after DOMContentLoaded to avoid "null" element errors.
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log("✅ DOM ready");
+
+    // get profId after DOM ready
     const profId = new URLSearchParams(window.location.search).get("id");
-    const token = localStorage.getItem("token");
-
-    async function loadProfessor() {
-  try {
-    const res = await fetch(`/api/profs/${profId}`);
-    const data = await res.json();
-
-    // --- handle missing or incomplete data gracefully ---
-    const prof = data.prof || {};
-    const comments = data.comments || [];
-    const notes = data.notes || [];
-
-    const details = document.getElementById("prof-details");
-
-    details.innerHTML = `
-      <h2>${prof.name || "Unknown Professor"}</h2>
-      <p><strong>Subject:</strong> ${prof.subject_code || ""} - ${prof.subject_name || ""}</p>
-      ${prof.photo_path ? `<img src="${prof.photo_path}" class="prof-photo">` : ""}
-      <p><strong>Workload:</strong> ${prof.workload || "N/A"}</p>
-      <p><strong>Teaching Style:</strong> ${prof.teaching_style || "N/A"}</p>
-      <p><strong>Tips:</strong> ${prof.tips || "N/A"}</p>
-      <p><strong>Plus Points:</strong> ${prof.plus_points || "N/A"}</p>
-      <p>
-        <strong>Average Rating:</strong>
-        <strong class="avg-rating">${prof.rating_avg ? prof.rating_avg.toFixed(2) : "0.00"}</strong>
-        <span>${'★'.repeat(Math.round(prof.rating_avg || 0))}${'☆'.repeat(5 - Math.round(prof.rating_avg || 0))}</span>
-        <small class="rating-count">(${prof.rating_count || 0} ratings)</small>
-      </p>
-    `;
-
-    // --- Always render comments section, even if empty ---
-    const commentsDiv = document.getElementById("comments");
-    commentsDiv.innerHTML = comments.length
-      ? comments.map(c => `
-          <div class="comment-item">
-            <strong>${c.anonymous ? "Anonymous" : c.display_name}</strong>
-            <span>${'★'.repeat(c.stars)}${'☆'.repeat(5 - c.stars)}</span>
-            <p>${c.comment || ""}</p>
-            <small>${new Date(c.created_at).toLocaleString()}</small>
-          </div>
-        `).join("")
-      : "<p>No comments yet.</p>";
-
-    // --- Always render notes section, even if empty ---
-    const notesDiv = document.getElementById("notes");
-    notesDiv.innerHTML = notes.length
-      ? notes.map(n => `
-          <div class="note-item">
-            <a href="${n.path}" target="_blank">${n.original_name}</a>
-            <p>${n.description || ""}</p>
-            <small>Uploaded by ${n.anonymous ? "Anonymous" : n.display_name} on ${new Date(n.created_at).toLocaleString()}</small>
-          </div>
-        `).join("")
-      : "<p>No notes yet.</p>";
-
-  } catch (err) {
-    console.error("Error loading professor:", err);
-    document.getElementById("prof-details").innerHTML =
-      "<p style='color:red;'>Error loading professor details. Please try again later.</p>";
-  }
-}
-
-
-    // Handle rating + comment submit
-  document.getElementById("rating-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const profId = new URLSearchParams(window.location.search).get('id');
-    const stars = parseInt(document.getElementById("stars").value) || 0;
-    const comment = document.getElementById("comment").value.trim();
-    const anonymous = false;
-
-    if (stars === 0) {
-      alert("Please select a star rating first!");
+    if (!profId) {
+      console.error("❌ No prof id in URL (use ?id=<profId>)");
+      document.getElementById('prof-details').innerHTML = '<p style="color:red">Professor ID missing in URL.</p>';
       return;
     }
 
-    const res = await fetch(`/api/profs/${profId}/rate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ stars, comment, anonymous })
+    // star UI setup
+    const starContainer = document.getElementById('star-container');
+    const hiddenStarsInput = document.getElementById('stars');
+    let selectedStars = 0;
+
+    if (starContainer) {
+      const stars = starContainer.querySelectorAll('.star');
+      stars.forEach(s => {
+        s.addEventListener('mouseover', (e) => {
+          const v = parseInt(e.target.dataset.star);
+          stars.forEach(x => x.classList.toggle('hovered', parseInt(x.dataset.star) <= v));
+        });
+        s.addEventListener('mouseout', () => stars.forEach(x => x.classList.remove('hovered')));
+        s.addEventListener('click', (e) => {
+          selectedStars = parseInt(e.target.dataset.star);
+          hiddenStarsInput.value = selectedStars;
+          stars.forEach(x => x.classList.toggle('selected', parseInt(x.dataset.star) <= selectedStars));
+        });
+      });
+    } else {
+      console.error("❌ starContainer not found");
+    }
+
+    // load professor details and comments/notes
+    async function loadProfessor() {
+      try {
+        const school = localStorage.getItem("selectedSchool") || "dlsu";
+        const res = await fetch(`/api/profs/${profId}?school=${school}`);
+        if (!res.ok) {
+          console.error("Error fetching professor:", res.status);
+          document.getElementById("prof-details").innerHTML = "<p style='color:red'>Failed to load professor details.</p>";
+          return;
+        }
+        const data = await res.json();
+        const prof = data.prof || {};
+        const comments = data.comments || [];
+        const notes = data.notes || [];
+
+        const details = document.getElementById("prof-details");
+        details.innerHTML = `
+          <h2>${prof.name || "Unknown Professor"}</h2>
+          <p><strong>Subject:</strong> ${prof.subject_code || ""} ${prof.subject_name ? '- ' + prof.subject_name : ''}</p>
+          ${prof.photo_path ? `<img src="${prof.photo_path}" class="prof-photo">` : ''}
+          <p><strong>Workload:</strong> ${prof.workload || "N/A"}</p>
+          <p><strong>Teaching Style:</strong> ${prof.teaching_style || "N/A"}</p>
+          <p><strong>Tips:</strong> ${prof.tips || "N/A"}</p>
+          <p><strong>Plus Points:</strong> ${prof.plus_points || "N/A"}</p>
+          <p>
+            <strong>Average Rating:</strong>
+            <strong class="avg-rating">${prof.rating_avg ? Number(prof.rating_avg).toFixed(2) : "0.00"}</strong>
+            <span>${'★'.repeat(Math.round(prof.rating_avg || 0))}${'☆'.repeat(5 - Math.round(prof.rating_avg || 0))}</span>
+            <small class="rating-count">(${prof.rating_count || 0} ratings)</small>
+          </p>
+        `;
+
+        // render comments
+        const commentsDiv = document.getElementById("comments");
+        commentsDiv.innerHTML = comments.length
+          ? comments.map(c => `
+              <div class="comment-item" style="margin-bottom:10px">
+                <strong>${c.anonymous ? "Anonymous" : (c.display_name || "User")}</strong>
+                <span style="margin-left:8px">${'★'.repeat(c.stars)}${'☆'.repeat(5 - c.stars)}</span>
+                <p style="margin:6px 0;">${c.comment || ""}</p>
+                <small style="color:#666">${c.created_at ? new Date(c.created_at).toLocaleString() : ''}</small>
+              </div>
+            `).join('')
+          : "<p>No comments yet.</p>";
+
+        // render notes
+        const notesDiv = document.getElementById("notes");
+        notesDiv.innerHTML = notes.length
+          ? notes.map(n => `
+              <div class="note-item" style="margin-bottom:10px">
+                <a href="${n.path}" target="_blank">${n.original_name}</a>
+                <p style="margin:6px 0">${n.description || ""}</p>
+                <small style="color:#666">Uploaded by ${n.anonymous ? "Anonymous" : (n.display_name || "User")} on ${n.created_at ? new Date(n.created_at).toLocaleString() : ''}</small>
+              </div>
+            `).join('')
+          : "<p>No notes yet.</p>";
+
+      } catch (err) {
+        console.error("Error loading professor:", err);
+        document.getElementById("prof-details").innerHTML = "<p style='color:red'>Error loading professor details. Please try again later.</p>";
+      }
+    }
+
+    // submit handler
+    const ratingForm = document.getElementById("rating-form");
+    if (!ratingForm) {
+      console.error("❌ rating-form element not found");
+      return;
+    }
+
+    ratingForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      console.log("📩 Rating form submitted");
+
+      const stars = parseInt(document.getElementById("stars").value) || 0;
+      const comment = document.getElementById("comment").value.trim();
+      const anonymous = false;
+
+      if (stars === 0) {
+        alert("Please select a star rating first!");
+        return;
+      }
+
+      const school = localStorage.getItem("selectedSchool") || "dlsu";
+
+      try {
+        const res = await fetch(`/api/profs/${profId}/rate?school=${school}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ stars, comment, anonymous })
+        });
+
+        console.log("🧾 POST status:", res.status);
+        const data = await res.json();
+        console.log("📦 POST response:", data);
+
+        if (data.ok) {
+          // refresh UI to show new comment & updated average
+          await loadProfessor();
+          ratingForm.reset();
+          document.querySelectorAll('.star').forEach(s => s.classList.remove('selected'));
+          document.getElementById('stars').value = 0;
+          selectedStars = 0;
+        } else {
+          alert(data.error || "Failed to submit rating.");
+        }
+      } catch (err) {
+        console.error("🚨 Submit error:", err);
+        alert("Network or server error when submitting rating.");
+      }
     });
 
-    const data = await res.json();
-
-    if (data.ok) {
-      alert("Thanks for your rating!");
-      document.getElementById("rating-form").reset();
-      document.querySelectorAll('.star').forEach(s => s.classList.remove('selected'));
-      document.getElementById('stars').value = 0;
-      const avgDisplay = document.querySelector("#prof-details strong.avg-rating");
-      const countDisplay = document.querySelector("#prof-details small.rating-count");
-      if (avgDisplay && countDisplay) {
-        avgDisplay.textContent = data.avg.toFixed(2);
-        countDisplay.textContent = `(${data.count} ratings)`;
-      }
-      loadProfessor();
-    } else {
-      alert(data.error || "Failed to submit rating. Please try again.");
-    }
+    // initial load
+    loadProfessor();
   });
-
-  // ✅ Ensure the professor loads immediately on page open
-  loadProfessor();
-</script>
-</body>
-</html>
-
-
   </script>
 </body>
 </html>

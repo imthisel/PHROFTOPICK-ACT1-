@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Your School — PROFS TO RATE PH</title>
+  <link rel="stylesheet" href="css/base.css">
+<script src="js/theme-loader.js" defer></script>
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #e9f5ec, #f7faf9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .school-container {
+      background: white;
+      padding: 50px 70px;
+      border-radius: 25px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+      text-align: center;
+      max-width: 600px;
+    }
+    h1 {
+      font-size: 28px;
+      color: #222;
+      margin-bottom: 35px;
+    }
+    .school-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .school-btn {
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      color: white;
+      cursor: pointer;
+      padding: 20px;
+      transition: 0.3s;
+      font-weight: 500;
+    }
+    .school-btn:hover { transform: scale(1.05); }
+
+    .dlsu { background: #00703c; }
+    .ateneo { background: #003da5; }
+    .up { background: #7b1113; }
+    .benilde { background: #00843d; }
+  </style>
+</head>
+<body>
+  <div class="school-container fade-in">
+    <h1>Welcome to <strong>PROFS TO RATE PH</strong><br>Select your school to continue:</h1>
+    <div class="school-buttons">
+      <button class="school-btn dlsu" onclick="chooseSchool('dlsu')">DLSU Manila</button>
+      <button class="school-btn ateneo" onclick="chooseSchool('ateneo')">Ateneo de Manila</button>
+      <button class="school-btn up" onclick="chooseSchool('up')">UP Diliman</button>
+      <button class="school-btn benilde" onclick="chooseSchool('benilde')">DLSU Benilde</button>
+    </div>
+  </div>
+
+  <script>
+function chooseSchool(school) {
+  // Save selected school in localStorage
+  localStorage.setItem("selectedSchool", school);
+
+  // Optional: verify in console
+  console.log("✅ Selected school:", school);
+
+  // Redirect to homepage (or your main page)
+  window.location.href = "home.html";
+}
+
+// Attach click events to all buttons
+document.getElementById("dlsu-btn").onclick = () => chooseSchool("dlsu");
+document.getElementById("ateneo-btn").onclick = () => chooseSchool("ateneo");
+document.getElementById("up-btn").onclick = () => chooseSchool("up");
+document.getElementById("benilde-btn").onclick = () => chooseSchool("benilde");
+</script>
+
+
+  <script>
+  // When a user picks a school, save and go to index
+  function chooseSchool(school) {
+    localStorage.setItem('selectedSchool', school);
+    window.location.href = 'index.html';
+  }
+
+  // Allow reselecting school anytime
+  window.addEventListener('DOMContentLoaded', () => {
+    localStorage.removeItem('token'); // optional: log out when switching
+    localStorage.removeItem('selectedSchool');
+  });
+</script>
+
+</body>
+</html>

@@ -1,62 +1,86 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>PROFSTORATEPH — Find Professors & Notes</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <!-- ✅ fixed path -->
-  <link rel="stylesheet" href="css/style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROFS TO RATE PH — Home</title>
+
+  <!-- Base design -->
+  <link rel="stylesheet" href="css/base.css">
+  <!-- Theme loader -->
+  <script src="js/theme-loader.js" defer></script>
 </head>
+
 <body>
+  <!-- ===== HEADER ===== -->
   <header class="site-header">
-    <h1>PROFSTORATEPH.com</h1>
-    <div id="auth-area">
+    <div class="logo-area">
+      <img src="" class="school-logo" alt="School Logo">
+      <h1>PROFS TO RATE PH</h1>
+    </div>
+    <nav>
       <button id="btn-show-login">Login</button>
-      <button id="btn-show-signup">Sign up</button>
+      <button id="btn-show-signup">Sign Up</button>
       <button id="btn-logout" style="display:none;">Logout</button>
       <span id="user-name" style="display:none;"></span>
-    </div>
+      <button onclick="changeSchool()">Change School</button>
+    </nav>
   </header>
 
-  <main class="container">
-    <section class="search-panel">
-      <input id="subject-search" placeholder="Type course code or name (eg. CS101, Calculus)..." />
-      <button id="btn-search">Search Subjects</button>
+  <!-- ===== CONTENT ===== -->
+  <main class="container fade-in">
+    <!-- Search -->
+    <div class="search-panel">
+      <input id="subject-search" type="text" placeholder="Search subject...">
+      <button id="btn-search">Search</button>
       <button id="btn-list-all">List All Subjects</button>
-    </section>
+    </div>
 
-    <section id="subjects-list" class="results"></section>
+    <!-- Cards appear here -->
+    <div id="subjects-list" class="results"></div>
 
-    <section id="global-search" class="search-panel">
-      <input id="prof-search" placeholder="Or search professor name or subject..." />
+    <!-- Browse Buttons -->
+    <div style="margin-top: 40px; text-align: center;">
+      <button id="btn-prof-search-page" class="btn">Browse Professors</button>
+      <button id="btn-subject-page" class="btn">Browse Subjects</button>
+    </div>
+
+    <!-- Professor Search -->
+    <div class="search-panel" style="margin-top: 50px;">
+      <input id="prof-search" type="text" placeholder="Or search professor name or subject...">
       <button id="btn-prof-search">Find Professors</button>
-    </section>
+    </div>
 
-    <section id="prof-list" class="results"></section>
+    <div id="prof-list"></div>
 
-    <hr />
-    <section id="upload-section" class="panel">
+    <!-- Upload Form -->
+    <div class="panel" style="margin-top: 50px;">
       <h3>Upload Notes (requires login)</h3>
       <form id="upload-form">
-        <input type="text" id="upload-subject-id" placeholder="Subject ID (optional)" />
-        <input type="text" id="upload-prof-id" placeholder="Professor ID (optional)" />
-        <input type="file" id="upload-file" required />
-        <input type="text" id="upload-desc" placeholder="Short description" />
-        <button>Upload</button>
+        <input id="upload-subject-id" placeholder="Subject ID (optional)">
+        <input id="upload-prof-id" placeholder="Professor ID (optional)">
+        <input type="file" id="upload-file">
+        <input id="upload-desc" placeholder="Short description">
+        <button type="submit">Upload</button>
       </form>
       <div id="upload-result"></div>
-    </section>
+    </div>
   </main>
 
-  <!-- Simple modals for login/signup -->
+  <!-- ===== MODAL ===== -->
   <div id="modal" class="modal hidden">
-    <div class="modal-inner">
-      <button id="modal-close">X</button>
-      <div id="modal-content"></div>
-    </div>
+    <div class="modal-inner" id="modal-content"></div>
+    <button id="modal-close">✕</button>
   </div>
 
-  <!-- ✅ fixed path -->
+  <!-- ===== JS ===== -->
   <script src="js/app.js"></script>
+
+  <script>
+    function changeSchool() {
+      localStorage.removeItem('selectedSchool');
+      window.location.href = 'school.html';
+    }
+  </script>
 </body>
 </html>

@@ -1,14 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Subject Details</title>
-  <link rel="stylesheet" href="css/style.css">
+
+  <!-- ✅ Load base styles first -->
+  <link rel="stylesheet" href="css/base.css">
+
+  <!-- ✅ Load school theme dynamically AFTER base -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      let school = localStorage.getItem("selectedSchool") || "dlsu";
+      const themeLink = document.createElement("link");
+      themeLink.rel = "stylesheet";
+      themeLink.href = `css/style-${school}.css`;
+      document.head.appendChild(themeLink);
+      console.log("🎨 Loaded theme:", themeLink.href);
+    });
+  </script>
+</head>
+
 </head>
 <body>
   <header class="site-header">
-    <h1>Subject Details</h1>
+    <div class="logo-area"></div>
+    <h1></h1>
     <nav>
       <a href="index.html">Home</a>
     </nav>
@@ -39,9 +57,19 @@
   <script>
     const subjectId = new URLSearchParams(window.location.search).get('id');
     const token = localStorage.getItem('token');
+    const school = localStorage.getItem('selectedSchool') || 'dlsu';
 
+    // ✅ Update header + logo based on school
+    document.addEventListener("DOMContentLoaded", () => {
+      const header = document.querySelector(".site-header h1");
+      const logoArea = document.querySelector(".logo-area");
+      if (header) header.textContent = `${school.toUpperCase()} — PROFS TO RATE PH`;
+      if (logoArea) logoArea.innerHTML = `<img src="images/${school}-logo.png" class="school-logo" alt="${school} logo">`;
+    });
+
+    // ✅ Always include ?school= parameter in every API call
     async function loadSubject() {
-      const res = await fetch(`/api/subjects/${subjectId}`);
+      const res = await fetch(`/api/subjects/${subjectId}?school=${school}`);
       const data = await res.json();
 
       const subject = data.subject;
@@ -64,6 +92,7 @@
       }
     }
 
+    // ✅ Include school in upload requests too
     document.getElementById('upload-subject-form').addEventListener('submit', async e => {
       e.preventDefault();
       if (!token) return alert('You must be logged in to upload notes.');
@@ -77,18 +106,18 @@
       fd.append('subject_id', subjectId);
       fd.append('description', desc);
 
-      const res = await fetch('/api/upload', {
+      const res = await fetch(`/api/upload?school=${school}`, {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token },
         body: fd
       });
-      const data = await res.json();
 
+      const data = await res.json();
       if (data.error) {
         document.getElementById('upload-result').textContent = 'Upload failed: ' + data.error;
       } else {
         document.getElementById('upload-result').innerHTML = `Uploaded! <a href="${data.path}" target="_blank">View note</a>`;
-        loadSubject(); // refresh notes list
+        loadSubject();
       }
     });
 
