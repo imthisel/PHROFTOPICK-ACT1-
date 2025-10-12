@@ -27,32 +27,36 @@
   <header class="site-header">
     <div class="logo-area"></div>
     <h1></h1>
-    <nav>
-      <a href="index.html">Home</a>
-    </nav>
+    <!-- 👇 Replaced Home link with a clean Back to Home button -->
+    <a href="index.html" class="back-home-btn">← Back to Home</a>
   </header>
 
-  <div class="container">
-    <!-- Subject info -->
-    <div id="subject-details" class="card"></div>
+  <main class="subject-page container fade-in">
+    <!-- 📘 Subject info -->
+    <section id="subject-details" class="subject-card card">
+      <!-- Content filled dynamically -->
+    </section>
 
-    <!-- Notes Upload -->
-    <div class="panel">
-      <h3>Upload Notes for this Subject</h3>
-      <form id="upload-subject-form">
-        <input type="file" id="note-file" required>
-        <input type="text" id="note-desc" placeholder="Short description (optional)">
-        <button type="submit">Upload</button>
-      </form>
-      <div id="upload-result"></div>
-    </div>
+    <div class="subject-content">
+      <!-- ✍️ Upload Section -->
+      <section class="panel upload-panel">
+        <h2>Upload Notes</h2>
+        <form id="upload-subject-form" class="upload-form">
+          <input type="file" id="note-file" required>
+          <input type="text" id="note-desc" placeholder="Short description (optional)">
+          <button type="submit">Upload</button>
+        </form>
+        <div id="upload-result"></div>
+      </section>
 
-    <!-- Notes list -->
-    <div class="panel">
-      <h3>All Notes for this Subject</h3>
-      <div id="notes"></div>
+      <!-- 📂 Notes Section -->
+      <section class="panel notes-panel">
+        <h2>All Notes</h2>
+        <div id="notes" class="notes-list"></div>
+      </section>
     </div>
-  </div>
+  </main>
+
 
   <script>
     const subjectId = new URLSearchParams(window.location.search).get('id');

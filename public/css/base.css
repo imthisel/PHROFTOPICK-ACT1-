@@ -297,3 +297,169 @@ body {
     opacity: 1;
   }
 }
+
+/* ========= SUBJECT PAGE ========= */
+.subject-page {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.subject-card {
+  text-align: center;
+  padding: 25px;
+}
+
+.subject-card h2 {
+  color: var(--primary);
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+
+.subject-card p {
+  font-size: 1rem;
+  color: #444;
+}
+
+/* Layout for upload + notes */
+.subject-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+.upload-panel, .notes-panel {
+  padding: 20px;
+}
+
+.upload-panel h2, .notes-panel h2 {
+  font-size: 1.4rem;
+  color: var(--primary);
+  margin-bottom: 15px;
+}
+
+.upload-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.upload-form input[type="file"] {
+  flex: 1;
+}
+
+.upload-form input[type="text"] {
+  flex: 2;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.upload-form button {
+  background-color: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.upload-form button:hover {
+  background-color: var(--accent);
+}
+
+/* Notes list styling */
+.notes-list .note-item {
+  background: #fff;
+  padding: 14px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  margin-bottom: 12px;
+}
+
+.notes-list .note-item a {
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.notes-list .note-item small {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #777;
+}
+
+/* Back home button */
+.back-home-btn {
+  background: white;
+  color: var(--primary);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: 0.25s;
+}
+
+.back-home-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ========= SCHOOL SELECTION PAGE ========= */
+.school-container {
+  background: white;
+  padding: 60px 70px;
+  border-radius: 25px;
+  box-shadow: 0 10px 50px rgba(0,0,0,0.08);
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+.school-container h1 {
+  font-size: 26px;
+  color: #1f1f1f;
+  margin-bottom: 10px;
+  font-weight: 500;         /* less bold than before */
+  letter-spacing: 0.5px;
+}
+
+.school-container p {
+  font-size: 17px;
+  color: #444;
+  margin-bottom: 35px;
+  line-height: 1.4;
+}
+
+.school-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.school-btn {
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  color: white;
+  cursor: pointer;
+  padding: 18px;
+  transition: 0.25s ease;
+  font-weight: 500;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  background-image: linear-gradient(to bottom, rgba(255,255,255,0.08), rgba(0,0,0,0.08));
+  background-blend-mode: overlay;
+}
+
+.school-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+/* Button colors */
+.school-btn.dlsu { background: #00703c; }
+.school-btn.at

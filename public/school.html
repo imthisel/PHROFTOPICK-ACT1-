@@ -5,55 +5,97 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Select Your School — PROFS TO RATE PH</title>
   <link rel="stylesheet" href="css/base.css">
-<script src="js/theme-loader.js" defer></script>
+  <script src="js/theme-loader.js" defer></script>
 
   <style>
+    /* ===== BACKGROUND ===== */
     body {
       background: linear-gradient(135deg, #e9f5ec, #f7faf9);
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      font-family: "Poppins", sans-serif;
     }
+
+    /* ===== CONTAINER ===== */
     .school-container {
       background: white;
-      padding: 50px 70px;
+      padding: 60px 70px;
       border-radius: 25px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+      box-shadow: 0 10px 50px rgba(0,0,0,0.08);
       text-align: center;
       max-width: 600px;
+      width: 100%;
+      animation: fadeIn 0.6s ease-in-out;
     }
-    h1 {
-      font-size: 28px;
-      color: #222;
+
+    /* ===== HEADER TEXT ===== */
+    .school-container h1 {
+      font-size: 26px;
+      color: #1f1f1f;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .school-container p {
+      font-size: 17px;
+      color: #444;
       margin-bottom: 35px;
+      line-height: 1.4;
     }
+
+    /* ===== BUTTON GRID ===== */
     .school-buttons {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
     }
+
+    /* ===== BUTTON STYLE ===== */
     .school-btn {
       border: none;
       border-radius: 12px;
       font-size: 18px;
       color: white;
       cursor: pointer;
-      padding: 20px;
-      transition: 0.3s;
+      padding: 18px;
+      transition: 0.25s ease;
       font-weight: 500;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     }
-    .school-btn:hover { transform: scale(1.05); }
 
+    .school-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    }
+
+    /* ===== SCHOOL COLORS ===== */
     .dlsu { background: #00703c; }
     .ateneo { background: #003da5; }
     .up { background: #7b1113; }
     .benilde { background: #00843d; }
+
+    /* ===== ANIMATION ===== */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      .school-buttons {
+        grid-template-columns: 1fr;
+      }
+      .school-container {
+        padding: 40px 30px;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="school-container fade-in">
-    <h1>Welcome to <strong>PROFS TO RATE PH</strong><br>Select your school to continue:</h1>
+<div class="school-container">
+    <h1>Welcome to PROFS TO RATE PH</h1>
+    <p>Select your school to continue:</p>
     <div class="school-buttons">
       <button class="school-btn dlsu" onclick="chooseSchool('dlsu')">DLSU Manila</button>
       <button class="school-btn ateneo" onclick="chooseSchool('ateneo')">Ateneo de Manila</button>
@@ -63,38 +105,11 @@
   </div>
 
   <script>
-function chooseSchool(school) {
-  // Save selected school in localStorage
-  localStorage.setItem("selectedSchool", school);
-
-  // Optional: verify in console
-  console.log("✅ Selected school:", school);
-
-  // Redirect to homepage (or your main page)
-  window.location.href = "home.html";
-}
-
-// Attach click events to all buttons
-document.getElementById("dlsu-btn").onclick = () => chooseSchool("dlsu");
-document.getElementById("ateneo-btn").onclick = () => chooseSchool("ateneo");
-document.getElementById("up-btn").onclick = () => chooseSchool("up");
-document.getElementById("benilde-btn").onclick = () => chooseSchool("benilde");
-</script>
-
-
-  <script>
-  // When a user picks a school, save and go to index
-  function chooseSchool(school) {
-    localStorage.setItem('selectedSchool', school);
-    window.location.href = 'index.html';
-  }
-
-  // Allow reselecting school anytime
-  window.addEventListener('DOMContentLoaded', () => {
-    localStorage.removeItem('token'); // optional: log out when switching
-    localStorage.removeItem('selectedSchool');
-  });
-</script>
-
+    function chooseSchool(school) {
+      localStorage.setItem("selectedSchool", school);
+      localStorage.removeItem('token'); // optional: clear session on switch
+      window.location.href = "index.html"; // redirect to homepage
+    }
+  </script>
 </body>
 </html>
