@@ -64,7 +64,21 @@
       const header = document.querySelector(".site-header h1");
       const logoArea = document.querySelector(".logo-area");
       if (header) header.textContent = `${school.toUpperCase()} — PROFS TO RATE PH`;
-      if (logoArea) logoArea.innerHTML = `<img src="images/${school}-logo.png" class="school-logo" alt="${school} logo">`;
+      if (logoArea) {
+  const img = document.createElement('img');
+  img.className = 'school-logo';
+  img.alt = `${school} logo`;
+  img.src = `images/${school}-logo.png`;
+  img.onerror = () => { img.src = `images/${school}-logo.jpeg`; };
+
+  const link = document.createElement('a');
+  link.href = window.location.origin + '/index.html'; // 👈 this works from subject.html or any page
+  link.appendChild(img);
+
+  logoArea.innerHTML = '';
+  logoArea.appendChild(link);
+}
+
     });
 
     // ✅ Always include ?school= parameter in every API call

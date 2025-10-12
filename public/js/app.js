@@ -12,7 +12,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoArea = document.querySelector(".logo-area");
 
   if (header) header.textContent = `${school.toUpperCase()} — PROFS TO RATE PH`;
-  if (logoArea) logoArea.innerHTML = `<img src="images/${school}-logo.png" class="school-logo" alt="${school} logo">`;
+  if (logoArea) {
+  const img = document.createElement('img');
+  img.className = 'school-logo';
+  img.alt = `${school} logo`;
+  img.src = `images/${school}-logo.png`; // Try PNG first
+  img.onerror = () => { img.src = `images/${school}-logo.jpeg`; }; // Fallback to JPEG
+
+  // ✅ Make the logo clickable
+  const link = document.createElement('a');
+  link.href = '/';
+  // this is your homepage
+  link.appendChild(img);
+
+  logoArea.innerHTML = '';
+  logoArea.appendChild(link);
+}
+
 });
 
 
