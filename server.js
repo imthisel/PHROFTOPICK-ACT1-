@@ -136,6 +136,63 @@ app.get('/api/subjects/:id/profs', (req, res) => {
     }
   );
 });
+
+// =================== PROFESSOR SEARCH ROUTE (improved + debug) ===================
+app.get('/api/profs/search', (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const db = getDb(school);
+  const qRaw = req.query.q || '';
+  const q = qRaw.trim();
+
+  console.log(`🔎 /api/profs/search called — school=${school} q="${qRaw}"`);
+
+  if (!q) {
+    db.close();
+    console.log('  -> empty query, returning []');
+    return res.json({ professors: [] });
+  }
+
+  // Use COLLATE NOCASE to avoid case sensitivity issues in sqlite
+  const sql = `
+    SELECT p.id, p.name, p.photo_path,
+           s.id AS subject_id, s.code AS subject_code, s.name AS subject_name,
+           p.rating_avg, p.rating_count, p.workload
+    FROM professors p
+    LEFT JOIN subjects s ON p.subject_id = s.id
+    WHERE p.name LIKE ? COLLATE NOCASE
+       OR s.name LIKE ? COLLATE NOCASE
+       OR s.code LIKE ? COLLATE NOCASE
+    ORDER BY p.name ASC
+  `;
+  const like = `%${q}%`;
+  const params = [like, like, like];
+
+  db.all(sql, params, (err, rows) => {
+    if (err) {
+      console.error('❌ DB error on /api/profs/search:', err);
+      db.close();
+      return res.status(500).json({ error: 'DB error' });
+    }
+
+    console.log(`  -> found ${rows.length} professor(s)`);
+    // Normalize fields so front-end sees predictable keys
+    const profs = rows.map(r => ({
+      id: r.id,
+      name: r.name,
+      photo_path: r.photo_path,
+      subject_id: r.subject_id,
+      subject_code: r.subject_code,
+      subject_name: r.subject_name,
+      rating_avg: r.rating_avg,
+      rating_count: r.rating_count,
+      workload: r.workload
+    }));
+
+    db.close();
+    return res.json({ professors: profs });
+  });
+});
+
 // =================== PROFESSOR DETAILS ROUTE ===================
 app.get('/api/profs/:id', (req, res) => {
   const school = req.query.school || 'dlsu';
@@ -167,6 +224,10 @@ app.get('/api/profs/:id', (req, res) => {
     });
   });
 });
+
+
+
+
 
 // =================== POST RATING + COMMENT ROUTE ===================
 app.post('/api/profs/:id/rate', (req, res) => {
