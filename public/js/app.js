@@ -91,6 +91,25 @@ const userNameSpan = document.getElementById('user-name');
 const uploadForm = document.getElementById('upload-form');
 const uploadResult = document.getElementById('upload-result');
 
+// ==================== ENTER KEY SEARCH TRIGGERS ====================
+
+// When user presses Enter inside the Subject search input
+subjectSearch.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault(); // prevent form submission or page reload
+    btnSearch.click();  // trigger the "Search" button click
+  }
+});
+
+// When user presses Enter inside the Professor search input
+profSearchInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    btnProfSearch.click(); // trigger the "Find Professors" button click
+  }
+});
+
+
 // Modal
 function showModal(html) {
   modalContent.innerHTML = html;

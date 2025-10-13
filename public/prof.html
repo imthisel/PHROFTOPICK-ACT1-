@@ -22,19 +22,8 @@
   </style>
 </head>
 <body>
-  <header class="site-header">
-    <h1>Professor Details</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <button onclick="changeSchool()">Change School</button>
-      <script>
-        function changeSchool() {
-          localStorage.removeItem('selectedSchool');
-          window.location.href = 'school.html';
-        }
-      </script>
-    </nav>
-  </header>
+  <div id="header-placeholder"></div>
+
 
   <div class="container">
     <div id="prof-details" class="card"></div>
@@ -218,5 +207,72 @@
     loadProfessor();
   });
   </script>
+
+  <script>
+  // Load shared header dynamically
+  document.addEventListener("DOMContentLoaded", async () => {
+    const headerContainer = document.getElementById("header-placeholder");
+    const res = await fetch("components/header.html");
+    const html = await res.text();
+    headerContainer.innerHTML = html;
+
+    // Once header is loaded, initialize its JS
+    initializeHeader();
+  });
+
+  function initializeHeader() {
+    const school = localStorage.getItem("selectedSchool") || "dlsu";
+    const header = document.querySelector(".site-header h1");
+    const logoArea = document.querySelector(".logo-area");
+
+    if (header) {
+      header.innerHTML = `${school.toUpperCase()} — PHROFSTOPICK<br><span class="business-name"></span>`;
+    }
+
+    if (logoArea) {
+      const img = logoArea.querySelector(".school-logo");
+      img.src = `images/${school}-logo.png`;
+      img.onerror = () => { img.src = `images/${school}-logo.jpeg`; };
+      img.alt = `${school} logo`;
+    }
+
+    // Auth UI setup
+    const btnShowLogin = document.getElementById("btn-show-login");
+    const btnShowSignup = document.getElementById("btn-show-signup");
+    const btnLogout = document.getElementById("btn-logout");
+    const userNameSpan = document.getElementById("user-name");
+
+    function updateAuthUI() {
+      const token = localStorage.getItem("token");
+      if (token) {
+        btnShowLogin.style.display = "none";
+        btnShowSignup.style.display = "none";
+        btnLogout.style.display = "inline-block";
+        userNameSpan.style.display = "inline-block";
+        userNameSpan.textContent = localStorage.getItem("user_display") || "You";
+      } else {
+        btnShowLogin.style.display = "inline-block";
+        btnShowSignup.style.display = "inline-block";
+        btnLogout.style.display = "none";
+        userNameSpan.style.display = "none";
+      }
+    }
+    updateAuthUI();
+
+    btnLogout.onclick = () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user_display");
+      updateAuthUI();
+      alert("Logged out");
+    };
+  }
+
+  function changeSchool() {
+    localStorage.removeItem("selectedSchool");
+    window.location.href = "school.html";
+  }
+</script>
+
+
 </body>
 </html>
