@@ -24,12 +24,10 @@
 
 </head>
 <body>
-  <header class="site-header">
-    <div class="logo-area"></div>
-    <h1></h1>
-    <!-- 👇 Replaced Home link with a clean Back to Home button -->
-    <a href="index.html" class="back-home-btn">← Back to Home</a>
-  </header>
+  <div id="header-placeholder"></div>
+
+
+
 
   <main class="subject-page container fade-in">
     <!-- 📘 Subject info -->
@@ -141,5 +139,80 @@
 
     loadSubject();
   </script>
+
+  <script src="js/app.js"></script>
+<script>
+  function changeSchool() {
+    localStorage.removeItem('selectedSchool');
+    window.location.href = 'school.html';
+  }
+</script>
+<div id="header-placeholder"></div>
+
+<script>
+  // Load shared header dynamically
+  document.addEventListener("DOMContentLoaded", async () => {
+    const headerContainer = document.getElementById("header-placeholder");
+    const res = await fetch("components/header.html");
+    const html = await res.text();
+    headerContainer.innerHTML = html;
+
+    // Once header is loaded, initialize its JS
+    initializeHeader();
+  });
+
+  function initializeHeader() {
+    const school = localStorage.getItem("selectedSchool") || "dlsu";
+    const header = document.querySelector(".site-header h1");
+    const logoArea = document.querySelector(".logo-area");
+
+    if (header) {
+      header.innerHTML = `${school.toUpperCase()} — PHROFSTOPICK<br><span class="business-name"></span>`;
+    }
+
+    if (logoArea) {
+      const img = logoArea.querySelector(".school-logo");
+      img.src = `images/${school}-logo.png`;
+      img.onerror = () => { img.src = `images/${school}-logo.jpeg`; };
+      img.alt = `${school} logo`;
+    }
+
+    // Auth UI setup
+    const btnShowLogin = document.getElementById("btn-show-login");
+    const btnShowSignup = document.getElementById("btn-show-signup");
+    const btnLogout = document.getElementById("btn-logout");
+    const userNameSpan = document.getElementById("user-name");
+
+    function updateAuthUI() {
+      const token = localStorage.getItem("token");
+      if (token) {
+        btnShowLogin.style.display = "none";
+        btnShowSignup.style.display = "none";
+        btnLogout.style.display = "inline-block";
+        userNameSpan.style.display = "inline-block";
+        userNameSpan.textContent = localStorage.getItem("user_display") || "You";
+      } else {
+        btnShowLogin.style.display = "inline-block";
+        btnShowSignup.style.display = "inline-block";
+        btnLogout.style.display = "none";
+        userNameSpan.style.display = "none";
+      }
+    }
+    updateAuthUI();
+
+    btnLogout.onclick = () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user_display");
+      updateAuthUI();
+      alert("Logged out");
+    };
+  }
+
+  function changeSchool() {
+    localStorage.removeItem("selectedSchool");
+    window.location.href = "school.html";
+  }
+</script>
+
 </body>
 </html>
