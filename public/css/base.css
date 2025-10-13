@@ -463,3 +463,11 @@ body {
 /* Button colors */
 .school-btn.dlsu { background: #00703c; }
 .school-btn.at
+
+#subjects-list {
+  transition: opacity 0.3s ease;
+}
+
+#subjects-list.hidden {
+  opacity: 0;
+}

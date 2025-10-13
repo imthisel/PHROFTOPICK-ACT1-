@@ -241,10 +241,54 @@ btnSearch.onclick = async () => {
   const data = await api.searchSubjects(q);
   renderSubjects(data.subjects || []);
 };
+// Put this near your other button handlers in app.js
+let subjectsVisible = false; // toggle state
+
 btnListAll.onclick = async () => {
+  const subjectsContainer = document.getElementById('subjects-list');
+  if (!subjectsContainer) return;
+
+  const FADE_MS = 300;
+
+  // If visible -> fade out, then clear
+  if (subjectsVisible) {
+    // ensure transition is set
+    subjectsContainer.style.transition = `opacity ${FADE_MS}ms ease`;
+    // start fade-out
+    subjectsContainer.style.opacity = '0';
+
+    // after fade completes, clear HTML and reset opacity for next show
+    setTimeout(() => {
+      subjectsContainer.innerHTML = '';
+      // reset inline styles so next render starts from full opacity
+      subjectsContainer.style.transition = '';
+      subjectsContainer.style.opacity = '1';
+    }, FADE_MS);
+
+    btnListAll.textContent = 'List All';
+    subjectsVisible = false;
+    return;
+  }
+
+  // Otherwise fetch and render, with a small fade-in
   const data = await api.listSubjects();
   renderSubjects(data.subjects || []);
+
+  // start from invisible -> then fade in so transition is smooth
+  subjectsContainer.style.opacity = '0';
+  // force reflow so browser notices the change
+  // eslint-disable-next-line no-unused-expressions
+  subjectsContainer.offsetHeight;
+  subjectsContainer.style.transition = `opacity ${FADE_MS}ms ease`;
+  subjectsContainer.style.opacity = '1';
+
+  btnListAll.textContent = 'Hide All';
+  subjectsVisible = true;
 };
+
+
+
+
 
 function renderSubjects(list){
   if(!list || list.length===0){
