@@ -1,35 +1,31 @@
 // ==================== SCHOOL THEME LOADING ====================
 // Use the same school value loaded by theme-loader.js
 const school = window.__SELECTED_SCHOOL || localStorage.getItem('selectedSchool') || 'dlsu';
-const link = document.createElement("link");
-link.rel = "stylesheet";
-link.href = `css/style-${school}.css`;
-document.head.appendChild(link);
 
-// Change page name & logo
+// Dynamically load the school's CSS theme
+const themeLink = document.createElement("link");
+themeLink.rel = "stylesheet";
+themeLink.href = `css/style-${school}.css`;
+document.head.appendChild(themeLink);
+
+// ==================== HEADER SETUP ====================
 document.addEventListener("DOMContentLoaded", () => {
-  const header = document.querySelector(".site-header h1");
-  const logoArea = document.querySelector(".logo-area");
+  const headerTitle = document.getElementById("site-title");
+  const logoImg = document.querySelector(".school-logo");
 
-  if (header) header.textContent = `${school.toUpperCase()} — PROFS TO RATE PH`;
-  if (logoArea) {
-  const img = document.createElement('img');
-  img.className = 'school-logo';
-  img.alt = `${school} logo`;
-  img.src = `images/${school}-logo.png`; // Try PNG first
-  img.onerror = () => { img.src = `images/${school}-logo.jpeg`; }; // Fallback to JPEG
+  // ✅ Always show SCHOOL — PHROFSTOPICK
+  if (headerTitle) {
+    headerTitle.textContent = `${school.toUpperCase()} — PHROFSTOPICK`;
+  }
 
-  // ✅ Make the logo clickable
-  const link = document.createElement('a');
-  link.href = '/';
-  // this is your homepage
-  link.appendChild(img);
-
-  logoArea.innerHTML = '';
-  logoArea.appendChild(link);
-}
-
+  // ✅ Update logo image without deleting the title
+  if (logoImg) {
+    logoImg.src = `images/${school}-logo.png`;
+    logoImg.onerror = () => { logoImg.src = `images/${school}-logo.jpeg`; };
+  }
 });
+
+
 
 
 // ==================== API FUNCTIONS ====================

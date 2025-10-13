@@ -33,11 +33,11 @@ body {
 .site-header {
   background: var(--primary);
   color: white;
-  padding: 18px 40px;
+  padding: 11px 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 4px solid var(--accent);
+  border-bottom: 3px solid var(--accent);
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
 }
 
