@@ -471,3 +471,11 @@ body {
 #subjects-list.hidden {
   opacity: 0;
 }
+
+#prof-list {
+  transition: opacity 0.3s ease;
+}
+
+#prof-list.fade-out {
+  opacity: 0;
+}

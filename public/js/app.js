@@ -329,12 +329,38 @@ function renderSubjects(list){
 }
 
 // Global professor search
+let profsVisible = false; // track toggle state
+let lastProfQuery = '';   // track last search query
+
 btnProfSearch.onclick = async () => {
   const q = profSearchInput.value.trim();
-  if(!q) return alert('Type a query');
+  const profListContainer = document.getElementById('prof-list');
+
+  // ✅ If professors are visible and the same query -> hide them
+  if (profsVisible && q === lastProfQuery) {
+  profListContainer.classList.add('fade-out');
+  setTimeout(() => {
+    profListContainer.innerHTML = '';
+    profListContainer.classList.remove('fade-out');
+  }, 300);
+  btnProfSearch.textContent = 'Find Professors';
+  profsVisible = false;
+  return;
+}
+
+
+  // ✅ Otherwise fetch and show professors
+  if (!q) return alert('Type a query');
+  
   const res = await api.searchProfs(q);
-  renderProfList(res.professors || [], profList);
+  renderProfList(res.professors || [], profListContainer);
+
+  btnProfSearch.textContent = 'Hide Professors';
+  profsVisible = true;
+  lastProfQuery = q;
 };
+
+
 
 // Render professors
 async function renderProfList(list, container){
