@@ -479,3 +479,14 @@ body {
 #prof-list.fade-out {
   opacity: 0;
 }
+
+/* Fix professor photo size inside cards */
+.prof-photo {
+  width: 80px;         /* 👈 small thumbnail */
+  height: 80px;        /* keep it square */
+  object-fit: cover;   /* crop perfectly */
+  border-radius: 10px; /* rounded corners */
+  display: block;
+  margin: 0 auto 10px auto; /* center + spacing below */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
