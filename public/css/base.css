@@ -33,7 +33,7 @@ body {
 .site-header {
   background: var(--primary);
   color: white;
-  padding: 11px 40px;
+  padding: 7px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -44,7 +44,7 @@ body {
 .site-header .logo-area {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 7px;
 }
 
 .site-header .logo-area img {
