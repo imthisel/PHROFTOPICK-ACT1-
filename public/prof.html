@@ -21,9 +21,9 @@
     .prof-photo { max-width:120px; border-radius:8px; display:block; margin:8px 0; }
   </style>
 </head>
+
 <body>
   <div id="header-placeholder"></div>
-
 
   <div class="container">
     <div id="prof-details" class="card"></div>
@@ -55,49 +55,45 @@
     </div>
   </div>
 
+  <!-- =============== JS SECTION =============== -->
   <script>
   // All DOM logic runs after DOMContentLoaded to avoid "null" element errors.
   document.addEventListener('DOMContentLoaded', () => {
     console.log("✅ DOM ready");
 
-    // get profId after DOM ready
     const profId = new URLSearchParams(window.location.search).get("id");
     if (!profId) {
-      console.error("❌ No prof id in URL (use ?id=<profId>)");
       document.getElementById('prof-details').innerHTML = '<p style="color:red">Professor ID missing in URL.</p>';
       return;
     }
 
-    // star UI setup
     const starContainer = document.getElementById('star-container');
     const hiddenStarsInput = document.getElementById('stars');
     let selectedStars = 0;
 
+    // Star rating UI
     if (starContainer) {
       const stars = starContainer.querySelectorAll('.star');
       stars.forEach(s => {
-        s.addEventListener('mouseover', (e) => {
+        s.addEventListener('mouseover', e => {
           const v = parseInt(e.target.dataset.star);
           stars.forEach(x => x.classList.toggle('hovered', parseInt(x.dataset.star) <= v));
         });
         s.addEventListener('mouseout', () => stars.forEach(x => x.classList.remove('hovered')));
-        s.addEventListener('click', (e) => {
+        s.addEventListener('click', e => {
           selectedStars = parseInt(e.target.dataset.star);
           hiddenStarsInput.value = selectedStars;
           stars.forEach(x => x.classList.toggle('selected', parseInt(x.dataset.star) <= selectedStars));
         });
       });
-    } else {
-      console.error("❌ starContainer not found");
     }
 
-    // load professor details and comments/notes
+    // Load professor details
     async function loadProfessor() {
       try {
         const school = localStorage.getItem("selectedSchool") || "dlsu";
         const res = await fetch(`/api/profs/${profId}?school=${school}`);
         if (!res.ok) {
-          console.error("Error fetching professor:", res.status);
           document.getElementById("prof-details").innerHTML = "<p style='color:red'>Failed to load professor details.</p>";
           return;
         }
@@ -123,7 +119,7 @@
           </p>
         `;
 
-        // render comments
+        // Comments
         const commentsDiv = document.getElementById("comments");
         commentsDiv.innerHTML = comments.length
           ? comments.map(c => `
@@ -136,7 +132,7 @@
             `).join('')
           : "<p>No comments yet.</p>";
 
-        // render notes
+        // Notes
         const notesDiv = document.getElementById("notes");
         notesDiv.innerHTML = notes.length
           ? notes.map(n => `
@@ -149,130 +145,59 @@
           : "<p>No notes yet.</p>";
 
       } catch (err) {
-        console.error("Error loading professor:", err);
-        document.getElementById("prof-details").innerHTML = "<p style='color:red'>Error loading professor details. Please try again later.</p>";
+        document.getElementById("prof-details").innerHTML = "<p style='color:red'>Error loading professor details.</p>";
       }
     }
 
-    // submit handler
+    // Submit rating
     const ratingForm = document.getElementById("rating-form");
-    if (!ratingForm) {
-      console.error("❌ rating-form element not found");
-      return;
-    }
-
     ratingForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      console.log("📩 Rating form submitted");
-
       const stars = parseInt(document.getElementById("stars").value) || 0;
       const comment = document.getElementById("comment").value.trim();
       const anonymous = false;
 
-      if (stars === 0) {
-        alert("Please select a star rating first!");
-        return;
-      }
+      if (stars === 0) return alert("Please select a star rating first!");
 
       const school = localStorage.getItem("selectedSchool") || "dlsu";
+      const res = await fetch(`/api/profs/${profId}/rate?school=${school}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stars, comment, anonymous })
+      });
 
-      try {
-        const res = await fetch(`/api/profs/${profId}/rate?school=${school}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ stars, comment, anonymous })
-        });
-
-        console.log("🧾 POST status:", res.status);
-        const data = await res.json();
-        console.log("📦 POST response:", data);
-
-        if (data.ok) {
-          // refresh UI to show new comment & updated average
-          await loadProfessor();
-          ratingForm.reset();
-          document.querySelectorAll('.star').forEach(s => s.classList.remove('selected'));
-          document.getElementById('stars').value = 0;
-          selectedStars = 0;
-        } else {
-          alert(data.error || "Failed to submit rating.");
-        }
-      } catch (err) {
-        console.error("🚨 Submit error:", err);
-        alert("Network or server error when submitting rating.");
+      const data = await res.json();
+      if (data.ok) {
+        await loadProfessor();
+        ratingForm.reset();
+        document.querySelectorAll('.star').forEach(s => s.classList.remove('selected'));
+        document.getElementById('stars').value = 0;
+        selectedStars = 0;
+      } else {
+        alert(data.error || "Failed to submit rating.");
       }
     });
 
-    // initial load
     loadProfessor();
   });
   </script>
 
+  <!-- Load shared header dynamically -->
   <script>
-  // Load shared header dynamically
-  document.addEventListener("DOMContentLoaded", async () => {
-    const headerContainer = document.getElementById("header-placeholder");
-    const res = await fetch("components/header.html");
-    const html = await res.text();
-    headerContainer.innerHTML = html;
+    document.addEventListener("DOMContentLoaded", async () => {
+      const headerContainer = document.getElementById("header-placeholder");
+      const res = await fetch("components/header.html");
+      headerContainer.innerHTML = await res.text();
+      initializeHeader(); // ✅ Calls the global version from app.js
+    });
 
-    // Once header is loaded, initialize its JS
-    initializeHeader();
-  });
-
-  function initializeHeader() {
-    const school = localStorage.getItem("selectedSchool") || "dlsu";
-    const header = document.querySelector(".site-header h1");
-    const logoArea = document.querySelector(".logo-area");
-
-    if (header) {
-      header.innerHTML = `${school.toUpperCase()} — PHROFSTOPICK<br><span class="business-name"></span>`;
+    function changeSchool() {
+      localStorage.removeItem("selectedSchool");
+      window.location.href = "school.html";
     }
+  </script>
 
-    if (logoArea) {
-      const img = logoArea.querySelector(".school-logo");
-      img.src = `images/${school}-logo.png`;
-      img.onerror = () => { img.src = `images/${school}-logo.jpeg`; };
-      img.alt = `${school} logo`;
-    }
-
-    // Auth UI setup
-    const btnShowLogin = document.getElementById("btn-show-login");
-    const btnShowSignup = document.getElementById("btn-show-signup");
-    const btnLogout = document.getElementById("btn-logout");
-    const userNameSpan = document.getElementById("user-name");
-
-    function updateAuthUI() {
-      const token = localStorage.getItem("token");
-      if (token) {
-        btnShowLogin.style.display = "none";
-        btnShowSignup.style.display = "none";
-        btnLogout.style.display = "inline-block";
-        userNameSpan.style.display = "inline-block";
-        userNameSpan.textContent = localStorage.getItem("user_display") || "You";
-      } else {
-        btnShowLogin.style.display = "inline-block";
-        btnShowSignup.style.display = "inline-block";
-        btnLogout.style.display = "none";
-        userNameSpan.style.display = "none";
-      }
-    }
-    updateAuthUI();
-
-    btnLogout.onclick = () => {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user_display");
-      updateAuthUI();
-      alert("Logged out");
-    };
-  }
-
-  function changeSchool() {
-    localStorage.removeItem("selectedSchool");
-    window.location.href = "school.html";
-  }
-</script>
-
-
+  <!-- Load global JS (which has the new initializeHeader) -->
+  <script src="js/app.js"></script>
 </body>
 </html>

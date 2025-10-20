@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Signing you in…</title></head>
+<body>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  const display = params.get('display') || 'You';
+  const school = params.get('school') || localStorage.getItem('selectedSchool') || 'dlsu';
+  if (token) {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user_display', decodeURIComponent(display));
+    // Optionally store selected school from callback
+    localStorage.setItem('selectedSchool', school);
+    // Redirect to homepage
+    window.location.href = '/index.html';
+  } else {
+    document.body.innerText = 'Login failed (no token).';
+  }
+</script>
+</body>
+</html>

@@ -1,15 +1,43 @@
 <header class="site-header">
   <div class="logo-area">
-    <a href="index.html" class="logo-link">
-      <img src="" class="school-logo" alt="School Logo">
-    </a>
-    <h1 id="site-title"></h1>
+    <img class="school-logo" src="images/default-logo.png" alt="School Logo">
+    <h1 id="site-title">PHROFS TO PICK</h1>
+
+    <button id="change-school-btn"
+      style="display:none;
+             background:#ffffff;
+             color:#006633;
+             font-weight:600;
+             padding:6px 12px;
+             border:none;
+             border-radius:6px;
+             margin-left:16px;
+             cursor:pointer;
+             transition:background 0.2s;">
+      Change School
+    </button>
   </div>
-  <nav>
+
+  <nav class="nav-right">
     <button id="btn-show-login">Login</button>
     <button id="btn-show-signup">Sign Up</button>
     <button id="btn-logout" style="display:none;">Logout</button>
-    <span id="user-name" style="display:none;"></span>
-    <button onclick="changeSchool()">Change School</button>
+    <span id="user-name" style="display:none; margin-left:8px; font-weight:600;"></span>
+
+    <!-- ✅ Avatar / Dropdown -->
+    <div id="user-area" style="display:inline-flex; align-items:center; justify-content:center; cursor:pointer; margin-left:12px; position:relative; min-width:36px; min-height:36px;">
+      <img id="user-avatar"
+        src="images/default-avatar.png"
+        style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+      
+      <div id="user-dropdown"
+        style="display:none; position:absolute; right:0; top:48px; background:white; border:1px solid #ddd;
+               padding:10px; border-radius:8px; min-width:180px; box-shadow:0 2px 8px rgba(0,0,0,0.15); z-index:1000;">
+        <div id="drop-display" style="font-weight:600; margin-bottom:8px;">You</div>
+        <a id="drop-profile" href="/settings.html">Profile</a><br>
+        <a id="drop-settings" href="/settings.html">Settings</a><br>
+        <a id="drop-logout" href="#">Logout</a>
+      </div>
+    </div>
   </nav>
 </header>

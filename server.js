@@ -1,10 +1,19 @@
 // =================== IMPORTS ===================
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const path = require('path');
+const sqlite3 = require('sqlite3');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken'); // ✅ keep only here
 const fs = require('fs');
+const multer = require('multer');
+const path = require('path');
+
+// near other imports
+const session = require('express-session');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
+require('dotenv').config();
+
 
 const app = express();
 const PORT = 3000;
@@ -34,15 +43,38 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'sessionsecret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // set secure:true when using HTTPS
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+
 // =================== DATABASE INIT ===================
 const schema = `
+/* in server.js - inside your schema string (replace users table definition) */
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   school_id_or_email TEXT UNIQUE,
+  email TEXT,
   password_hash TEXT,
   display_name TEXT,
-  anonymous INTEGER DEFAULT 0
+  anonymous INTEGER DEFAULT 0,
+  oauth_provider TEXT,
+  oauth_id TEXT,
+  photo_path TEXT,         -- <- OAuth/profile photo URL
+  college TEXT,
+  course TEXT,
+  batch TEXT,
+  username TEXT,
+  bio TEXT
 );
+
+
 
 CREATE TABLE IF NOT EXISTS subjects (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -101,6 +133,80 @@ for (const school of schools) {
     db.close();
   });
 }
+passport.serializeUser((user, done) => done(null, { id: user.id, school: user.school }));
+passport.deserializeUser((obj, done) => done(null, obj));
+
+// Helper to find or create user using SQLite DB for the school
+async function findOrCreateUserByOAuth(school, provider, oauthId, profile, done) {
+  const db = getDb(school);
+  const email = profile.emails && profile.emails[0] && profile.emails[0].value;
+  const display = profile.displayName || email || profile.username || 'User';
+
+  // try to extract photo (works for Google and many providers)
+  let photo = null;
+if (profile.photos && profile.photos.length) photo = profile.photos[0].value;
+
+// fallback avatar (Google accounts almost always have one)
+if (!photo && provider === 'google' && profile.id) {
+  photo = `https://lh3.googleusercontent.com/a/default-user`;
+}
+
+
+  db.get('SELECT * FROM users WHERE oauth_provider = ? AND oauth_id = ?', [provider, oauthId], (err, user) => {
+    if (err) { db.close(); return done(err); }
+
+    if (user) {
+      // If user exists but photo is missing and we have one, update
+      if (!user.photo_path && photo) {
+        db.run('UPDATE users SET photo_path = ? WHERE id = ?', [photo, user.id], (uerr) => {
+          db.close();
+          if (uerr) console.error('Failed to update photo_path', uerr);
+          return done(null, { id: user.id, display_name: user.display_name || user.email || user.school_id_or_email });
+        });
+        return;
+      }
+      db.close();
+      return done(null, { id: user.id, display_name: user.display_name || user.email || user.school_id_or_email });
+    }
+
+    // create user (store photo if any)
+    db.run(
+      `INSERT INTO users (school_id_or_email, email, display_name, oauth_provider, oauth_id, photo_path)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [email || null, email || null, display, provider, oauthId, photo || null],
+      function(err2) {
+        db.close();
+        if (err2) return done(err2);
+        const created = { id: this.lastID, display_name: display, email, photo_path: photo || null };
+        return done(null, created);
+      }
+    );
+  });
+}
+
+
+// Google strategy
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: `${process.env.BASE_URL || 'http://localhost:3000'}/auth/google/callback`,
+  passReqToCallback: true
+}, (req, accessToken, refreshToken, profile, done) => {
+  const school = req.query.school || 'dlsu';
+  findOrCreateUserByOAuth(school, 'google', profile.id, profile, done);
+}));
+
+// Facebook strategy
+passport.use(new FacebookStrategy({
+  clientID: process.env.FACEBOOK_CLIENT_ID,
+  clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+  callbackURL: `${process.env.BASE_URL || 'http://localhost:3000'}/auth/facebook/callback`,
+  profileFields: ['id','displayName','email'],
+  passReqToCallback: true
+}, (req, accessToken, refreshToken, profile, done) => {
+  const school = req.query.school || 'dlsu';
+  findOrCreateUserByOAuth(school, 'facebook', profile.id, profile, done);
+}));
 
 // =================== SUBJECT ROUTES ===================
 app.get('/api/subjects', (req, res) => {
@@ -288,6 +394,11 @@ app.post('/api/profs/:id/rate', (req, res) => {
 });
 
 // =================== AUTH ===================
+// --- Signup route removed (strict) ---
+// The original password signup route has been removed to enforce OAuth-only signups.
+// If you need to restore it later, find the commented block below and re-enable it.
+
+/*
 app.post('/api/auth/signup', async (req, res) => {
   const school = req.query.school || 'dlsu';
   const db = getDb(school);
@@ -318,6 +429,14 @@ app.post('/api/auth/signup', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+*/
+
+// New explicit route: respond with 410 Gone to indicate signups are disabled
+app.all('/api/auth/signup', (req, res) => {
+  // 410 Gone signals this endpoint is intentionally removed
+  res.status(410).json({ error: 'Signups disabled. Use Google/Facebook OAuth to create an account.' });
+});
+
 
 app.post('/api/auth/login', (req, res) => {
   const school = req.query.school || 'dlsu';
@@ -344,6 +463,93 @@ app.post('/api/auth/login', (req, res) => {
     res.json({ token, user });
   });
 });
+
+// Start OAuth flow
+app.get('/auth/google', (req, res, next) => {
+  const school = req.query.school || 'dlsu';
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    session: true,
+    state: school // 🔸 store school in OAuth flow
+  })(req, res, next);
+});
+app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'], session: true }));
+
+// Callbacks
+app.get('/auth/google/callback', (req, res, next) => {
+  const school = req.query.state || 'dlsu';
+  passport.authenticate('google', {
+    failureRedirect: '/auth/failure',
+    session: true
+  })(req, res, next);
+}, (req, res) => {
+  const token = jwt.sign({ id: req.user.id }, JWT_SECRET);
+  const school = req.query.state || 'dlsu';
+  res.redirect(`/oauth-success.html?token=${token}&display=${encodeURIComponent(req.user.display_name)}&school=${school}`);
+});
+
+
+app.get('/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/auth/failure', session: true }), (req, res) => {
+  const token = jwt.sign({ id: req.user.id }, JWT_SECRET);
+  const school = req.query.school || 'dlsu';
+  res.redirect(`/oauth-success.html?token=${token}&display=${encodeURIComponent(req.user.display_name)}&school=${school}`);
+});
+
+app.get('/auth/failure', (req, res) => {
+  res.status(401).send('Authentication failed');
+});
+
+const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey'; // use env in production
+
+// middleware: get current user id from Authorization header
+function authenticateJWT(req, res, next) {
+  const auth = req.headers.authorization || '';
+  const m = auth.match(/^Bearer (.+)$/);
+  if (!m) return res.status(401).json({ error: 'Missing token' });
+  const token = m[1];
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.userId = payload.id;
+    next();
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}
+
+// get current user's profile
+app.get('/api/me', authenticateJWT, (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const db = getDb(school);
+  db.get('SELECT id, email, display_name, photo_path, college, course, batch, username, bio FROM users WHERE id = ?', [req.userId], (err, row) => {
+    db.close();
+    if (err || !row) return res.status(500).json({ error: 'User not found' });
+    res.json({ user: row });
+  });
+});
+
+// update current user's profile (partial update)
+app.post('/api/me', authenticateJWT, (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const { display_name, college, course, batch, username, bio, photo_path } = req.body;
+  const db = getDb(school);
+  db.run(
+    `UPDATE users SET display_name = COALESCE(?, display_name),
+                       college = COALESCE(?, college),
+                       course = COALESCE(?, course),
+                       batch = COALESCE(?, batch),
+                       username = COALESCE(?, username),
+                       bio = COALESCE(?, bio),
+                       photo_path = COALESCE(?, photo_path)
+     WHERE id = ?`,
+    [display_name, college, course, batch, username, bio, photo_path, req.userId],
+    function(err) {
+      db.close();
+      if (err) return res.status(500).json({ error: 'Update failed' });
+      res.json({ ok: true });
+    }
+  );
+});
+
 
 // =================== START SERVER ===================
 app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
