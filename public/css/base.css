@@ -491,17 +491,40 @@ body {
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-#change-school-btn {
-  background:#ffffff;
-  color:#006633;
-  font-weight:600;
-  padding:6px 12px;
-  border:none;
-  border-radius:6px;
-  margin-left:16px;
-  cursor:pointer;
-  transition:background 0.2s;
+/* ===== Change School Button (Base Style) ===== */
+.change-school-btn {
+  background: transparent;
+  border: none;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin-left: 16px;
+  cursor: pointer;
+  transition: color 0.3s ease, background 0.2s ease;
 }
-#change-school-btn.hidden {
-  display:none;
+
+/* ===== Theme-based Colors ===== */
+body.dlsu .change-school-btn {
+  color: #00703C; /* DLSU green */
 }
+
+body.ateneo .change-school-btn {
+  color: #0033A0; /* Ateneo blue */
+}
+
+body.benilde .change-school-btn {
+  color: #006241; /* Benilde green */
+}
+
+body.up .change-school-btn {
+  color: #7B1113; /* UP maroon */
+}
+
+/* ===== Optional Hover ===== */
+.change-school-btn:hover {
+  text-decoration: underline;
+  opacity: 0.9;
+}
+
+
+
