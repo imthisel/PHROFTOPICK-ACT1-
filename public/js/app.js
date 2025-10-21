@@ -239,14 +239,34 @@ let lastProfQuery = '';
 // ========== DOM ready main initializer ==========
 document.addEventListener('DOMContentLoaded', async () => {
   // --- Header setup (title, logo, change-school button) ---
-  const school = localStorage.getItem('selectedSchool') || 'dlsu';
-  const headerTitle = document.getElementById("site-title");
-  const logoImg = document.querySelector(".school-logo");
-  if (headerTitle) headerTitle.textContent = `${school.toUpperCase()} — PHROFS TO PICK`;
-  if (logoImg) {
-    logoImg.src = `images/${school}-logo.png`;
-    logoImg.onerror = () => { logoImg.src = `images/${school}-logo.jpeg`; };
-  }
+ // ✅ Dynamic logo + fallback handling
+// ✅ Dynamic logo + fallback handling
+
+
+if (headerTitle) {
+  headerTitle.textContent = `${school.toUpperCase()} — PHROFS TO PICK`;
+}
+
+if (logoImg) {
+  // Define proper image paths per school
+  const logoMap = {
+    dlsu: "images/dlsu-logo.png",
+    ateneo: "images/ateneo-logo.png",
+    benilde: "images/benilde-logo.png",
+    up: "images/up-logo.png",
+  };
+
+  const fallbackLogo = "images/default-logo.png";
+  const selectedLogo = logoMap[school] || fallbackLogo;
+
+  logoImg.src = selectedLogo;
+  logoImg.onerror = () => {
+    console.warn(`⚠️ Missing logo for ${school}, using fallback.`);
+    logoImg.src = fallbackLogo;
+  };
+}
+
+
 
   // Show Change School button (safe - only if header exists)
   const changeBtn = document.getElementById("change-school-btn");
@@ -399,6 +419,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // --- Initialize header auth visuals if header is already in DOM ---
   if (typeof initializeHeader === 'function') initializeHeader();
   if (typeof updateAuthUI === 'function') updateAuthUI();
+  // ✅ Ensure logo updates after header is loaded
+updateSchoolLogo();
+
 
   function initChangeSchoolButton() {
   const changeBtn = document.getElementById("change-school-btn");
@@ -413,5 +436,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.warn("⚠️ Change School button not found yet");
   }
 }
+
+// ✅ Function: Update school logo dynamically after header loads
+// ✅ Function to dynamically update the school logo after header is loaded
+
+
 
 });

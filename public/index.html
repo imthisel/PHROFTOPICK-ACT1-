@@ -149,6 +149,56 @@
 
 <script src="js/app.js"></script>
 
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const res = await fetch("components/header.html");
+    const html = await res.text();
+    const headerPlaceholder = document.getElementById("header-placeholder");
+    headerPlaceholder.innerHTML = html;
+
+    initChangeSchoolButton();
+
+    // ✅ Wait until header elements exist
+    await new Promise(resolve => {
+      const check = () => {
+        if (document.querySelector(".school-logo")) resolve();
+        else requestAnimationFrame(check);
+      };
+      check();
+    });
+
+    // ✅ Now safely update school logo
+    const school = localStorage.getItem("selectedSchool") || "dlsu";
+    const logo = document.querySelector(".school-logo");
+    const title = document.getElementById("site-title");
+
+    const logoMap = {
+      dlsu: "images/dlsu-logo.png",
+      ateneo: "images/ateneo-logo.png",
+      benilde: "images/benilde-logo.png",
+      up: "images/up-logo.png",
+    };
+    const fallback = "images/default-logo.png";
+
+    if (logo) {
+      logo.src = logoMap[school] || fallback;
+      logo.onerror = () => logo.src = fallback;
+    }
+    if (title) title.textContent = `${school.toUpperCase()} — PHROFS TO PICK`;
+
+    // ✅ Now initialize other header-related stuff
+    if (typeof initializeHeader === "function") await initializeHeader();
+    if (typeof updateAuthUI === "function") updateAuthUI();
+
+    console.log("✅ Header + logo initialized for", school);
+
+  } catch (err) {
+    console.error("❌ Failed to load header:", err);
+  }
+});
+</script>
+
 
 
 </body>
