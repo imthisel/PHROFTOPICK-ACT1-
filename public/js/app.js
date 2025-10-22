@@ -242,6 +242,9 @@ document.addEventListener('DOMContentLoaded', async () => {
  // ✅ Dynamic logo + fallback handling
 // ✅ Dynamic logo + fallback handling
 
+const school = localStorage.getItem('selectedSchool') || 'dlsu';
+const headerTitle = document.getElementById('site-title');
+const logoImg = document.querySelector('.school-logo');
 
 if (headerTitle) {
   headerTitle.textContent = `${school.toUpperCase()} — PHROFS TO PICK`;
@@ -407,14 +410,16 @@ if (logoImg) {
   }
 
   // --- Load subjects initially (if container exists) ---
-  if (subjectsList) {
-    try {
-      const d = await api.listSubjects();
-      renderSubjects(d.subjects || []);
-    } catch (err) {
-      console.error('Failed to list subjects', err);
-    }
+if (subjectsList) {
+  try {
+    const d = await api.listSubjects();
+    console.log("✅ API returned:", d);
+    renderSubjects(d.subjects || []);
+  } catch (err) {
+    console.error('Failed to list subjects', err);
   }
+}
+
 
   // --- Initialize header auth visuals if header is already in DOM ---
   if (typeof initializeHeader === 'function') initializeHeader();
