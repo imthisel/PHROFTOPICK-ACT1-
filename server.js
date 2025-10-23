@@ -7,6 +7,7 @@ const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
 const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
@@ -52,11 +53,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
+  store: new SQLiteStore({ db: 'sessions.sqlite', dir: './databases' }),
   secret: process.env.SESSION_SECRET || 'sessionsecret',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // secure:true for HTTPS
+  cookie: { secure: false } // Set true if you later use HTTPS
 }));
+
 
 app.use(passport.initialize());
 app.use(passport.session());
