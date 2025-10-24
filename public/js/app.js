@@ -134,7 +134,7 @@ function updateAuthUI() {
 
 // ========== Rendering helpers ==========
 function renderSubjects(list) {
-  const subjectsList = document.getElementById('subjects-list');
+  const subjectsList = document.getElementById('subjects-list') || null;
   if (!subjectsList) return;
   if (!list || list.length === 0) {
     subjectsList.innerHTML = '<div class="card">No subjects found</div>';
@@ -244,8 +244,9 @@ async function initializeHeaderSearch() {
     return;
   }
 
-  const subjectsList = document.getElementById('subjects-list');
-  const profListContainer = document.getElementById('prof-list');
+    const subjectsList = document.getElementById('subjects-list') || null;
+  const profListContainer = document.getElementById('prof-list') || null;
+
 
   profSearchInput.addEventListener('keydown', async e => {
     if (e.key === 'Enter') {
@@ -291,6 +292,101 @@ if (subjects.length === 0 && profs.length === 0) {
 
   console.log('✅ Header search initialized (Enter key only)');
 }
+
+// ========= AUTOCOMPLETE SEARCH (for both header + index) =========
+function enableAutocomplete(inputId, suggestionsId) {
+  const attemptInit = () => {
+    const input = document.getElementById(inputId);
+    const suggestions = document.getElementById(suggestionsId);
+
+    if (!input || !suggestions) {
+      console.warn(`Waiting for ${inputId} to exist...`);
+      return setTimeout(attemptInit, 300);
+    }
+
+    console.log(`✅ Autocomplete enabled for ${inputId}`);
+
+    let debounceTimer;
+
+    input.addEventListener("input", async () => {
+      const q = input.value.trim();
+      clearTimeout(debounceTimer);
+
+      if (!q) {
+        suggestions.style.display = "none";
+        suggestions.innerHTML = "";
+        return;
+      }
+
+      debounceTimer = setTimeout(async () => {
+        try {
+          const [subRes, profRes] = await Promise.all([
+            api.searchSubjects(q),
+            api.searchProfs(q)
+          ]);
+
+          const subjects = subRes.subjects || [];
+          const profs = profRes.professors || [];
+
+          const combined = [
+            ...profs.map(p => ({
+              type: "Professor",
+              label: p.name,
+              id: p.id
+            })),
+            ...subjects.map(s => ({
+              type: "Subject",
+              label: `${s.code} — ${s.name}`,
+              id: s.id
+            }))
+          ];
+
+          if (combined.length === 0) {
+            suggestions.style.display = "none";
+            suggestions.innerHTML = "";
+            return;
+          }
+
+          suggestions.innerHTML = combined
+            .map(
+              item => `
+              <div class="suggestion-item" data-type="${item.type}" data-id="${item.id}">
+                ${item.label}
+              </div>`
+            )
+            .join("");
+
+          suggestions.style.display = "block";
+
+          // Click listener for results
+          suggestions
+            .querySelectorAll(".suggestion-item")
+            .forEach(el =>
+              el.addEventListener("click", e => {
+                const type = e.currentTarget.dataset.type;
+                const id = e.currentTarget.dataset.id;
+                if (type === "Professor")
+                  window.location.href = `/prof.html?id=${id}`;
+                else window.location.href = `/subject.html?id=${id}`;
+              })
+            );
+        } catch (err) {
+          console.error("Autocomplete failed:", err);
+        }
+      }, 300);
+    });
+
+    // Hide suggestions when clicking elsewhere
+    document.addEventListener("click", e => {
+      if (!suggestions.contains(e.target) && e.target !== input) {
+        suggestions.style.display = "none";
+      }
+    });
+  };
+
+  attemptInit();
+}
+
 
 
 
@@ -346,7 +442,7 @@ if (logoImg) {
   const subjectSearch = document.getElementById('subject-search');
   const btnSearch = document.getElementById('btn-search');
   const btnListAll = document.getElementById('btn-list-all');
-  const subjectsList = document.getElementById('subjects-list');
+  const subjectsList = document.getElementById('subjects-list') || null;
 
   const profSearchInput = document.getElementById('prof-search');
   const btnProfSearch = document.getElementById('btn-prof-search');
@@ -431,8 +527,8 @@ if (profSearchInput && btnProfSearch) {
     const q = profSearchInput.value.trim();
     if (!q) return alert('Type something to search.');
 
-    const subjectsList = document.getElementById('subjects-list');
-    const profListContainer = document.getElementById('prof-list');
+    const subjectsList = document.getElementById('subjects-list') || null;
+    const profListContainer = document.getElementById('prof-list') || null;
     if (!subjectsList || !profListContainer) return;
 
     // Clear previous results
@@ -494,7 +590,7 @@ if (subjectsList) {
   if (typeof initializeHeader === 'function') initializeHeader();
   if (typeof updateAuthUI === 'function') updateAuthUI();
   // ✅ Ensure logo updates after header is loaded
-updateSchoolLogo();
+if (typeof updateSchoolLogo === 'function') updateSchoolLogo();
 
 
   function initChangeSchoolButton() {
@@ -512,9 +608,19 @@ updateSchoolLogo();
 }
 
 
+window.addEventListener("load", () => {
+  // initialize both once header fully loaded
+  enableAutocomplete("prof-search", "header-suggestions");
+  enableAutocomplete("subject-search", "index-suggestions");
+  initializeHeaderSearch(); // keep this intact
+});
 
-// ✅ Function: Update school logo dynamically after header loads
-// ✅ Function to dynamically update the school logo after header is loaded
+
+
+
+
+
+
 
 
 

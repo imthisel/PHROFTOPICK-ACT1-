@@ -683,3 +683,52 @@ body.up .change-school-btn {
     padding: 8px 12px;
   }
 }
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #fff; /* clean white background */
+  color: #000; /* ensure readable text */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  display: none;
+  z-index: 9999;
+  max-height: 250px;
+  overflow-y: auto;
+  font-family: inherit;
+}
+
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #ffffff; /* white background */
+  color: #000000; /* black text */
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: none;
+  z-index: 9999;
+  max-height: 250px;
+  overflow-y: auto;
+  font-family: inherit;
+}
+
+.suggestion-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #000000; /* ensure visible black text */
+  transition: background 0.2s ease;
+}
+
+.suggestion-item:hover {
+  background: #f5f5f5; /* light gray on hover */
+}
+
+

@@ -24,11 +24,21 @@
   <!-- ===== CONTENT ===== -->
   <main class="container fade-in">
     <!-- Search -->
-    <div class="search-panel">
-      <input id="subject-search" type="text" placeholder="Search subject...">
-      <button id="btn-search">Search</button>
-      <button id="btn-list-all">List All Subjects</button>
-    </div>
+   <div class="search-panel" style="position: relative;">
+  <input
+    id="subject-search"
+    type="text"
+    placeholder="Search subject or professor..."
+    autocomplete="off"
+  />
+  <div id="index-suggestions" class="suggestions"></div>
+  <button id="btn-search">Search</button>
+  <button id="btn-list-all">List All Subjects</button>
+</div>
+
+
+
+
 
 
     <!-- Cards appear here -->
