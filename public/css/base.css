@@ -629,3 +629,57 @@ body.up .change-school-btn {
 #prof-list, #subjects-list {
   margin-top: 20px;
 }
+
+/* ========= HEADER SEARCH BAR (isolated styling) ========= */
+.site-header .header-search {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  justify-content: flex-start;
+  margin: 0 15px;
+  width: 100%;
+  max-width: 600px; /* You can increase this if you want it longer */
+}
+
+.site-header .header-search input {
+  flex: 1;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 25px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 15px;
+  color: #222;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.site-header .header-search input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 6px rgba(0, 105, 62, 0.3);
+  outline: none;
+}
+
+/* Optional: make it full width next to logo */
+@media (min-width: 900px) {
+  .site-header .header-search {
+    margin-left: 20px;
+    margin-right: 40px;
+  }
+  .site-header .header-search input {
+    max-width: none; /* removes limit */
+  }
+}
+
+/* Responsive header search on mobile */
+@media (max-width: 768px) {
+  .site-header .header-search {
+    width: 100%;
+    margin: 10px 0;
+  }
+
+  .site-header .header-search input {
+    width: 100%;
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+}

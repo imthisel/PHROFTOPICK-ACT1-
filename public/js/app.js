@@ -238,9 +238,7 @@ let lastProfQuery = '';
 
 async function initializeHeaderSearch() {
   const profSearchInput = document.getElementById('prof-search');
-  const btnProfSearch = document.getElementById('btn-prof-search');
-
-  if (!profSearchInput || !btnProfSearch) {
+  if (!profSearchInput) {
     console.warn('⚠ Header search not found yet, retrying...');
     setTimeout(initializeHeaderSearch, 300);
     return;
@@ -249,67 +247,52 @@ async function initializeHeaderSearch() {
   const subjectsList = document.getElementById('subjects-list');
   const profListContainer = document.getElementById('prof-list');
 
-  profSearchInput.addEventListener('keydown', e => {
+  profSearchInput.addEventListener('keydown', async e => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      btnProfSearch.click();
+      const q = profSearchInput.value.trim();
+      if (!q) return alert('Type something to search.');
+
+      // Clear old results
+      subjectsList.innerHTML = '';
+      profListContainer.innerHTML = '';
+
+      try {
+        const [subRes, profRes] = await Promise.all([
+          api.searchSubjects(q),
+          api.searchProfs(q)
+        ]);
+
+        const subjects = subRes.subjects || [];
+        const profs = profRes.professors || [];
+
+        // Render results
+        // Remove old section titles before rendering
+document.querySelectorAll('.search-results-title').forEach(el => el.remove());
+
+// Render results without adding new titles
+if (subjects.length > 0) {
+  renderSubjects(subjects);
+}
+
+if (profs.length > 0) {
+  renderProfList(profs, profListContainer);
+}
+
+if (subjects.length === 0 && profs.length === 0) {
+  subjectsList.innerHTML = '<div class="card">No results found.</div>';
+}
+      } catch (err) {
+        console.error('Search failed:', err);
+        subjectsList.innerHTML = '<div class="card">Error fetching results.</div>';
+      }
     }
   });
 
-btnProfSearch.onclick = async () => {
-  const q = profSearchInput.value.trim();
-  if (!q) return alert('Type something to search.');
-
-  const subjectsList = document.getElementById('subjects-list');
-  const profListContainer = document.getElementById('prof-list');
-  if (!subjectsList || !profListContainer) return;
-
-  // 🧹 Clear previous search results and titles
-  document.querySelectorAll('.search-results-title').forEach(el => el.remove());
-  subjectsList.innerHTML = '';
-  profListContainer.innerHTML = '';
-
-  try {
-    const [subRes, profRes] = await Promise.all([
-      api.searchSubjects(q),
-      api.searchProfs(q)
-    ]);
-
-    const subjects = subRes.subjects || [];
-    const profs = profRes.professors || [];
-
-    // ✅ Render Subjects
-    if (subjects.length > 0) {
-      const title = document.createElement('h2');
-      title.textContent = 'Subjects';
-      title.classList.add('search-results-title');
-      title.style.margin = '15px 0';
-      subjectsList.before(title);
-      renderSubjects(subjects);
-    }
-
-    // ✅ Render Professors
-    if (profs.length > 0) {
-      const title = document.createElement('h2');
-      title.textContent = 'Professors';
-      title.classList.add('search-results-title');
-      title.style.margin = '15px 0';
-      profListContainer.before(title);
-      renderProfList(profs, profListContainer);
-    }
-
-    if (subjects.length === 0 && profs.length === 0) {
-      subjectsList.innerHTML = '<div class="card">No results found.</div>';
-    }
-  } catch (err) {
-    console.error('Search failed:', err);
-    subjectsList.innerHTML = '<div class="card">Error fetching results.</div>';
-  }
-};
-
-
-  console.log('✅ Header search initialized');
+  console.log('✅ Header search initialized (Enter key only)');
 }
+
+
 
 // ========== DOM ready main initializer ==========
 document.addEventListener('DOMContentLoaded', async () => {
