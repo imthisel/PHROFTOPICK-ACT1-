@@ -298,7 +298,6 @@ if (logoImg) {
   const modalContent = document.getElementById('modal-content');
   const modalClose = document.getElementById('modal-close');
 
-  const uploadForm = document.getElementById('upload-form');
   const uploadResult = document.getElementById('upload-result');
 
   // --- Modal handlers ---
@@ -390,24 +389,7 @@ if (logoImg) {
       lastProfQuery = q;
     };
   }
-
-  // --- Upload form handler ---
-  if (uploadForm) {
-    uploadForm.addEventListener('submit', async e => {
-      e.preventDefault();
-      const fileInput = document.getElementById('upload-file');
-      if (!fileInput || !fileInput.files.length) return alert('Select a file');
-      const fd = new FormData();
-      fd.append('note', fileInput.files[0]);
-      fd.append('prof_id', document.getElementById('upload-prof-id')?.value || '');
-      fd.append('subject_id', document.getElementById('upload-subject-id')?.value || '');
-      fd.append('description', document.getElementById('upload-desc')?.value || '');
-      const token = localStorage.getItem('token');
-      const res = await api.uploadNote(fd, token);
-      if (res.error) uploadResult && (uploadResult.innerText = 'Upload failed: ' + res.error);
-      else uploadResult && (uploadResult.innerHTML = `Uploaded. <a href="${res.path}" target="_blank">Open file</a>`);
-    });
-  }
+  
 
   // --- Load subjects initially (if container exists) ---
 if (subjectsList) {
