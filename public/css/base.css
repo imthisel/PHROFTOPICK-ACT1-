@@ -614,3 +614,18 @@ body.up .change-school-btn {
     padding: 15px 5px;
   }
 }
+
+.site-header .search-panel {
+  margin: 0;
+  flex-wrap: nowrap;
+}
+
+.site-header .search-panel input {
+  width: 220px;
+  padding: 7px 10px;
+  font-size: 14px;
+}
+
+#prof-list, #subjects-list {
+  margin-top: 20px;
+}

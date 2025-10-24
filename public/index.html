@@ -30,11 +30,6 @@
       <button id="btn-list-all">List All Subjects</button>
     </div>
 
-    <!-- Professor Search -->
-    <div class="search-panel" style="margin-top: 50px;">
-      <input id="prof-search" type="text" placeholder="Or search professor name or subject...">
-      <button id="btn-prof-search">Find Professors</button>
-    </div>
 
     <!-- Cards appear here -->
     <div id="prof-list"></div>
@@ -146,6 +141,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     headerPlaceholder.innerHTML = html;
 
     initChangeSchoolButton();
+    initializeHeaderSearch(); // ✅ initialize the header search after header loads
+
 
     // ✅ Wait until header elements exist
     await new Promise(resolve => {
