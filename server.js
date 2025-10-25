@@ -13,9 +13,11 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 require('dotenv').config();
 
+
 const app = express();
 const PORT = 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey'; // unified secret
+
 
 // 🧭 Debug Middleware — Log active school for every request
 app.use((req, res, next) => {
@@ -23,6 +25,7 @@ app.use((req, res, next) => {
   console.log('🟢 Active school DB:', school, '→', req.method, req.path);
   next();
 });
+
 
 // =================== MULTI-DATABASE HANDLER ===================
 function resolveDbPath(school) {
@@ -33,8 +36,10 @@ function resolveDbPath(school) {
     benilde: path.join('databases', 'benilde.db')
   }[school] || path.join('databases', 'dlsu.db');
 
+
   return path.resolve(__dirname, dbPathRelative);
 }
+
 
 function getDb(school) {
   const dbPath = resolveDbPath(school);
@@ -47,10 +52,12 @@ function getDb(school) {
   }
 }
 
+
 // =================== MIDDLEWARE ===================
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
+
 
 app.use(session({
   store: new SQLiteStore({ db: 'sessions.sqlite', dir: './databases' }),
@@ -61,8 +68,11 @@ app.use(session({
 }));
 
 
+
+
 app.use(passport.initialize());
 app.use(passport.session());
+
 
 // =================== DATABASE INIT ===================
 const schema = `
@@ -83,12 +93,14 @@ CREATE TABLE IF NOT EXISTS users (
   bio TEXT
 );
 
+
 CREATE TABLE IF NOT EXISTS subjects (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   code TEXT,
   name TEXT,
   difficulty_avg REAL DEFAULT 0
 );
+
 
 CREATE TABLE IF NOT EXISTS professors (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -103,6 +115,7 @@ CREATE TABLE IF NOT EXISTS professors (
   rating_count INTEGER DEFAULT 0
 );
 
+
 CREATE TABLE IF NOT EXISTS comments (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   prof_id INTEGER,
@@ -112,6 +125,7 @@ CREATE TABLE IF NOT EXISTS comments (
   anonymous INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
 
 CREATE TABLE IF NOT EXISTS notes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -125,9 +139,11 @@ CREATE TABLE IF NOT EXISTS notes (
 );
 `;
 
+
 const schools = ['dlsu', 'ateneo', 'up', 'benilde'];
 const dbDir = path.join(__dirname, 'databases');
 if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
+
 
 // Create DB only if missing
 for (const school of schools) {
@@ -145,9 +161,11 @@ for (const school of schools) {
   });
 }
 
+
 // =================== PASSPORT ===================
 passport.serializeUser((user, done) => done(null, { id: user.id, school: user.school }));
 passport.deserializeUser((obj, done) => done(null, obj));
+
 
 async function findOrCreateUserByOAuth(school, provider, oauthId, profile, done) {
   const db = getDb(school);
@@ -157,8 +175,10 @@ async function findOrCreateUserByOAuth(school, provider, oauthId, profile, done)
   if (!photo && provider === 'google' && profile.id)
     photo = `https://lh3.googleusercontent.com/a/default-user`;
 
+
   db.get('SELECT * FROM users WHERE oauth_provider = ? AND oauth_id = ?', [provider, oauthId], (err, user) => {
     if (err) { db.close(); return done(err); }
+
 
     if (user) {
       if (!user.photo_path && photo) {
@@ -173,6 +193,7 @@ async function findOrCreateUserByOAuth(school, provider, oauthId, profile, done)
       return done(null, { id: user.id, display_name: user.display_name });
     }
 
+
     db.run(
       `INSERT INTO users (school_id_or_email, email, display_name, oauth_provider, oauth_id, photo_path)
        VALUES (?, ?, ?, ?, ?, ?)`,
@@ -186,6 +207,7 @@ async function findOrCreateUserByOAuth(school, provider, oauthId, profile, done)
   });
 }
 
+
 // Google strategy
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
@@ -196,6 +218,7 @@ passport.use(new GoogleStrategy({
   const school = req.query.school || 'dlsu';
   findOrCreateUserByOAuth(school, 'google', profile.id, profile, done);
 }));
+
 
 // Facebook strategy
 passport.use(new FacebookStrategy({
@@ -209,6 +232,7 @@ passport.use(new FacebookStrategy({
   findOrCreateUserByOAuth(school, 'facebook', profile.id, profile, done);
 }));
 
+
 // =================== SUBJECT ROUTES ===================
 app.get('/api/subjects', (req, res) => {
   const school = req.query.school || 'dlsu';
@@ -219,12 +243,14 @@ app.get('/api/subjects', (req, res) => {
     : `SELECT id, code, name, difficulty_avg FROM subjects ORDER BY code ASC`;
   const params = q ? [`%${q}%`, `%${q}%`] : [];
 
+
   db.all(sql, params, (err, rows) => {
     db.close();
     if (err) return res.status(500).json({ error: 'DB error' });
 res.json({ subjects: rows }); // ✅ Match frontend expectation
   });
 });
+
 
 // =================== PROFESSOR ROUTES ===================
 app.get('/api/subjects/:id/profs', (req, res) => {
@@ -241,6 +267,7 @@ app.get('/api/subjects/:id/profs', (req, res) => {
   );
 });
 
+
 // =================== PROFESSOR SEARCH ===================
 app.get('/api/profs/search', (req, res) => {
   const school = req.query.school || 'dlsu';
@@ -248,10 +275,12 @@ app.get('/api/profs/search', (req, res) => {
   const q = (req.query.q || '').trim();
   console.log(`🔎 Search prof — school=${school}, q="${q}"`);
 
+
   if (!q) {
     db.close();
     return res.json({ professors: [] });
   }
+
 
   const sql = `
     SELECT p.id, p.name, p.photo_path,
@@ -266,6 +295,7 @@ app.get('/api/profs/search', (req, res) => {
   `;
   const like = `%${q}%`;
 
+
   db.all(sql, [like, like, like], (err, rows) => {
     db.close();
     if (err) return res.status(500).json({ error: 'DB error' });
@@ -273,11 +303,13 @@ app.get('/api/profs/search', (req, res) => {
   });
 });
 
+
 // =================== PROFESSOR DETAILS ===================
 app.get('/api/profs/:id', (req, res) => {
   const school = req.query.school || 'dlsu';
   const db = getDb(school);
   const id = req.params.id;
+
 
   db.get('SELECT * FROM professors WHERE id = ?', [id], (err, prof) => {
     if (err || !prof) {
@@ -295,6 +327,7 @@ app.get('/api/profs/:id', (req, res) => {
   });
 });
 
+
 // =================== RATE PROFESSOR ===================
 app.post('/api/profs/:id/rate', (req, res) => {
   const school = req.query.school || 'dlsu';
@@ -303,10 +336,12 @@ app.post('/api/profs/:id/rate', (req, res) => {
   const { stars = 0, comment = '', anonymous = false } = req.body || {};
   const s = parseInt(stars, 10);
 
+
   if (!s || s < 1 || s > 5) {
     db.close();
     return res.status(400).json({ error: 'Stars must be between 1 and 5' });
   }
+
 
   const userDisplay = anonymous ? 'Anonymous' : (req.headers['x-user-display'] || 'User');
   db.run(
@@ -315,6 +350,7 @@ app.post('/api/profs/:id/rate', (req, res) => {
     [profId, userDisplay, comment.trim(), s, anonymous ? 1 : 0],
     function (err) {
       if (err) { db.close(); return res.status(500).json({ error: 'Save failed' }); }
+
 
       db.get("SELECT AVG(stars) AS avg, COUNT(*) AS count FROM comments WHERE prof_id = ?", [profId], (err2, row) => {
         if (err2) { db.close(); return res.status(500).json({ error: 'Average error' }); }
@@ -330,10 +366,12 @@ app.post('/api/profs/:id/rate', (req, res) => {
   );
 });
 
+
 // =================== AUTH ===================
 app.all('/api/auth/signup', (req, res) => {
   res.status(410).json({ error: 'Signups disabled. Use Google/Facebook OAuth.' });
 });
+
 
 app.post('/api/auth/login', (req, res) => {
   const school = req.query.school || 'dlsu';
@@ -343,6 +381,7 @@ app.post('/api/auth/login', (req, res) => {
     db.close();
     return res.status(400).json({ error: 'Missing credentials' });
   }
+
 
   db.get('SELECT * FROM users WHERE school_id_or_email = ?', [school_id_or_email], async (err, user) => {
     if (err || !user) {
@@ -357,6 +396,7 @@ app.post('/api/auth/login', (req, res) => {
   });
 });
 
+
 // OAuth Start
 app.get('/auth/google', (req, res, next) => {
   const school = req.query.school || 'dlsu';
@@ -367,7 +407,9 @@ app.get('/auth/google', (req, res, next) => {
   })(req, res, next);
 });
 
+
 app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'], session: true }));
+
 
 // OAuth Callbacks
 app.get('/auth/google/callback', (req, res, next) => {
@@ -382,15 +424,18 @@ app.get('/auth/google/callback', (req, res, next) => {
   res.redirect(`/oauth-success.html?token=${token}&display=${encodeURIComponent(req.user.display_name)}&school=${school}`);
 });
 
+
 app.get('/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/auth/failure', session: true }), (req, res) => {
   const school = req.query.school || 'dlsu';
   const token = jwt.sign({ id: req.user.id, school }, JWT_SECRET);
   res.redirect(`/oauth-success.html?token=${token}&display=${encodeURIComponent(req.user.display_name)}&school=${school}`);
 });
 
+
 app.get('/auth/failure', (req, res) => {
   res.status(401).send('Authentication failed');
 });
+
 
 // JWT middleware
 function authenticateJWT(req, res, next) {
@@ -406,6 +451,7 @@ function authenticateJWT(req, res, next) {
   }
 }
 
+
 // Profile routes
 app.get('/api/me', authenticateJWT, (req, res) => {
   const school = req.query.school || 'dlsu';
@@ -416,6 +462,7 @@ app.get('/api/me', authenticateJWT, (req, res) => {
     res.json({ user: row });
   });
 });
+
 
 app.post('/api/me', authenticateJWT, (req, res) => {
   const school = req.query.school || 'dlsu';
@@ -439,6 +486,7 @@ app.post('/api/me', authenticateJWT, (req, res) => {
   );
 });
 
+
 // =================== DEBUG ROUTE ===================
 app.get('/api/debug/dbinfo', (req, res) => {
   const school = req.query.school || 'dlsu';
@@ -447,6 +495,7 @@ app.get('/api/debug/dbinfo', (req, res) => {
   const stats = fs.statSync(dbPath);
   res.json({ school, dbPath, exists: true, size: stats.size, mtime: stats.mtime });
 });
+
 
 // =================== START SERVER ===================
 app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));

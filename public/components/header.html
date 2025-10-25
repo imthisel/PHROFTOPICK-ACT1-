@@ -7,6 +7,8 @@
 </div>
 
 
+
+
 <!-- Professor Search in Header -->
 <div class="header-search" style="position: relative;">
   <input
@@ -23,15 +25,26 @@
 
 
 
+
+
+
+
+
+
   <nav class="nav-right">
 <button id="change-school-btn" class="change-school-btn" onclick="changeSchool()">Change School</button>
+
+
 
 
     <button id="btn-show-login">Login</button>
     <button id="btn-logout" style="display:none;">Logout</button>
 
 
+
+
     <span id="user-name" style="display:none; margin-left:8px; font-weight:600;"></span>
+
 
     <div id="user-area" style="display:inline-block; cursor:pointer; margin-left:12px; position:relative;">
   <img id="user-avatar" src=""
@@ -40,27 +53,22 @@
     style="display:none; width:36px; height:36px; border-radius:50%; align-items:center; justify-content:center; display:inline-flex; font-weight:600; background:#ED6A00; color:white;">
   </div>
 
-  <div id="user-dropdown"
-  style="display:none; position:absolute; right:0; top:48px; background:white;
-  border:1px solid #ddd; padding:12px; border-radius:12px; min-width:220px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:1000;">
-  
-  <div style="font-weight:600;">Hi, <span id="drop-display">User</span>!</div>
-  <div style="font-size:13px; color:#666; margin-bottom:10px;">Student</div>
-  <hr style="margin:8px 0;">
 
-  <a href="/profile.html" style="display:block; padding:6px 0; text-decoration:none; color:#222;">Profile</a>
-  <a href="/settings.html" style="display:block; padding:6px 0; text-decoration:none; color:#222;">Settings</a>
-  <a href="/drafts.html" style="display:block; padding:6px 0; text-decoration:none; color:#222;">Review Drafts</a>
-  <hr style="margin:8px 0;">
-  <a href="/announcements.html" style="display:block; padding:6px 0; text-decoration:none; color:#222;">See Announcements</a>
-  <a href="/contact.html" style="display:block; padding:6px 0; text-decoration:none; color:#222;">Contact Us</a>
-  <a href="/support.html" style="display:block; padding:6px 0; text-decoration:none; color:#222;">Support Us</a>
-  <hr style="margin:8px 0;">
-  <a id="drop-logout" href="#" style="display:block; padding:6px 0; color:#d33; text-decoration:none;">Sign Out</a>
+  <div id="user-dropdown"
+    style="display:none; position:absolute; right:0; top:48px; background:white; border:1px solid #ddd;
+           padding:10px; border-radius:8px; min-width:180px; box-shadow:0 2px 8px rgba(0,0,0,0.15); z-index:1000;">
+    <div id="drop-display" style="font-weight:600; margin-bottom:8px;">You</div>
+    <a id="drop-profile" href="/settings.html">Profile</a><br>
+    <a id="drop-settings" href="/settings.html">Settings</a><br>
+    <a id="drop-logout" href="#">Logout</a>
+  </div>
 </div>
 
 
     </div>
   </nav>
 </header>
+
+
+
+

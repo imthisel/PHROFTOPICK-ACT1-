@@ -5,6 +5,27 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Professor Details</title>
   <link rel="stylesheet" href="css/base.css" />
+  <script>
+  // Preload the correct logo before header loads
+  (function preloadLogo() {
+    const school = localStorage.getItem('selectedSchool') || 'dlsu';
+    const logoMap = {
+      dlsu: 'images/dlsu-logo.png',
+      ateneo: 'images/ateneo-logo.png',
+      benilde: 'images/benilde-logo.png',
+      up: 'images/up-logo.png',
+    };
+    const selectedLogo = logoMap[school] || 'images/default-logo.png';
+
+    // Preload it to browser cache
+    const img = new Image();
+    img.src = selectedLogo;
+
+    // Pre-store it globally for instant use when header loads
+    window.__PRELOADED_LOGO = selectedLogo;
+  })();
+</script>
+
   <script src="js/theme-loader.js" defer></script>
   <script>
     // keep theme loading early

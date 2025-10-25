@@ -1,10 +1,12 @@
 // public/js/app.js
 // ==================== HEADER / APP LOGIC ====================
 
+
 // ========== Helper: current school ==========
 function currentSchool() {
   return localStorage.getItem('selectedSchool') || 'dlsu';
 }
+
 
 // ========== API ==========
 const api = {
@@ -36,6 +38,7 @@ const api = {
   }).then(r => r.json())
 };
 
+
 // ========== Header initialization (separate function used elsewhere) ==========
 async function initializeHeader() {
   const school = localStorage.getItem('selectedSchool') || 'dlsu';
@@ -45,52 +48,19 @@ async function initializeHeader() {
   const btnLogout = document.getElementById('btn-logout');
   const btnShowLogin = document.getElementById('btn-show-login');
 
-    const showLoggedOut = () => {
+
+  const showLoggedOut = () => {
     if (btnShowLogin) btnShowLogin.style.display = 'inline-block';
     if (btnLogout) btnLogout.style.display = 'none';
-    // hide avatar / initial when logged out
-    if (avatarImg) avatarImg.style.display = 'none';
-    const userInitial = document.getElementById('user-initial');
-    if (userInitial) {
-      userInitial.style.display = 'none';
-      userInitial.textContent = '';
-    }
-    // reset dropdown display name
-    if (dropDisplay) dropDisplay.textContent = 'You';
-    // ensure dropdown hidden
-    if (drop) drop.style.display = 'none';
+    if (avatarImg) avatarImg.src = 'images/default-avatar.png';
   };
+
 
   const showLoggedIn = (displayName, photoUrl) => {
     if (btnShowLogin) btnShowLogin.style.display = 'none';
     if (btnLogout) btnLogout.style.display = 'inline-block';
-
-    const userInitial = document.getElementById('user-initial');
-
-    // If there's a photo URL, show the avatar image; otherwise show initial
-    if (photoUrl) {
-      if (avatarImg) {
-        avatarImg.src = photoUrl;
-        avatarImg.style.display = 'inline-block';
-      }
-      if (userInitial) userInitial.style.display = 'none';
-    } else {
-      // no photo: show colored initial circle
-      if (avatarImg) avatarImg.style.display = 'none';
-      if (userInitial) {
-        // take first letter (or first two) of displayName
-        const initials = (displayName || 'You').split(' ').map(s => s[0]).slice(0,2).join('').toUpperCase();
-        userInitial.textContent = initials;
-        userInitial.style.display = 'inline-flex';
-        // ensure it visually aligns
-        userInitial.style.alignItems = 'center';
-        userInitial.style.justifyContent = 'center';
-      }
-    }
-
+    if (avatarImg) avatarImg.src = photoUrl || 'images/default-avatar.png';
     if (dropDisplay) dropDisplay.textContent = displayName || 'You';
-    // ensure dropdown hidden until user clicks
-    if (drop) drop.style.display = 'none';
   };
 
 
@@ -104,6 +74,7 @@ async function initializeHeader() {
     document.addEventListener('click', () => { drop.style.display = 'none'; });
   }
 
+
   const dropLogout = document.getElementById('drop-logout');
   if (dropLogout) {
     dropLogout.onclick = (e) => {
@@ -115,9 +86,11 @@ async function initializeHeader() {
     };
   }
 
+
   // Load user info
   const token = localStorage.getItem('token');
   if (!token) return showLoggedOut();
+
 
   try {
     const resp = await fetch(`/api/me?school=${school}`, {
@@ -134,16 +107,19 @@ async function initializeHeader() {
   }
 }
 
+
 // ========== Auth UI update ==========
 function updateAuthUI() {
   const btnShowLogin = document.getElementById('btn-show-login');
   const btnLogout = document.getElementById('btn-logout');
   const userNameSpan = document.getElementById('user-name');
 
+
   if (!btnShowLogin || !btnLogout || !userNameSpan) {
     console.warn("updateAuthUI() called before header loaded");
     return;
   }
+
 
   const token = localStorage.getItem('token');
   if (token) {
@@ -158,6 +134,7 @@ function updateAuthUI() {
     userNameSpan.textContent = '';
   }
 }
+
 
 // ========== Rendering helpers ==========
 function renderSubjects(list) {
@@ -177,6 +154,7 @@ function renderSubjects(list) {
     </div>
   `).join('');
 
+
   document.querySelectorAll('.btn-view-profs').forEach(b => {
     b.addEventListener('click', async ev => {
       const id = ev.currentTarget.dataset.subid;
@@ -194,6 +172,7 @@ function renderSubjects(list) {
     });
   });
 }
+
 
 async function renderProfList(list, container) {
   if (!container) return;
@@ -225,7 +204,9 @@ async function renderProfList(list, container) {
     `;
     container.appendChild(card);
 
+
     loadComments(p.id);
+
 
     const form = document.getElementById(`comment-form-${p.id}`);
     if (form) {
@@ -246,6 +227,7 @@ async function renderProfList(list, container) {
   }
 }
 
+
 async function loadComments(profId) {
   const container = document.getElementById(`comments-list-${profId}`);
   if (!container) return;
@@ -259,10 +241,12 @@ async function loadComments(profId) {
 }
 window.initializeHeader = initializeHeader;
 
+
 // ========== App-wide variables with safe initialization ==========
 let subjectsVisible = false;
 let profsVisible = false;
 let lastProfQuery = '';
+
 
 async function initializeHeaderSearch() {
   const profSearchInput = document.getElementById('prof-search');
@@ -272,8 +256,11 @@ async function initializeHeaderSearch() {
     return;
   }
 
+
     const subjectsList = document.getElementById('subjects-list') || null;
   const profListContainer = document.getElementById('prof-list') || null;
+
+
 
 
   profSearchInput.addEventListener('keydown', async e => {
@@ -282,9 +269,11 @@ async function initializeHeaderSearch() {
       const q = profSearchInput.value.trim();
       if (!q) return alert('Type something to search.');
 
+
       // Clear old results
       subjectsList.innerHTML = '';
       profListContainer.innerHTML = '';
+
 
       try {
         const [subRes, profRes] = await Promise.all([
@@ -292,21 +281,26 @@ async function initializeHeaderSearch() {
           api.searchProfs(q)
         ]);
 
+
         const subjects = subRes.subjects || [];
         const profs = profRes.professors || [];
+
 
         // Render results
         // Remove old section titles before rendering
 document.querySelectorAll('.search-results-title').forEach(el => el.remove());
+
 
 // Render results without adding new titles
 if (subjects.length > 0) {
   renderSubjects(subjects);
 }
 
+
 if (profs.length > 0) {
   renderProfList(profs, profListContainer);
 }
+
 
 if (subjects.length === 0 && profs.length === 0) {
   subjectsList.innerHTML = '<div class="card">No results found.</div>';
@@ -318,8 +312,10 @@ if (subjects.length === 0 && profs.length === 0) {
     }
   });
 
+
   console.log('✅ Header search initialized (Enter key only)');
 }
+
 
 // ========= AUTOCOMPLETE SEARCH (for both header + index) =========
 function enableAutocomplete(inputId, suggestionsId) {
@@ -327,24 +323,30 @@ function enableAutocomplete(inputId, suggestionsId) {
     const input = document.getElementById(inputId);
     const suggestions = document.getElementById(suggestionsId);
 
+
     if (!input || !suggestions) {
       console.warn(`Waiting for ${inputId} to exist...`);
       return setTimeout(attemptInit, 300);
     }
 
+
     console.log(`✅ Autocomplete enabled for ${inputId}`);
 
+
     let debounceTimer;
+
 
     input.addEventListener("input", async () => {
       const q = input.value.trim();
       clearTimeout(debounceTimer);
+
 
       if (!q) {
         suggestions.style.display = "none";
         suggestions.innerHTML = "";
         return;
       }
+
 
       debounceTimer = setTimeout(async () => {
         try {
@@ -353,8 +355,10 @@ function enableAutocomplete(inputId, suggestionsId) {
             api.searchProfs(q)
           ]);
 
+
           const subjects = subRes.subjects || [];
           const profs = profRes.professors || [];
+
 
           const combined = [
             ...profs.map(p => ({
@@ -369,11 +373,13 @@ function enableAutocomplete(inputId, suggestionsId) {
             }))
           ];
 
+
           if (combined.length === 0) {
             suggestions.style.display = "none";
             suggestions.innerHTML = "";
             return;
           }
+
 
           suggestions.innerHTML = combined
             .map(
@@ -384,7 +390,9 @@ function enableAutocomplete(inputId, suggestionsId) {
             )
             .join("");
 
+
           suggestions.style.display = "block";
+
 
           // Click listener for results
           suggestions
@@ -404,6 +412,7 @@ function enableAutocomplete(inputId, suggestionsId) {
       }, 300);
     });
 
+
     // Hide suggestions when clicking elsewhere
     document.addEventListener("click", e => {
       if (!suggestions.contains(e.target) && e.target !== input) {
@@ -412,8 +421,13 @@ function enableAutocomplete(inputId, suggestionsId) {
     });
   };
 
+
   attemptInit();
 }
+
+
+
+
 
 
 
@@ -424,13 +438,16 @@ document.addEventListener('DOMContentLoaded', async () => {
  // ✅ Dynamic logo + fallback handling
 // ✅ Dynamic logo + fallback handling
 
+
 const school = localStorage.getItem('selectedSchool') || 'dlsu';
 const headerTitle = document.getElementById('site-title');
 const logoImg = document.querySelector('.school-logo');
 
+
 if (headerTitle) {
   headerTitle.textContent = `${school.toUpperCase()} — PHROFS TO PICK`;
 }
+
 
 if (logoImg) {
   // Define proper image paths per school
@@ -441,15 +458,20 @@ if (logoImg) {
     up: "images/up-logo.png",
   };
 
+
   const fallbackLogo = "images/default-logo.png";
   const selectedLogo = logoMap[school] || fallbackLogo;
 
-  logoImg.src = selectedLogo;
+
+  logoImg.src = window.__PRELOADED_LOGO || selectedLogo;
   logoImg.onerror = () => {
     console.warn(`⚠️ Missing logo for ${school}, using fallback.`);
     logoImg.src = fallbackLogo;
   };
 }
+
+
+
 
 
 
@@ -466,21 +488,26 @@ if (logoImg) {
     };
   }
 
+
   // --- Grab elements safely (only if present on the page) ---
   const subjectSearch = document.getElementById('subject-search');
   const btnSearch = document.getElementById('btn-search');
   const btnListAll = document.getElementById('btn-list-all');
   const subjectsList = document.getElementById('subjects-list') || null;
 
+
   const profSearchInput = document.getElementById('prof-search');
   const btnProfSearch = document.getElementById('btn-prof-search');
   const profList = document.getElementById('prof-list');
+
 
   const modal = document.getElementById('modal');
   const modalContent = document.getElementById('modal-content');
   const modalClose = document.getElementById('modal-close');
 
+
   const uploadResult = document.getElementById('upload-result');
+
 
   // --- Modal handlers ---
   if (modal && modalContent) {
@@ -493,6 +520,7 @@ if (logoImg) {
     modalClose.addEventListener('click', () => modal.classList.add('hidden'));
     modal.addEventListener('click', e => { if (e.target === modal) modal.classList.add('hidden'); });
   }
+
 
   // --- Search handlers (safe attach if elements exist) ---
   if (subjectSearch && btnSearch) {
@@ -509,10 +537,12 @@ if (logoImg) {
     };
   }
 
+
   if (btnListAll && subjectsList) {
     btnListAll.onclick = async () => {
       const subjectsContainer = subjectsList;
       if (!subjectsContainer) return;
+
 
       const FADE_MS = 300;
       if (subjectsVisible) {
@@ -528,6 +558,7 @@ if (logoImg) {
         return;
       }
 
+
       // show
       const data = await api.listSubjects();
       renderSubjects(data.subjects || []);
@@ -541,6 +572,7 @@ if (logoImg) {
     };
   }
 
+
   // --- Professor search ---
   // --- Unified Search (Subjects + Professors) ---
 if (profSearchInput && btnProfSearch) {
@@ -551,17 +583,21 @@ if (profSearchInput && btnProfSearch) {
     }
   });
 
+
   btnProfSearch.onclick = async () => {
     const q = profSearchInput.value.trim();
     if (!q) return alert('Type something to search.');
+
 
     const subjectsList = document.getElementById('subjects-list') || null;
     const profListContainer = document.getElementById('prof-list') || null;
     if (!subjectsList || !profListContainer) return;
 
+
     // Clear previous results
     subjectsList.innerHTML = '';
     profListContainer.innerHTML = '';
+
 
     try {
       // Fetch both in parallel
@@ -570,8 +606,10 @@ if (profSearchInput && btnProfSearch) {
         api.searchProfs(q)
       ]);
 
+
       const subjects = subRes.subjects || [];
       const profs = profRes.professors || [];
+
 
       // Render results
       if (subjects.length > 0) {
@@ -582,6 +620,7 @@ if (profSearchInput && btnProfSearch) {
         renderSubjects(subjects);
       }
 
+
       if (profs.length > 0) {
         const title = document.createElement('h2');
         title.textContent = 'Professors';
@@ -589,6 +628,7 @@ if (profSearchInput && btnProfSearch) {
         profListContainer.before(title);
         renderProfList(profs, profListContainer);
       }
+
 
       if (subjects.length === 0 && profs.length === 0) {
         subjectsList.innerHTML = '<div class="card">No results found.</div>';
@@ -599,6 +639,7 @@ if (profSearchInput && btnProfSearch) {
     }
   };
 }
+
 
 document.addEventListener('click', function(e) {
   const homeLink = e.target.closest('.home-link');
@@ -613,6 +654,8 @@ document.addEventListener('click', function(e) {
 });
 
 
+
+
   // --- Load subjects initially (if container exists) ---
 if (subjectsList) {
   try {
@@ -625,11 +668,15 @@ if (subjectsList) {
 }
 
 
+
+
   // --- Initialize header auth visuals if header is already in DOM ---
   if (typeof initializeHeader === 'function') initializeHeader();
   if (typeof updateAuthUI === 'function') updateAuthUI();
   // ✅ Ensure logo updates after header is loaded
 if (typeof updateSchoolLogo === 'function') updateSchoolLogo();
+
+
 
 
   function initChangeSchoolButton() {
@@ -647,18 +694,22 @@ if (typeof updateSchoolLogo === 'function') updateSchoolLogo();
 }
 
 
+
+
 window.addEventListener("load", () => {
   // initialize both once header fully loaded
   enableAutocomplete("prof-search", "header-suggestions");
   enableAutocomplete("subject-search", "index-suggestions");
   initializeHeaderSearch(); // keep this intact
-  
+ 
 });
+
 
 function updateSchoolLogo() {
   const school = localStorage.getItem("selectedSchool") || "dlsu";
   const logo = document.querySelector(".school-logo");
   const title = document.getElementById("site-title");
+
 
   const logoMap = {
     dlsu: "images/dlsu-logo.png",
@@ -668,6 +719,7 @@ function updateSchoolLogo() {
   };
   const fallback = "images/default-logo.png";
 
+
   if (logo) {
     logo.src = logoMap[school] || fallback;
     logo.onerror = () => (logo.src = fallback);
@@ -675,8 +727,13 @@ function updateSchoolLogo() {
   if (title) title.textContent = `${school.toUpperCase()} — PHROFS TO PICK`;
 }
 
+
 window.updateSchoolLogo = updateSchoolLogo;
 window.updateAuthUI = updateAuthUI;
 
 
+
+
 });
+
+

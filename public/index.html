@@ -5,21 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PROFS TO RATE PH — Home</title>
 
+
+  <script>
+  // Preload the correct logo before header loads
+  (function preloadLogo() {
+    const school = localStorage.getItem('selectedSchool') || 'dlsu';
+    const logoMap = {
+      dlsu: 'images/dlsu-logo.png',
+      ateneo: 'images/ateneo-logo.png',
+      benilde: 'images/benilde-logo.png',
+      up: 'images/up-logo.png',
+    };
+    const selectedLogo = logoMap[school] || 'images/default-logo.png';
+
+    // Preload it to browser cache
+    const img = new Image();
+    img.src = selectedLogo;
+
+    // Pre-store it globally for instant use when header loads
+    window.__PRELOADED_LOGO = selectedLogo;
+  })();
+</script>
+
   <!-- Base design -->
   <link rel="stylesheet" href="css/base.css">
   <!-- Theme loader -->
   <script src="js/theme-loader.js" defer></script>
 </head>
 
+
 <body>
   <!-- ===== HEADER PLACEHOLDER ===== -->
   <div id="header-placeholder"></div>
+
 
   <!-- ===== MODAL (single copy) ===== -->
   <div id="modal" class="modal hidden">
     <div class="modal-inner" id="modal-content"></div>
     <button id="modal-close">✕</button>
   </div>
+
 
   <!-- ===== CONTENT ===== -->
   <main class="container fade-in">
@@ -41,14 +66,23 @@
 
 
 
+
+
+
+
+
+
     <!-- Cards appear here -->
     <div id="prof-list"></div>
     <div id="subjects-list" class="results"></div>
 
+
    
   </main>
 
-  
+
+ 
+
 
   <!-- ===== SCRIPTS ===== -->
 <!-- 1) Load app.js first (contains initializeHeader and handlers) -->
@@ -68,8 +102,6 @@
   }
 </script>
 
-<script src="js/app.js"></script>
-
 
 <script>
   document.addEventListener("DOMContentLoaded", async () => {
@@ -77,9 +109,12 @@
       const res = await fetch("components/header.html");
       const html = await res.text();
 
+
       const headerPlaceholder = document.getElementById("header-placeholder");
       headerPlaceholder.innerHTML = html;
       initChangeSchoolButton();
+
+
 
 
       // ✅ Wait for header elements to exist
@@ -91,13 +126,16 @@
         check();
       });
 
+
       // ✅ Now initialize everything safely
       if (typeof initializeHeader === "function") await initializeHeader();
       if (typeof updateAuthUI === "function") updateAuthUI();
 
+
       // ✅ Attach login/signup click events AFTER header loads
       const btnShowLogin = document.getElementById("btn-show-login");
       const btnLogout = document.getElementById("btn-logout");
+
 
       if (btnShowLogin) {
         btnShowLogin.onclick = () => {
@@ -106,7 +144,23 @@
         };
       }
 
-      
+
+      if (btnShowSignup) {
+        btnShowSignup.onclick = () => {
+          const school = localStorage.getItem("selectedSchool") || "dlsu";
+          showModal(`
+            <div class="auth-modal" style="text-align:center;">
+              <h2>Continue with</h2>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-top:15px;">
+                <a class="auth-btn" href="/auth/google?school=${school}" style="background:#4285F4;color:white;">Sign in with Google</a>
+                <a class="auth-btn" href="/auth/facebook?school=${school}" style="background:#1877F2;color:white;">Sign in with Facebook</a>
+              </div>
+            </div>
+          `);
+        };
+      }
+
+
       if (btnLogout) {
         btnLogout.onclick = () => {
           localStorage.removeItem("token");
@@ -116,12 +170,15 @@
         };
       }
 
+
       console.log("✅ Header, Auth UI, and Buttons initialized");
+
 
     } catch (err) {
       console.error("❌ Failed to load header:", err);
     }
   });
+
 
   function changeSchool() {
     localStorage.removeItem("selectedSchool");
@@ -132,5 +189,76 @@
 
 
 
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const res = await fetch("components/header.html");
+    const html = await res.text();
+    const headerPlaceholder = document.getElementById("header-placeholder");
+    headerPlaceholder.innerHTML = html;
+
+
+    initChangeSchoolButton();
+    initializeHeaderSearch(); // ✅ initialize the header search after header loads
+
+
+
+
+    // ✅ Wait until header elements exist
+    await new Promise(resolve => {
+      const check = () => {
+        if (document.querySelector(".school-logo")) resolve();
+        else requestAnimationFrame(check);
+      };
+      check();
+    });
+
+
+    // ✅ Now safely update school logo
+    const school = localStorage.getItem("selectedSchool") || "dlsu";
+    const logo = document.querySelector(".school-logo");
+    const title = document.getElementById("site-title");
+
+
+    const logoMap = {
+      dlsu: "images/dlsu-logo.png",
+      ateneo: "images/ateneo-logo.png",
+      benilde: "images/benilde-logo.png",
+      up: "images/up-logo.png",
+    };
+    const fallback = "images/default-logo.png";
+
+
+    if (logo) {
+      logo.src = logoMap[school] || fallback;
+      logo.onerror = () => logo.src = fallback;
+    }
+    if (title) title.textContent = `${school.toUpperCase()} — PHROFS TO PICK`;
+
+
+    // ✅ Now initialize other header-related stuff
+    if (typeof initializeHeader === "function") await initializeHeader();
+    if (typeof updateAuthUI === "function") updateAuthUI();
+
+
+    console.log("✅ Header + logo initialized for", school);
+
+
+  } catch (err) {
+    console.error("❌ Failed to load header:", err);
+  }
+});
+</script>
+
+
+<script src="js/app.js"></script>
+
+
+
+
 </body>
 </html>
+
+
+
+
