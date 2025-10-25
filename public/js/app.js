@@ -45,18 +45,54 @@ async function initializeHeader() {
   const btnLogout = document.getElementById('btn-logout');
   const btnShowLogin = document.getElementById('btn-show-login');
 
-  const showLoggedOut = () => {
+    const showLoggedOut = () => {
     if (btnShowLogin) btnShowLogin.style.display = 'inline-block';
     if (btnLogout) btnLogout.style.display = 'none';
-    if (avatarImg) avatarImg.src = 'images/default-avatar.png';
+    // hide avatar / initial when logged out
+    if (avatarImg) avatarImg.style.display = 'none';
+    const userInitial = document.getElementById('user-initial');
+    if (userInitial) {
+      userInitial.style.display = 'none';
+      userInitial.textContent = '';
+    }
+    // reset dropdown display name
+    if (dropDisplay) dropDisplay.textContent = 'You';
+    // ensure dropdown hidden
+    if (drop) drop.style.display = 'none';
   };
 
   const showLoggedIn = (displayName, photoUrl) => {
     if (btnShowLogin) btnShowLogin.style.display = 'none';
     if (btnLogout) btnLogout.style.display = 'inline-block';
-    if (avatarImg) avatarImg.src = photoUrl || 'images/default-avatar.png';
+
+    const userInitial = document.getElementById('user-initial');
+
+    // If there's a photo URL, show the avatar image; otherwise show initial
+    if (photoUrl) {
+      if (avatarImg) {
+        avatarImg.src = photoUrl;
+        avatarImg.style.display = 'inline-block';
+      }
+      if (userInitial) userInitial.style.display = 'none';
+    } else {
+      // no photo: show colored initial circle
+      if (avatarImg) avatarImg.style.display = 'none';
+      if (userInitial) {
+        // take first letter (or first two) of displayName
+        const initials = (displayName || 'You').split(' ').map(s => s[0]).slice(0,2).join('').toUpperCase();
+        userInitial.textContent = initials;
+        userInitial.style.display = 'inline-flex';
+        // ensure it visually aligns
+        userInitial.style.alignItems = 'center';
+        userInitial.style.justifyContent = 'center';
+      }
+    }
+
     if (dropDisplay) dropDisplay.textContent = displayName || 'You';
+    // ensure dropdown hidden until user clicks
+    if (drop) drop.style.display = 'none';
   };
+
 
   // Dropdown toggle
   const userArea = document.getElementById('user-area');

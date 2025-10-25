@@ -68,6 +68,9 @@
   }
 </script>
 
+<script src="js/app.js"></script>
+
+
 <script>
   document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -103,21 +106,7 @@
         };
       }
 
-      if (btnShowSignup) {
-        btnShowSignup.onclick = () => {
-          const school = localStorage.getItem("selectedSchool") || "dlsu";
-          showModal(`
-            <div class="auth-modal" style="text-align:center;">
-              <h2>Continue with</h2>
-              <div style="display:flex;flex-direction:column;gap:10px;margin-top:15px;">
-                <a class="auth-btn" href="/auth/google?school=${school}" style="background:#4285F4;color:white;">Sign in with Google</a>
-                <a class="auth-btn" href="/auth/facebook?school=${school}" style="background:#1877F2;color:white;">Sign in with Facebook</a>
-              </div>
-            </div>
-          `);
-        };
-      }
-
+      
       if (btnLogout) {
         btnLogout.onclick = () => {
           localStorage.removeItem("token");
@@ -141,59 +130,6 @@
 </script>
 
 
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const res = await fetch("components/header.html");
-    const html = await res.text();
-    const headerPlaceholder = document.getElementById("header-placeholder");
-    headerPlaceholder.innerHTML = html;
-
-    initChangeSchoolButton();
-    initializeHeaderSearch(); // ✅ initialize the header search after header loads
-
-
-    // ✅ Wait until header elements exist
-    await new Promise(resolve => {
-      const check = () => {
-        if (document.querySelector(".school-logo")) resolve();
-        else requestAnimationFrame(check);
-      };
-      check();
-    });
-
-    // ✅ Now safely update school logo
-    const school = localStorage.getItem("selectedSchool") || "dlsu";
-    const logo = document.querySelector(".school-logo");
-    const title = document.getElementById("site-title");
-
-    const logoMap = {
-      dlsu: "images/dlsu-logo.png",
-      ateneo: "images/ateneo-logo.png",
-      benilde: "images/benilde-logo.png",
-      up: "images/up-logo.png",
-    };
-    const fallback = "images/default-logo.png";
-
-    if (logo) {
-      logo.src = logoMap[school] || fallback;
-      logo.onerror = () => logo.src = fallback;
-    }
-    if (title) title.textContent = `${school.toUpperCase()} — PHROFS TO PICK`;
-
-    // ✅ Now initialize other header-related stuff
-    if (typeof initializeHeader === "function") await initializeHeader();
-    if (typeof updateAuthUI === "function") updateAuthUI();
-
-    console.log("✅ Header + logo initialized for", school);
-
-  } catch (err) {
-    console.error("❌ Failed to load header:", err);
-  }
-});
-</script>
-
-<script src="js/app.js"></script>
 
 
 </body>

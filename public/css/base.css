@@ -527,52 +527,86 @@ body.up .change-school-btn {
 
 /* ========= MOBILE HEADER ========= */
 @media (max-width: 768px) {
+  /* Keep everything inside the header tight and centered */
   .site-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 10px;
+    flex-direction: column; /* stack logo/title and nav vertically */
+    align-items: center;
+    justify-content: center;
+    padding: 6px 15px; /* smaller padding for compact height */
+    gap: 4px; /* minimal spacing between rows */
   }
 
+  /* Tighten logo + text area */
   .site-header .logo-area {
-    justify-content: space-between;
-    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px; /* reduce space between logo and text */
+  }
+
+  .site-header .logo-area img {
+    height: 38px; /* smaller logo */
+    padding: 3px;
   }
 
   .site-header h1 {
-    font-size: 1rem;
+    font-size: 1rem; /* smaller font for mobile */
   }
 
+  /* Make nav buttons smaller to save space */
   .site-header nav {
-    width: 100%;
+    display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
   }
 
   .site-header nav button {
-    padding: 6px 10px;
+    padding: 5px 10px;
     font-size: 0.9rem;
   }
+
+  /* Adjust header search bar on mobile */
+  .site-header .header-search {
+    width: 100%;
+    margin: 5px 0 0 0;
+  }
+
+  .site-header .header-search input {
+    width: 100%;
+    font-size: 13px;
+    padding: 6px 10px;
+    height: 34px; /* smaller height */
+    line-height: 34px;
+  }
 }
+
 
 /* ========= MOBILE SEARCH PANEL ========= */
 @media (max-width: 600px) {
   .search-panel {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-panel input,
-  .search-panel button {
-    width: 100%;
+    flex-direction: column; /* stack vertically */
+    gap: 8px;
+    margin-bottom: 25px;
   }
 
   .search-panel input {
-    font-size: 1rem;
+    flex: 1;
+    padding: 6px 10px; /* reduce height */
+    font-size: 0.85rem;
+    height: 36px;
+    line-height: 36px;
+    border-radius: 8px;
+  }
+
+  .search-panel button {
+    padding: 6px 10px;
+    font-size: 0.85rem;
   }
 }
 
+
+/* ========= OTHER MOBILE RESPONSIVE SECTIONS ========= */
 @media (max-width: 600px) {
   .card {
     padding: 15px;
@@ -615,22 +649,8 @@ body.up .change-school-btn {
   }
 }
 
-.site-header .search-panel {
-  margin: 0;
-  flex-wrap: nowrap;
-}
 
-.site-header .search-panel input {
-  width: 220px;
-  padding: 7px 10px;
-  font-size: 14px;
-}
-
-#prof-list, #subjects-list {
-  margin-top: 20px;
-}
-
-/* ========= HEADER SEARCH BAR (isolated styling) ========= */
+/* ========= HEADER SEARCH BAR (ISOLATED STYLING) ========= */
 .site-header .header-search {
   display: flex;
   align-items: center;
@@ -638,7 +658,7 @@ body.up .change-school-btn {
   justify-content: flex-start;
   margin: 0 15px;
   width: 100%;
-  max-width: 600px; /* You can increase this if you want it longer */
+  max-width: 600px;
 }
 
 .site-header .header-search input {
@@ -666,21 +686,7 @@ body.up .change-school-btn {
     margin-right: 40px;
   }
   .site-header .header-search input {
-    max-width: none; /* removes limit */
-  }
-}
-
-/* Responsive header search on mobile */
-@media (max-width: 768px) {
-  .site-header .header-search {
-    width: 100%;
-    margin: 10px 0;
-  }
-
-  .site-header .header-search input {
-    width: 100%;
-    font-size: 14px;
-    padding: 8px 12px;
+    max-width: none;
   }
 }
 
