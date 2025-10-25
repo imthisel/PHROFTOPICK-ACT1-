@@ -23,10 +23,7 @@ const api = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   }).then(r => r.json()),
-  signup: body => {
-    alert("Email/password signup is disabled. Please sign up using Google or Facebook.");
-    return Promise.reject("Signups disabled");
-  },
+ 
   getComments: profId => fetch(`/api/profs/${profId}?school=${currentSchool()}`).then(r => r.json()).then(data => data.comments || []),
   postComment: (profId, content, token, anonymous = false) => fetch(`/api/profs/${profId}/rate?school=${currentSchool()}`, {
     method: 'POST',
@@ -47,18 +44,15 @@ async function initializeHeader() {
   const dropDisplay = document.getElementById('drop-display');
   const btnLogout = document.getElementById('btn-logout');
   const btnShowLogin = document.getElementById('btn-show-login');
-  const btnShowSignup = document.getElementById('btn-show-signup');
 
   const showLoggedOut = () => {
     if (btnShowLogin) btnShowLogin.style.display = 'inline-block';
-    if (btnShowSignup) btnShowSignup.style.display = 'inline-block';
     if (btnLogout) btnLogout.style.display = 'none';
     if (avatarImg) avatarImg.src = 'images/default-avatar.png';
   };
 
   const showLoggedIn = (displayName, photoUrl) => {
     if (btnShowLogin) btnShowLogin.style.display = 'none';
-    if (btnShowSignup) btnShowSignup.style.display = 'none';
     if (btnLogout) btnLogout.style.display = 'inline-block';
     if (avatarImg) avatarImg.src = photoUrl || 'images/default-avatar.png';
     if (dropDisplay) dropDisplay.textContent = displayName || 'You';
@@ -107,11 +101,10 @@ async function initializeHeader() {
 // ========== Auth UI update ==========
 function updateAuthUI() {
   const btnShowLogin = document.getElementById('btn-show-login');
-  const btnShowSignup = document.getElementById('btn-show-signup');
   const btnLogout = document.getElementById('btn-logout');
   const userNameSpan = document.getElementById('user-name');
 
-  if (!btnShowLogin || !btnShowSignup || !btnLogout || !userNameSpan) {
+  if (!btnShowLogin || !btnLogout || !userNameSpan) {
     console.warn("updateAuthUI() called before header loaded");
     return;
   }
@@ -119,13 +112,11 @@ function updateAuthUI() {
   const token = localStorage.getItem('token');
   if (token) {
     btnShowLogin.style.display = 'none';
-    btnShowSignup.style.display = 'none';
     btnLogout.style.display = 'inline-block';
     userNameSpan.style.display = 'inline-block';
     userNameSpan.textContent = localStorage.getItem('user_display') || 'You';
   } else {
     btnShowLogin.style.display = 'inline-block';
-    btnShowSignup.style.display = 'inline-block';
     btnLogout.style.display = 'none';
     userNameSpan.style.display = 'none';
     userNameSpan.textContent = '';
@@ -230,6 +221,7 @@ async function loadComments(profId) {
     </div>
   `).join('');
 }
+window.initializeHeader = initializeHeader;
 
 // ========== App-wide variables with safe initialization ==========
 let subjectsVisible = false;
@@ -648,7 +640,6 @@ function updateSchoolLogo() {
 }
 
 window.updateSchoolLogo = updateSchoolLogo;
-window.initializeHeader = initializeHeader;
 window.updateAuthUI = updateAuthUI;
 
 
