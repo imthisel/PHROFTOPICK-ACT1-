@@ -23,15 +23,37 @@
 <body>
   <!-- ===== HEADER ===== -->
   <div id="header-placeholder"></div>
-  <script>
-    // ✅ Load the shared header component dynamically
-    fetch('components/header.html')
-      .then(response => response.text())
-      .then(data => {
-        document.getElementById('header-placeholder').innerHTML = data;
-        initializeHeader(); // uses the global function from app.js
-      });
-  </script>
+  <!-- Load shared header dynamically (replace existing fetch block) -->
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const headerContainer = document.getElementById("header-placeholder");
+    // use absolute path to avoid relative-path issues
+    const res = await fetch("/components/header.html");
+    headerContainer.innerHTML = await res.text();
+
+    // small pause to allow browser to parse inserted HTML
+    await new Promise(requestAnimationFrame);
+
+    // call the global functions only if available
+    if (typeof window.updateSchoolLogo === "function") {
+      window.updateSchoolLogo(); // set correct logo src
+    }
+    if (typeof window.initializeHeader === "function") {
+      // initializeHeader is async in your code; await if it returns a promise
+      await window.initializeHeader();
+    }
+    if (typeof window.updateAuthUI === "function") {
+      window.updateAuthUI();
+    }
+
+    console.log("Header injected and initialized (prof/subject).");
+  } catch (err) {
+    console.error("Failed to load header:", err);
+  }
+});
+</script>
+
 
   <!-- ===== CONTENT ===== -->
   <main class="subject-page container fade-in">

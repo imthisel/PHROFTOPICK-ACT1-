@@ -572,7 +572,18 @@ if (profSearchInput && btnProfSearch) {
   };
 }
 
-  
+document.addEventListener('click', function(e) {
+  const homeLink = e.target.closest('.home-link');
+  if (homeLink) {
+    e.preventDefault();
+    if (window.location.pathname.includes('index.html')) {
+      window.location.reload();
+    } else {
+      window.location.href = 'index.html';
+    }
+  }
+});
+
 
   // --- Load subjects initially (if container exists) ---
 if (subjectsList) {
@@ -613,15 +624,32 @@ window.addEventListener("load", () => {
   enableAutocomplete("prof-search", "header-suggestions");
   enableAutocomplete("subject-search", "index-suggestions");
   initializeHeaderSearch(); // keep this intact
+  
 });
 
+function updateSchoolLogo() {
+  const school = localStorage.getItem("selectedSchool") || "dlsu";
+  const logo = document.querySelector(".school-logo");
+  const title = document.getElementById("site-title");
 
+  const logoMap = {
+    dlsu: "images/dlsu-logo.png",
+    ateneo: "images/ateneo-logo.png",
+    benilde: "images/benilde-logo.png",
+    up: "images/up-logo.png",
+  };
+  const fallback = "images/default-logo.png";
 
+  if (logo) {
+    logo.src = logoMap[school] || fallback;
+    logo.onerror = () => (logo.src = fallback);
+  }
+  if (title) title.textContent = `${school.toUpperCase()} — PHROFS TO PICK`;
+}
 
-
-
-
-
+window.updateSchoolLogo = updateSchoolLogo;
+window.initializeHeader = initializeHeader;
+window.updateAuthUI = updateAuthUI;
 
 
 });
