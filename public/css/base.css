@@ -586,99 +586,126 @@ body.up .change-school-btn {
 }
 
 
-/* ========= MOBILE HEADER ========= */
+/* ========= MOBILE HEADER (Improved Single-Line Layout) ========= */
 @media (max-width: 768px) {
-  /* Keep everything inside the header tight and centered */
+  /* Keep header in a single row */
   .site-header {
-    flex-direction: column; /* stack logo/title and nav vertically */
+    display: flex;
+    flex-direction: row;       /* ✅ keep everything horizontal */
     align-items: center;
-    justify-content: center;
-    padding: 6px 15px; /* smaller padding for compact height */
-    gap: 4px; /* minimal spacing between rows */
+    justify-content: space-between;
+    flex-wrap: nowrap;         /* prevent stacking */
+    padding: 6px 12px;
+    gap: 8px;
   }
 
-
-  /* Tighten logo + text area */
+  /* Logo + title area */
   .site-header .logo-area {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 4px; /* reduce space between logo and text */
+    gap: 6px;
+    flex: 0 0 auto;
+    min-width: 0;
   }
-
 
   .site-header .logo-area img {
-    height: 38px; /* smaller logo */
-    padding: 3px;
+    height: 34px;
+    width: 34px;
+    padding: 2px;
   }
 
-
-  .site-header h1 {
-    font-size: 1rem; /* smaller font for mobile */
+  .site-header .logo-area h1 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+    white-space: nowrap;        /* prevent wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis;    /* truncate if too long */
+    max-width: 120px;           /* adjust to fit your site title */
   }
 
-
-  /* Make nav buttons smaller to save space */
-  .site-header nav {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 6px;
-  }
-
-
-  .site-header nav button {
-    padding: 5px 10px;
-    font-size: 0.9rem;
-  }
-
-
-  /* Adjust header search bar on mobile */
+  /* Search bar stays inline and shrinks properly */
   .site-header .header-search {
-    width: 100%;
-    margin: 5px 0 0 0;
+    flex: 1 1 auto;
+    min-width: 0;               /* ✅ allows shrinking */
+    margin: 0 8px;
   }
-
 
   .site-header .header-search input {
     width: 100%;
+    box-sizing: border-box;
+    padding: 7px 12px;
+    height: 36px;
     font-size: 13px;
-    padding: 6px 10px;
-    height: 34px; /* smaller height */
-    line-height: 34px;
+    border-radius: 20px;
+  }
+
+  /* Right-side buttons stay compact */
+  .site-header nav,
+  .site-header .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .site-header nav button,
+  .site-header .nav-right button {
+    padding: 6px 8px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* Prevent header shadow/padding from making it look too tall */
+  .site-header {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Make suggestion dropdown fit screen width */
+  .site-header .suggestions {
+    left: 0;
+    right: auto;
+    width: 100%;
+    box-sizing: border-box;
   }
 }
 
+/* ========= VERY SMALL SCREENS (Optional Compact Mode) ========= */
+@media (max-width: 420px) {
+  .site-header .logo-area h1 {
+    max-width: 80px;
+    font-size: 0.9rem;
+  }
 
-
+  .site-header .nav-right button {
+    padding: 5px 6px;
+    font-size: 12px;
+  }
+}
 
 /* ========= MOBILE SEARCH PANEL ========= */
 @media (max-width: 600px) {
   .search-panel {
-    flex-direction: column; /* stack vertically */
+    flex-direction: column;
     gap: 8px;
     margin-bottom: 25px;
   }
 
-
   .search-panel input {
     flex: 1;
-    padding: 6px 10px; /* reduce height */
+    padding: 6px 10px;
     font-size: 0.85rem;
     height: 36px;
     line-height: 36px;
     border-radius: 8px;
   }
 
-
   .search-panel button {
     padding: 6px 10px;
     font-size: 0.85rem;
   }
 }
-
-
-
 
 /* ========= OTHER MOBILE RESPONSIVE SECTIONS ========= */
 @media (max-width: 600px) {
@@ -687,13 +714,11 @@ body.up .change-school-btn {
     font-size: 0.95rem;
   }
 
-
   .card button {
     width: 100%;
     margin-top: 5px;
   }
 }
-
 
 @media (max-width: 768px) {
   .subject-content {
@@ -701,19 +726,16 @@ body.up .change-school-btn {
   }
 }
 
-
 @media (max-width: 600px) {
   .star-rating {
     font-size: 22px;
     justify-content: center;
   }
 
-
   #prof-details .prof-photo {
     width: 100px;
     margin: 0 auto;
   }
-
 
   #comment {
     width: 100%;
@@ -721,16 +743,12 @@ body.up .change-school-btn {
   }
 }
 
-
 @media (max-width: 600px) {
   .footer {
     font-size: 0.8rem;
     padding: 15px 5px;
   }
 }
-
-
-
 
 /* ========= HEADER SEARCH BAR (ISOLATED STYLING) ========= */
 .site-header .header-search {
@@ -761,18 +779,6 @@ body.up .change-school-btn {
   border-color: var(--primary);
   box-shadow: 0 0 6px rgba(0, 105, 62, 0.3);
   outline: none;
-}
-
-
-/* Optional: make it full width next to logo */
-@media (min-width: 900px) {
-  .site-header .header-search {
-    margin-left: 20px;
-    margin-right: 40px;
-  }
-  .site-header .header-search input {
-    max-width: none;
-  }
 }
 
 
