@@ -48,6 +48,48 @@ async function initializeHeader() {
   const btnLogout = document.getElementById('btn-logout');
   const btnShowLogin = document.getElementById('btn-show-login');
 
+// ---------- Login button handler (Beautiful Google-only modal) ----------
+if (btnShowLogin) {
+  btnShowLogin.style.cursor = 'pointer';
+  btnShowLogin.addEventListener('click', () => {
+    const school = localStorage.getItem('selectedSchool') || 'dlsu';
+
+    const safeShowModal = (html) => {
+      if (typeof window.showModal === 'function') return window.showModal(html);
+      const proceed = confirm('Sign in with Google?');
+      if (proceed) window.location.href = `/auth/google?school=${school}`;
+    };
+
+    const html = `
+      <div class="auth-modal">
+        <div class="auth-modal-content">
+          <h2 class="auth-title">Welcome Back 👋</h2>
+          <p class="auth-subtitle">Sign in with your Google account to continue.</p>
+          <button id="oauth-google" class="auth-google-btn">
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="google-icon" />
+            Continue with Google
+          </button>
+        </div>
+      </div>
+    `;
+
+    safeShowModal(html);
+
+    // Attach handler after modal content is injected
+    setTimeout(() => {
+      const g = document.getElementById('oauth-google');
+      if (g) {
+        g.addEventListener('click', () => {
+          window.location.href = `/auth/google?school=${school}`;
+        });
+      }
+    }, 120);
+  });
+}
+// ---------- end login handler ----------
+
+
+
 
   const showLoggedOut = () => {
     if (btnShowLogin) btnShowLogin.style.display = 'inline-block';

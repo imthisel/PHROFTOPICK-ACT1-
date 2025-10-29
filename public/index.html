@@ -5,27 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PROFS TO RATE PH — Home</title>
 
-
+  <!-- Preload the correct logo before header loads -->
   <script>
-  // Preload the correct logo before header loads
-  (function preloadLogo() {
-    const school = localStorage.getItem('selectedSchool') || 'dlsu';
-    const logoMap = {
-      dlsu: 'images/dlsu-logo.png',
-      ateneo: 'images/ateneo-logo.png',
-      benilde: 'images/benilde-logo.png',
-      up: 'images/up-logo.png',
-    };
-    const selectedLogo = logoMap[school] || 'images/default-logo.png';
-
-    // Preload it to browser cache
-    const img = new Image();
-    img.src = selectedLogo;
-
-    // Pre-store it globally for instant use when header loads
-    window.__PRELOADED_LOGO = selectedLogo;
-  })();
-</script>
+    (function preloadLogo() {
+      const school = localStorage.getItem('selectedSchool') || 'dlsu';
+      const logoMap = {
+        dlsu: 'images/dlsu-logo.png',
+        ateneo: 'images/ateneo-logo.png',
+        benilde: 'images/benilde-logo.png',
+        up: 'images/up-logo.png',
+      };
+      const selectedLogo = logoMap[school] || 'images/default-logo.png';
+      const img = new Image();
+      img.src = selectedLogo;
+      window.__PRELOADED_LOGO = selectedLogo;
+    })();
+  </script>
 
   <!-- Base design -->
   <link rel="stylesheet" href="css/base.css">
@@ -33,11 +28,9 @@
   <script src="js/theme-loader.js" defer></script>
 </head>
 
-
 <body>
   <!-- ===== HEADER PLACEHOLDER ===== -->
   <div id="header-placeholder"></div>
-
 
   <!-- ===== MODAL (single copy) ===== -->
   <div id="modal" class="modal hidden">
@@ -45,220 +38,90 @@
     <button id="modal-close">✕</button>
   </div>
 
-
   <!-- ===== CONTENT ===== -->
   <main class="container fade-in">
     <!-- Search -->
-   <div class="search-panel" style="position: relative;">
-  <input
-    id="subject-search"
-    type="text"
-    placeholder="Search subject or professor..."
-    autocomplete="off"
-  />
-  <div id="index-suggestions" class="suggestions"></div>
-  <button id="btn-search">Search</button>
-  <button id="btn-list-all">List All Subjects</button>
-</div>
-
-
-
-
-
-
-
-
-
-
-
+    <div class="search-panel" style="position: relative;">
+      <input
+        id="subject-search"
+        type="text"
+        placeholder="Search subject..."
+        autocomplete="off"
+      />
+      <div id="index-suggestions" class="suggestions"></div>
+      <button id="btn-search">Search</button>
+      <button id="btn-list-all">List All Subjects</button>
+    </div>
 
     <!-- Cards appear here -->
     <div id="prof-list"></div>
     <div id="subjects-list" class="results"></div>
-
-
-   
   </main>
 
-
- 
-
-
   <!-- ===== SCRIPTS ===== -->
-<!-- 1) Load app.js first (contains initializeHeader and handlers) -->
-<script>
-  function initChangeSchoolButton() {
-    const changeBtn = document.getElementById("change-school-btn");
-    if (changeBtn) {
-      changeBtn.style.display = "inline-block";
-      changeBtn.onclick = () => {
-        localStorage.removeItem("selectedSchool");
-        window.location.href = "school.html";
-      };
-      console.log("✅ Change School button initialized");
-    } else {
-      console.warn("⚠️ Change School button not found");
+  <script>
+    function initChangeSchoolButton() {
+      const changeBtn = document.getElementById("change-school-btn");
+      if (changeBtn) {
+        changeBtn.style.display = "inline-block";
+        changeBtn.onclick = () => {
+          localStorage.removeItem("selectedSchool");
+          window.location.href = "school.html";
+        };
+        console.log("✅ Change School button initialized");
+      } else {
+        console.warn("⚠️ Change School button not found");
+      }
     }
-  }
-</script>
+  </script>
 
+  <script src="js/app.js"></script>
 
-<script>
-  document.addEventListener("DOMContentLoaded", async () => {
-    try {
-      const res = await fetch("components/header.html");
-      const html = await res.text();
+    <!-- remove the static app.js include above (if present) and use this block below -->
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        // 1) Always fetch header using absolute path so it resolves correctly
+        const res = await fetch("/components/header.html");
+        if (!res.ok) throw new Error('Failed to fetch header (status ' + res.status + ')');
+        const html = await res.text();
+        document.getElementById("header-placeholder").innerHTML = html;
 
+        // 2) Initialize any header-only small helpers immediately
+        // If initChangeSchoolButton is defined in your app.js, it's safe to call later;
+        // we call it if it's already defined. If not, app.js will also call it later.
+        try { if (typeof initChangeSchoolButton === 'function') initChangeSchoolButton(); } catch(e) { console.warn(e); }
 
-      const headerPlaceholder = document.getElementById("header-placeholder");
-      headerPlaceholder.innerHTML = html;
-      initChangeSchoolButton();
+        // 3) Wait for the key header elements to finish parsing by browser
+        await new Promise(resolve => requestAnimationFrame(resolve));
 
+        // 4) Dynamically load the main app.js AFTER the header is inserted.
+        // This guarantees that app.js runs after #prof-search / suggestions exist.
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = '/js/app.js';
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error('Failed to load /js/app.js'));
+          document.head.appendChild(s);
+        });
 
+        // 5) After app.js is loaded, call the global initialization functions (if available).
+        // app.js defines initializeHeader, updateAuthUI, enableAutocomplete, initializeHeaderSearch, etc.
+        if (typeof initializeHeader === "function") await initializeHeader();
+        if (typeof updateAuthUI === "function") updateAuthUI();
+        // initializeHeaderSearch and enableAutocomplete are safe to call even if they internally retry.
+        if (typeof initializeHeaderSearch === "function") initializeHeaderSearch();
+        if (typeof enableAutocomplete === "function") {
+          enableAutocomplete("subject-search", "index-suggestions");
+          enableAutocomplete("prof-search", "header-suggestions");
+        }
 
-
-      // ✅ Wait for header elements to exist
-      await new Promise(resolve => {
-        const check = () => {
-          if (document.getElementById("btn-show-login")) resolve();
-          else requestAnimationFrame(check);
-        };
-        check();
-      });
-
-
-      // ✅ Now initialize everything safely
-      if (typeof initializeHeader === "function") await initializeHeader();
-      if (typeof updateAuthUI === "function") updateAuthUI();
-
-
-      // ✅ Attach login/signup click events AFTER header loads
-      const btnShowLogin = document.getElementById("btn-show-login");
-      const btnLogout = document.getElementById("btn-logout");
-
-
-      if (btnShowLogin) {
-        btnShowLogin.onclick = () => {
-          const school = localStorage.getItem("selectedSchool") || "dlsu";
-          window.location.href = `/auth/google?school=${school}`;
-        };
+        console.log("✅ Header injected and app.js loaded and initialized (index).");
+      } catch (err) {
+        console.error("❌ Failed to load header or app.js:", err);
       }
-
-
-      if (btnShowSignup) {
-        btnShowSignup.onclick = () => {
-          const school = localStorage.getItem("selectedSchool") || "dlsu";
-          showModal(`
-            <div class="auth-modal" style="text-align:center;">
-              <h2>Continue with</h2>
-              <div style="display:flex;flex-direction:column;gap:10px;margin-top:15px;">
-                <a class="auth-btn" href="/auth/google?school=${school}" style="background:#4285F4;color:white;">Sign in with Google</a>
-                <a class="auth-btn" href="/auth/facebook?school=${school}" style="background:#1877F2;color:white;">Sign in with Facebook</a>
-              </div>
-            </div>
-          `);
-        };
-      }
-
-
-      if (btnLogout) {
-        btnLogout.onclick = () => {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user_display");
-          updateAuthUI();
-          alert("Logged out");
-        };
-      }
-
-
-      console.log("✅ Header, Auth UI, and Buttons initialized");
-
-
-    } catch (err) {
-      console.error("❌ Failed to load header:", err);
-    }
-  });
-
-
-  function changeSchool() {
-    localStorage.removeItem("selectedSchool");
-    window.location.href = "school.html";
-  }
-</script>
-
-
-
-
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const res = await fetch("components/header.html");
-    const html = await res.text();
-    const headerPlaceholder = document.getElementById("header-placeholder");
-    headerPlaceholder.innerHTML = html;
-
-
-    initChangeSchoolButton();
-    initializeHeaderSearch(); // ✅ initialize the header search after header loads
-
-
-
-
-    // ✅ Wait until header elements exist
-    await new Promise(resolve => {
-      const check = () => {
-        if (document.querySelector(".school-logo")) resolve();
-        else requestAnimationFrame(check);
-      };
-      check();
     });
-
-
-    // ✅ Now safely update school logo
-    const school = localStorage.getItem("selectedSchool") || "dlsu";
-    const logo = document.querySelector(".school-logo");
-    const title = document.getElementById("site-title");
-
-
-    const logoMap = {
-      dlsu: "images/dlsu-logo.png",
-      ateneo: "images/ateneo-logo.png",
-      benilde: "images/benilde-logo.png",
-      up: "images/up-logo.png",
-    };
-    const fallback = "images/default-logo.png";
-
-
-    if (logo) {
-      logo.src = logoMap[school] || fallback;
-      logo.onerror = () => logo.src = fallback;
-    }
-    if (title) title.textContent = `${school.toUpperCase()} — PHROFS TO PICK`;
-
-
-    // ✅ Now initialize other header-related stuff
-    if (typeof initializeHeader === "function") await initializeHeader();
-    if (typeof updateAuthUI === "function") updateAuthUI();
-
-
-    console.log("✅ Header + logo initialized for", school);
-
-
-  } catch (err) {
-    console.error("❌ Failed to load header:", err);
-  }
-});
-</script>
-
-
-<script src="js/app.js"></script>
-
-
-
+  </script>
 
 </body>
 </html>
-
-
-
-

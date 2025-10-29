@@ -836,6 +836,86 @@ body.up .change-school-btn {
   opacity: 1;
 }
 
+/* ========== AUTH MODAL STYLES ========== */
+.auth-modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  height: 100vh;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 9999;
+  backdrop-filter: blur(6px);
+}
+
+.auth-modal-content {
+  background: var(--card-bg, #ffffff);
+  color: var(--text-color, #1a1a1a);
+  padding: 40px 35px;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  animation: fadeInUp 0.3s ease;
+}
+
+.auth-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.auth-subtitle {
+  font-size: 0.95rem;
+  color: #666;
+  margin-bottom: 25px;
+}
+
+.auth-google-btn {
+  background: #fff;
+  color: #333;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.auth-google-btn:hover {
+  border-color: #1a73e8;
+  box-shadow: 0 5px 10px rgba(26, 115, 232, 0.15);
+  transform: translateY(-2px);
+}
+
+.google-icon {
+  width: 22px;
+  height: 22px;
+}
+
+/* Fade in animation */
+@keyframes fadeInUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
 
 
 
