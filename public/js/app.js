@@ -370,36 +370,81 @@ if (subjects.length === 0 && profs.length === 0) {
 }
 
 
-// ========= AUTOCOMPLETE SEARCH (for both header + index) =========
+// ========= LIVE SEARCH + AUTOCOMPLETE (FINAL FIX) =========
+
+// Main header search (Enter key version)
+async function initializeHeaderSearch() {
+  const profSearchInput = document.getElementById('prof-search');
+  if (!profSearchInput) {
+    console.warn('⚠ Header search input not found, retrying...');
+    return setTimeout(initializeHeaderSearch, 300);
+  }
+
+  const subjectsList = document.getElementById('subjects-list');
+  const profListContainer = document.getElementById('prof-list');
+
+  profSearchInput.addEventListener('keydown', async e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const q = profSearchInput.value.trim();
+      if (!q) return alert('Type something to search.');
+
+      subjectsList.innerHTML = '';
+      profListContainer.innerHTML = '';
+
+      try {
+        const [subRes, profRes] = await Promise.all([
+          api.searchSubjects(q),
+          api.searchProfs(q)
+        ]);
+
+        // Handle both array and object responses safely
+        const subjects = Array.isArray(subRes)
+          ? subRes
+          : (subRes.subjects || []);
+        const profs = Array.isArray(profRes)
+          ? profRes
+          : (profRes.professors || []);
+
+        if (subjects.length > 0) renderSubjects(subjects);
+        if (profs.length > 0) renderProfList(profs, profListContainer);
+        if (subjects.length === 0 && profs.length === 0) {
+          subjectsList.innerHTML = '<div class="card">No results found.</div>';
+        }
+      } catch (err) {
+        console.error('Search failed:', err);
+        subjectsList.innerHTML = '<div class="card">Error fetching results.</div>';
+      }
+    }
+  });
+
+  console.log('✅ Header search initialized');
+}
+
+
+
+// ========= Autocomplete / Live Suggestions (FINAL FIX) =========
 function enableAutocomplete(inputId, suggestionsId) {
-  const attemptInit = () => {
+  const tryInit = () => {
     const input = document.getElementById(inputId);
     const suggestions = document.getElementById(suggestionsId);
-
-
     if (!input || !suggestions) {
-      console.warn(`Waiting for ${inputId} to exist...`);
-      return setTimeout(attemptInit, 300);
+      console.warn(`Waiting for ${inputId} and ${suggestionsId}...`);
+      return setTimeout(tryInit, 300);
     }
 
-
-    console.log(`✅ Autocomplete enabled for ${inputId}`);
-
-
+    console.log(`✅ Live autocomplete active for #${inputId}`);
     let debounceTimer;
 
-
-    input.addEventListener("input", async () => {
+    input.addEventListener('input', async () => {
       const q = input.value.trim();
       clearTimeout(debounceTimer);
 
-
       if (!q) {
-        suggestions.style.display = "none";
-        suggestions.innerHTML = "";
+        suggestions.innerHTML = '';
+        suggestions.style.display = 'none';
         return;
       }
-
 
       debounceTimer = setTimeout(async () => {
         try {
@@ -408,75 +453,70 @@ function enableAutocomplete(inputId, suggestionsId) {
             api.searchProfs(q)
           ]);
 
-
-          const subjects = subRes.subjects || [];
-          const profs = profRes.professors || [];
-
+          const subjects = Array.isArray(subRes)
+            ? subRes
+            : (subRes.subjects || []);
+          const profs = Array.isArray(profRes)
+            ? profRes
+            : (profRes.professors || []);
 
           const combined = [
             ...profs.map(p => ({
-              type: "Professor",
+              type: 'Professor',
               label: p.name,
               id: p.id
             })),
             ...subjects.map(s => ({
-              type: "Subject",
+              type: 'Subject',
               label: `${s.code} — ${s.name}`,
               id: s.id
             }))
           ];
 
-
           if (combined.length === 0) {
-            suggestions.style.display = "none";
-            suggestions.innerHTML = "";
+            suggestions.innerHTML = '';
+            suggestions.style.display = 'none';
             return;
           }
 
-
-          suggestions.innerHTML = combined
-            .map(
-              item => `
+          // Render live suggestions
+          suggestions.innerHTML = combined.map(
+            item => `
               <div class="suggestion-item" data-type="${item.type}" data-id="${item.id}">
                 ${item.label}
-              </div>`
-            )
-            .join("");
+              </div>
+            `
+          ).join('');
+          suggestions.style.display = 'block';
 
-
-          suggestions.style.display = "block";
-
-
-          // Click listener for results
-          suggestions
-            .querySelectorAll(".suggestion-item")
-            .forEach(el =>
-              el.addEventListener("click", e => {
-                const type = e.currentTarget.dataset.type;
-                const id = e.currentTarget.dataset.id;
-                if (type === "Professor")
-                  window.location.href = `/prof.html?id=${id}`;
-                else window.location.href = `/subject.html?id=${id}`;
-              })
-            );
+          // Click → redirect
+          suggestions.querySelectorAll('.suggestion-item').forEach(el =>
+            el.addEventListener('click', e => {
+              const type = e.currentTarget.dataset.type;
+              const id = e.currentTarget.dataset.id;
+              if (type === 'Professor')
+                window.location.href = `/prof.html?id=${id}`;
+              else
+                window.location.href = `/subject.html?id=${id}`;
+            })
+          );
         } catch (err) {
-          console.error("Autocomplete failed:", err);
+          console.error('Autocomplete failed:', err);
         }
       }, 300);
     });
 
-
     // Hide suggestions when clicking elsewhere
-    document.addEventListener("click", e => {
+    document.addEventListener('click', e => {
       if (!suggestions.contains(e.target) && e.target !== input) {
-        suggestions.style.display = "none";
+        suggestions.style.display = 'none';
       }
     });
   };
 
-
-  attemptInit();
+  tryInit();
 }
+
 
 
 
