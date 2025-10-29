@@ -586,88 +586,90 @@ body.up .change-school-btn {
 }
 
 
-/* ========= MOBILE HEADER (Improved Single-Line Layout) ========= */
+/* ========= FINAL MOBILE HEADER FIX (Always One Line) ========= */
 @media (max-width: 768px) {
-  /* Keep header in a single row */
   .site-header {
     display: flex;
-    flex-direction: row;       /* ✅ keep everything horizontal */
+    flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: nowrap;         /* prevent stacking */
-    padding: 6px 12px;
-    gap: 8px;
+    flex-wrap: nowrap;
+    padding: 6px 10px;
+    gap: 6px;
+    overflow: hidden;
+    white-space: nowrap;
   }
 
-  /* Logo + title area */
+  /* Logo and title stay small and inline */
   .site-header .logo-area {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     flex: 0 0 auto;
     min-width: 0;
   }
 
   .site-header .logo-area img {
-    height: 34px;
-    width: 34px;
-    padding: 2px;
+    height: 30px;
+    width: 30px;
+    padding: 1px;
   }
 
   .site-header .logo-area h1 {
-    font-size: 1rem;
-    font-weight: 700;
+    font-size: 0.95rem;
     margin: 0;
-    white-space: nowrap;        /* prevent wrapping */
+    white-space: nowrap;
+    text-overflow: ellipsis;
     overflow: hidden;
-    text-overflow: ellipsis;    /* truncate if too long */
-    max-width: 120px;           /* adjust to fit your site title */
+    max-width: 100px;
   }
 
-  /* Search bar stays inline and shrinks properly */
+  /* Search bar fits in one line, shrinks gracefully */
   .site-header .header-search {
     flex: 1 1 auto;
-    min-width: 0;               /* ✅ allows shrinking */
-    margin: 0 8px;
+    min-width: 0;
   }
 
   .site-header .header-search input {
     width: 100%;
-    box-sizing: border-box;
-    padding: 7px 12px;
-    height: 36px;
     font-size: 13px;
+    height: 34px;
+    padding: 6px 10px;
     border-radius: 20px;
   }
 
-  /* Right-side buttons stay compact */
+  /* Right-side buttons compact */
   .site-header nav,
   .site-header .nav-right {
     display: flex;
     align-items: center;
-    gap: 6px;
     flex: 0 0 auto;
+    gap: 4px;
     min-width: 0;
   }
 
   .site-header nav button,
   .site-header .nav-right button {
-    padding: 6px 8px;
-    font-size: 13px;
+    padding: 5px 8px;
+    font-size: 12px;
     white-space: nowrap;
   }
 
-  /* Prevent header shadow/padding from making it look too tall */
-  .site-header {
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  /* Prevent header from stretching vertically */
+  .site-header * {
+    line-height: 1;
   }
 
-  /* Make suggestion dropdown fit screen width */
-  .site-header .suggestions {
-    left: 0;
-    right: auto;
-    width: 100%;
-    box-sizing: border-box;
+  /* Remove extra shadows/padding for smaller height */
+  .site-header {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Ensure it never wraps — stays one line */
+  .site-header,
+  .site-header * {
+    flex-shrink: 1;
+    min-width: 0;
   }
 }
 

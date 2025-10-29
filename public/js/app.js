@@ -48,20 +48,19 @@ async function initializeHeader() {
   const btnLogout = document.getElementById('btn-logout');
   const btnShowLogin = document.getElementById('btn-show-login');
 
-// ---------- Login button handler (Beautiful Google-only modal) ----------
+// ---------- Login button handler (Google modal with outside click close) ----------
 if (btnShowLogin) {
   btnShowLogin.style.cursor = 'pointer';
   btnShowLogin.addEventListener('click', () => {
     const school = localStorage.getItem('selectedSchool') || 'dlsu';
 
-    const safeShowModal = (html) => {
-      if (typeof window.showModal === 'function') return window.showModal(html);
-      const proceed = confirm('Sign in with Google?');
-      if (proceed) window.location.href = `/auth/google?school=${school}`;
-    };
+    // Remove any previous modal first
+    const existingModal = document.getElementById('auth-modal');
+    if (existingModal) existingModal.remove();
 
+    // Insert modal directly into body (not inside #modal)
     const html = `
-      <div class="auth-modal">
+      <div class="auth-modal" id="auth-modal">
         <div class="auth-modal-content">
           <h2 class="auth-title">Welcome Back 👋</h2>
           <p class="auth-subtitle">Sign in with your Google account to continue.</p>
@@ -72,21 +71,33 @@ if (btnShowLogin) {
         </div>
       </div>
     `;
+    document.body.insertAdjacentHTML('beforeend', html);
 
-    safeShowModal(html);
+    // Attach handlers
+    const modal = document.getElementById('auth-modal');
+    const content = modal.querySelector('.auth-modal-content');
+    const g = document.getElementById('oauth-google');
 
-    // Attach handler after modal content is injected
-    setTimeout(() => {
-      const g = document.getElementById('oauth-google');
-      if (g) {
-        g.addEventListener('click', () => {
-          window.location.href = `/auth/google?school=${school}`;
-        });
-      }
-    }, 120);
+    // Handle Google click
+    if (g) {
+      g.addEventListener('click', () => {
+        window.location.href = `/auth/google?school=${school}`;
+      });
+    }
+
+    // ✅ Close modal when clicking outside content
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
+
+    // ✅ Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal) modal.remove();
+    });
   });
 }
 // ---------- end login handler ----------
+
 
 
 
