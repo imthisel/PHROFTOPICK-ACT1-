@@ -510,8 +510,6 @@ body {
 
 /* Button colors */
 .school-btn.dlsu { background: #00703c; }
-.school-btn.at
-
 
 #subjects-list {
   transition: opacity 0.3s ease;
@@ -586,171 +584,8 @@ body.up .change-school-btn {
 }
 
 
-/* ========= FINAL MOBILE HEADER FIX (Always One Line) ========= */
-@media (max-width: 768px) {
-  .site-header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: nowrap;
-    padding: 6px 10px;
-    gap: 6px;
-    overflow: hidden;
-    white-space: nowrap;
-  }
 
-  /* Logo and title stay small and inline */
-  .site-header .logo-area {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    flex: 0 0 auto;
-    min-width: 0;
-  }
 
-  .site-header .logo-area img {
-    height: 30px;
-    width: 30px;
-    padding: 1px;
-  }
-
-  .site-header .logo-area h1 {
-    font-size: 0.95rem;
-    margin: 0;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    max-width: 100px;
-  }
-
-  /* Search bar fits in one line, shrinks gracefully */
-  .site-header .header-search {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  .site-header .header-search input {
-    width: 100%;
-    font-size: 13px;
-    height: 34px;
-    padding: 6px 10px;
-    border-radius: 20px;
-  }
-
-  /* Right-side buttons compact */
-  .site-header nav,
-  .site-header .nav-right {
-    display: flex;
-    align-items: center;
-    flex: 0 0 auto;
-    gap: 4px;
-    min-width: 0;
-  }
-
-  .site-header nav button,
-  .site-header .nav-right button {
-    padding: 5px 8px;
-    font-size: 12px;
-    white-space: nowrap;
-  }
-
-  /* Prevent header from stretching vertically */
-  .site-header * {
-    line-height: 1;
-  }
-
-  /* Remove extra shadows/padding for smaller height */
-  .site-header {
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  }
-
-  /* Ensure it never wraps — stays one line */
-  .site-header,
-  .site-header * {
-    flex-shrink: 1;
-    min-width: 0;
-  }
-}
-
-/* ========= VERY SMALL SCREENS (Optional Compact Mode) ========= */
-@media (max-width: 420px) {
-  .site-header .logo-area h1 {
-    max-width: 80px;
-    font-size: 0.9rem;
-  }
-
-  .site-header .nav-right button {
-    padding: 5px 6px;
-    font-size: 12px;
-  }
-}
-
-/* ========= MOBILE SEARCH PANEL ========= */
-@media (max-width: 600px) {
-  .search-panel {
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 25px;
-  }
-
-  .search-panel input {
-    flex: 1;
-    padding: 6px 10px;
-    font-size: 0.85rem;
-    height: 36px;
-    line-height: 36px;
-    border-radius: 8px;
-  }
-
-  .search-panel button {
-    padding: 6px 10px;
-    font-size: 0.85rem;
-  }
-}
-
-/* ========= OTHER MOBILE RESPONSIVE SECTIONS ========= */
-@media (max-width: 600px) {
-  .card {
-    padding: 15px;
-    font-size: 0.95rem;
-  }
-
-  .card button {
-    width: 100%;
-    margin-top: 5px;
-  }
-}
-
-@media (max-width: 768px) {
-  .subject-content {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 600px) {
-  .star-rating {
-    font-size: 22px;
-    justify-content: center;
-  }
-
-  #prof-details .prof-photo {
-    width: 100px;
-    margin: 0 auto;
-  }
-
-  #comment {
-    width: 100%;
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 600px) {
-  .footer {
-    font-size: 0.8rem;
-    padding: 15px 5px;
-  }
-}
 
 /* ========= HEADER SEARCH BAR (ISOLATED STYLING) ========= */
 .site-header .header-search {
@@ -782,26 +617,6 @@ body.up .change-school-btn {
   box-shadow: 0 0 6px rgba(0, 105, 62, 0.3);
   outline: none;
 }
-
-
-.suggestions {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  background: #fff; /* clean white background */
-  color: #000; /* ensure readable text */
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  display: none;
-  z-index: 9999;
-  max-height: 250px;
-  overflow-y: auto;
-  font-family: inherit;
-}
-
-
 
 
 .suggestions {
@@ -927,6 +742,145 @@ body.up .change-school-btn {
   }
 }
 
+/* =========================
+   MOBILE TUNE-UPS (final)
+   Append this at end of base.css
+   ========================= */
 
+/* Compact header & search adjustments for small phones (<=600px) */
+@media (max-width: 600px) {
+  /* tighten header gaps and ensure single-line layout */
+  .site-header {
+    padding: 6px 10px;
+    gap: 6px;
+    align-items: center;
+    height: 48px;              /* fixed-ish header height like screenshot */
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+  }
+
+  .site-header .logo-area img {
+    height: 34px;
+    width: 34px;
+    padding: 2px;
+  }
+
+  .site-header .logo-area h1 {
+    font-size: 0.95rem;
+    max-width: 110px;         /* allow slightly more room for title */
+    margin-left: 4px;
+  }
+
+  /* Make header search visually centered and compact */
+  .site-header .header-search {
+    margin: 0 8px;
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: calc(100% - 160px); /* leave room for logo + right nav */
+  }
+
+  .site-header .header-search input {
+    height: 36px;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 18px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* keep right-side controls compact */
+  .site-header nav,
+  .site-header .nav-right {
+    gap: 6px;
+    flex: 0 0 auto;
+  }
+
+  .site-header nav button,
+  .site-header .nav-right button {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+
+  /* suggestions menu width constrained to header-search width */
+  .site-header .header-search .suggestions,
+  .suggestions {
+    left: 0;
+    right: 0;
+    width: auto;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Reduce top/bottom margins for main container so header feels like screenshot */
+  .container {
+    margin-top: 14px;
+    margin-bottom: 18px;
+    width: 94%;
+  }
+
+  /* Card visual adjustments to fit 4-per-row */
+  .results {
+    gap: 8px;
+    /* force exactly 4 cards per row on small screens */
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  /* Make each card compact so 4 per row is readable */
+  .card {
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    font-size: 0.86rem;
+    min-height: 72px; /* keep uniform height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .card h3 {
+    font-size: 0.92rem;
+    margin-bottom: 4px;
+  }
+
+  .card p {
+    display: none; /* hide descriptive text for compact grid (like small subject tiles) */
+  }
+
+  .card button {
+    display: none; /* hide action buttons to save space; keep the card clickable if JS handles it */
+  }
+
+  /* Make subject-card tile layout compact (if you use .subject-card tiles) */
+  .subject-card {
+    padding: 10px;
+  }
+
+  /* small improvements to touch targets (maintain easy tapping) */
+  .results .card {
+    cursor: pointer;
+  }
+
+  /* Footer smaller on mobile */
+  .footer {
+    font-size: 0.78rem;
+    padding: 12px 6px;
+  }
+}
+
+/* Extra override for very narrow devices so cards don't overflow */
+@media (max-width: 420px) {
+  .results {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6px;
+  }
+  .site-header .logo-area h1 {
+    max-width: 84px;
+    font-size: 0.88rem;
+  }
+  .site-header .header-search {
+    max-width: calc(100% - 140px);
+  }
+}
 
 
