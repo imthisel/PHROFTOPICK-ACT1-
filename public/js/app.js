@@ -102,6 +102,7 @@ if (btnShowLogin) {
 
 
 
+
   const showLoggedOut = () => {
     if (btnShowLogin) btnShowLogin.style.display = 'inline-block';
     if (btnLogout) btnLogout.style.display = 'none';
@@ -128,16 +129,39 @@ if (btnShowLogin) {
   }
 
 
-  const dropLogout = document.getElementById('drop-logout');
+    const dropLogout = document.getElementById('drop-logout');
   if (dropLogout) {
     dropLogout.onclick = (e) => {
       e.preventDefault();
       localStorage.removeItem('token');
       localStorage.removeItem('user_display');
+      // Update the header visuals
       showLoggedOut();
+      // Update any other UI that depends on auth
+      if (typeof updateAuthUI === 'function') updateAuthUI();
+      // Optional: close dropdown if open
+      if (drop) drop.style.display = 'none';
+      // Provide user feedback
       alert('Signed out');
+      // Optional: force refresh to clear pages that rely on auth
+      // window.location.href = '/index.html';
     };
   }
+
+  // ✔ Attach same handler to the main header logout button so clicking it works
+  if (btnLogout) {
+    btnLogout.onclick = (e) => {
+      e.preventDefault();
+      localStorage.removeItem('token');
+      localStorage.removeItem('user_display');
+      showLoggedOut();
+      if (typeof updateAuthUI === 'function') updateAuthUI();
+      if (drop) drop.style.display = 'none';
+      alert('Signed out');
+      // window.location.href = '/index.html';
+    };
+  }
+
 
 
   // Load user info
