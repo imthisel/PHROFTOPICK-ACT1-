@@ -838,9 +838,39 @@ function updateSchoolLogo() {
 
 
   if (logo) {
-    logo.src = logoMap[school] || fallback;
-    logo.onerror = () => (logo.src = fallback);
-  }
+  const selected = logoMap[school] || fallback;
+
+  // Use preloaded logo if available (fast)
+  const targetSrc = window.__PRELOADED_LOGO || selected;
+
+  // Clear any previous handlers
+  logo.onload = null;
+  logo.onerror = null;
+
+  // When image loads successfully, add .loaded to reveal it smoothly
+  logo.onload = () => {
+    logo.classList.add('loaded');
+    // remove onerror to avoid loops
+    logo.onerror = null;
+  };
+
+  // If image fails to load, fallback to default and still reveal safely
+  logo.onerror = () => {
+    if (logo.src !== fallback) {
+      logo.src = fallback;
+      // onload will fire for fallback once it loads and then add .loaded
+    } else {
+      // fallback didn't load — still ensure we reveal something
+      logo.classList.add('loaded');
+    }
+  };
+
+  // set the src (triggers load)
+  // remove .loaded while we switch to ensure transition
+  logo.classList.remove('loaded');
+  logo.src = targetSrc;
+}
+
   if (title) title.textContent = `${school.toUpperCase()} — PHROFS TO PICK`;
 }
 

@@ -835,14 +835,16 @@ body.up .change-school-btn {
   background: #f5f5f5; /* light gray on hover */
 }
 
+/* start hidden, reveal when .loaded is added by JS */
 .school-logo {
   background: transparent;
-  transition: opacity 0.2s ease-in;
+  transition: opacity 0.18s ease-in;
   opacity: 0;
 }
-.school-logo[src] {
+.school-logo.loaded {
   opacity: 1;
 }
+
 
 /* ========== AUTH MODAL STYLES ========== */
 .auth-modal {
