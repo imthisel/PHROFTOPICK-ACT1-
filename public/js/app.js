@@ -1,3 +1,6 @@
+
+
+
 // public/js/app.js
 // ==================== HEADER / APP LOGIC ====================
 
@@ -104,18 +107,23 @@ if (btnShowLogin) {
 
 
   const showLoggedOut = () => {
-    if (btnShowLogin) btnShowLogin.style.display = 'inline-block';
-    if (btnLogout) btnLogout.style.display = 'none';
-    if (avatarImg) avatarImg.src = 'images/default-avatar.png';
-  };
+  if (btnShowLogin) btnShowLogin.style.display = 'inline-block';
+  if (btnLogout) btnLogout.style.display = 'none';
+  if (avatarImg) {
+    avatarImg.style.display = 'none'; // Hide avatar when logged out
+    avatarImg.src = '';
+  }
+};
 
-
-  const showLoggedIn = (displayName, photoUrl) => {
-    if (btnShowLogin) btnShowLogin.style.display = 'none';
-    if (btnLogout) btnLogout.style.display = 'inline-block';
-    if (avatarImg) avatarImg.src = photoUrl || 'images/default-avatar.png';
-    if (dropDisplay) dropDisplay.textContent = displayName || 'You';
-  };
+const showLoggedIn = (displayName, photoUrl) => {
+  if (btnShowLogin) btnShowLogin.style.display = 'none';
+  if (btnLogout) btnLogout.style.display = 'inline-block';
+  if (avatarImg && photoUrl) {
+    avatarImg.src = photoUrl;
+    avatarImg.style.display = 'inline-block'; // Show avatar when logged in
+  }
+  if (dropDisplay) dropDisplay.textContent = displayName || 'You';
+};
 
 
   // Dropdown toggle
@@ -173,6 +181,7 @@ if (btnShowLogin) {
     const resp = await fetch(`/api/me?school=${school}`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
+    
     if (!resp.ok) return showLoggedOut();
     const json = await resp.json();
     const user = json.user || {};
@@ -181,7 +190,9 @@ if (btnShowLogin) {
   } catch (err) {
     console.error('Failed to load /api/me', err);
     showLoggedOut();
+    
   }
+  
 }
 
 
@@ -566,26 +577,42 @@ if (headerTitle) {
 }
 
 
+// --- Robust logo setup (replace existing logo initialization block) ---
 if (logoImg) {
-  // Define proper image paths per school
   const logoMap = {
-    dlsu: "images/dlsu-logo.png",
-    ateneo: "images/ateneo-logo.png",
-    benilde: "images/benilde-logo.png",
-    up: "images/up-logo.png",
+    dlsu: "/images/dlsu-logo.png",
+    ateneo: "/images/ateneo-logo.png",
+    benilde: "/images/benilde-logo.png",
+    up: "/images/up-logo.png",
   };
-
-
-  const fallbackLogo = "images/default-logo.png";
+  const fallbackLogo = "/images/default-logo.png";
   const selectedLogo = logoMap[school] || fallbackLogo;
 
-
-  logoImg.src = window.__PRELOADED_LOGO || selectedLogo;
-  logoImg.onerror = () => {
-    console.warn(`⚠️ Missing logo for ${school}, using fallback.`);
-    logoImg.src = fallbackLogo;
+  // Reset class and handlers
+  logoImg.classList.remove('loaded');
+  logoImg.onload = () => {
+    // mark as loaded so CSS can fade/show it
+    logoImg.classList.add('loaded');
+    logoImg.style.opacity = ''; // let CSS control if needed
   };
+  logoImg.onerror = () => {
+    console.warn(`⚠ Missing logo for ${school}, using fallback.`);
+    // Prevent infinite loop if fallback missing
+    if (logoImg.src !== fallbackLogo) {
+      logoImg.src = fallbackLogo;
+    } else {
+      // fallback missing too; hide broken icon
+      logoImg.style.display = 'none';
+    }
+  };
+
+  // Use preloaded global if present, otherwise selectedLogo
+  // Use absolute path to avoid relative path problems on nested pages
+  logoImg.src = window.__PRELOADED_LOGO || selectedLogo;
+  // Ensure the browser attempts to decode early
+  try { logoImg.decoding = 'async'; } catch (e) {}
 }
+
 
 
 

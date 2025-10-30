@@ -603,7 +603,7 @@ body.up .change-school-btn {
   flex: 1;
   width: 100%;
   padding: 10px 16px;
-  border-radius: 25px;
+  border-radius: 8px;
   border: 1px solid var(--border);
   background: #fff;
   font-size: 15px;
@@ -742,5 +742,20 @@ body.up .change-school-btn {
   }
 }
 
+/* User avatar styling */
+#user-avatar {
+  display: none;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50%;
+  vertical-align: middle;
+  object-fit: cover; /* Ensures image fits nicely in circle */
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
 
+#user-avatar:hover {
+  border-color: rgba(255, 255, 255, 0.8);
+}
 
