@@ -106,13 +106,29 @@
         console.error('Header load/init failed:', err);
       }
 
-      // ---------- Profile load & save logic (unchanged behavior) ----------
-      const token = localStorage.getItem('token');
-      if (!token) {
-        // not logged in — show consistent header state (updateAuthUI handles UI, but also stop further actions)
-        // Optionally redirect to login page instead of alert
-        return alert('You must be logged in');
-      }
+     // ---------- Profile load & save logic (robust version) ----------
+let token = localStorage.getItem('token') || null;
+
+// Support token coming via URL (helpful for some OAuth setups)
+const urlToken = new URLSearchParams(window.location.search).get('token');
+if (!token && urlToken) {
+  // Persist URL token to localStorage for subsequent pages
+  localStorage.setItem('token', urlToken);
+  localStorage.setItem('user_display', decodeURIComponent(new URLSearchParams(window.location.search).get('display') || 'You'));
+  token = urlToken;
+}
+
+// If no token: send the user to the OAuth sign-in (instead of a blocking alert)
+if (!token) {
+  console.warn('No token found for settings — redirecting to login.');
+  // Use selectedSchool if stored so the OAuth flow returns to the correct school
+  const school = localStorage.getItem('selectedSchool') || 'dlsu';
+  // Replace this with your real auth entry point if different
+  window.location.href = `/auth/google?school=${encodeURIComponent(school)}`;
+  // stop further execution (redirect will happen)
+  throw new Error('Redirecting to login');
+}
+
 
       const school = localStorage.getItem('selectedSchool') || 'dlsu';
       try {
