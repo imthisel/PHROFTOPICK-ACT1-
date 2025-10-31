@@ -106,24 +106,110 @@ if (btnShowLogin) {
 
 
 
-  const showLoggedOut = () => {
-  if (btnShowLogin) btnShowLogin.style.display = 'inline-block';
-  if (btnLogout) btnLogout.style.display = 'none';
-  if (avatarImg) {
-    avatarImg.style.display = 'none'; // Hide avatar when logged out
-    avatarImg.src = '';
-  }
-};
+    // add this near the top of initializeHeader (where avatarImg, drop, etc. are grabbed)
+  const userInitial = document.getElementById('user-initial');
 
-const showLoggedIn = (displayName, photoUrl) => {
-  if (btnShowLogin) btnShowLogin.style.display = 'none';
-  if (btnLogout) btnLogout.style.display = 'inline-block';
-  if (avatarImg && photoUrl) {
-    avatarImg.src = photoUrl;
-    avatarImg.style.display = 'inline-block'; // Show avatar when logged in
+  // -------------------------
+  // Replace showLoggedOut / showLoggedIn
+  // -------------------------
+  const showLoggedOut = () => {
+    if (btnShowLogin) btnShowLogin.style.display = 'inline-block';
+    if (btnLogout) btnLogout.style.display = 'none';
+
+    // hide avatar and initial circle when logged out
+    if (avatarImg) {
+      avatarImg.style.display = 'none';
+      avatarImg.src = '';
+    }
+    if (userInitial) {
+      userInitial.style.display = 'none';
+      userInitial.textContent = '';
+    }
+    if (dropDisplay) dropDisplay.textContent = 'You';
+  };
+
+  const showLoggedIn = (displayName, photoUrl) => {
+    if (btnShowLogin) btnShowLogin.style.display = 'none';
+    if (btnLogout) btnLogout.style.display = 'inline-block';
+
+    // Prefer actual photo; fall back to initials if photoUrl absent
+    if (avatarImg && photoUrl) {
+      avatarImg.src = photoUrl;
+      avatarImg.style.display = 'inline-block';
+      if (userInitial) userInitial.style.display = 'none';
+    } else {
+      // No photo: hide image and show initials circle
+      if (avatarImg) {
+        avatarImg.style.display = 'none';
+        avatarImg.src = '';
+      }
+      if (userInitial) {
+        // create initials from displayName (e.g., "John Doe" -> "JD")
+        let initials = 'U';
+        if (displayName) {
+          initials = displayName.split(' ')
+                                 .filter(Boolean)
+                                 .slice(0,2)
+                                 .map(s => s[0].toUpperCase())
+                                 .join('');
+        }
+        userInitial.textContent = initials || 'U';
+        userInitial.style.display = 'inline-flex';
+      }
+    }
+
+    if (dropDisplay) dropDisplay.textContent = displayName || 'You';
+  };
+
+  // -------------------------
+  // Replace updateAuthUI
+  // -------------------------
+  function updateAuthUI() {
+    const btnShowLogin = document.getElementById('btn-show-login');
+    const btnLogout = document.getElementById('btn-logout');
+    const userNameSpan = document.getElementById('user-name');
+
+    if (!btnShowLogin || !btnLogout || !userNameSpan) {
+      console.warn("updateAuthUI() called before header loaded");
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (token) {
+      btnShowLogin.style.display = 'none';
+      btnLogout.style.display = 'inline-block';
+      userNameSpan.style.display = 'inline-block';
+      userNameSpan.textContent = localStorage.getItem('user_display') || 'You';
+
+      // show avatar or initials depending on whether we have a photo stored.
+      const photo = null; // we don't always have photo here; prefer initializeHeader to set final state
+      const storedDisplay = localStorage.getItem('user_display') || 'You';
+      // If you already stored a photo URL in localStorage, show it:
+      const storedPhoto = localStorage.getItem('user_photo') || null;
+      if (storedPhoto && avatarImg) {
+        avatarImg.src = storedPhoto;
+        avatarImg.style.display = 'inline-block';
+        if (userInitial) userInitial.style.display = 'none';
+      } else {
+        // show initials
+        if (avatarImg) { avatarImg.style.display = 'none'; avatarImg.src = ''; }
+        if (userInitial) {
+          const initials = (storedDisplay.split(' ').filter(Boolean).slice(0,2).map(s=>s[0].toUpperCase()).join('')) || 'U';
+          userInitial.textContent = initials;
+          userInitial.style.display = 'inline-flex';
+        }
+      }
+    } else {
+      // logged out — hide both avatar and initials
+      btnShowLogin.style.display = 'inline-block';
+      btnLogout.style.display = 'none';
+      userNameSpan.style.display = 'none';
+      userNameSpan.textContent = '';
+      if (avatarImg) { avatarImg.style.display = 'none'; avatarImg.src = ''; }
+      if (userInitial) { userInitial.style.display = 'none'; userInitial.textContent = ''; }
+    }
   }
-  if (dropDisplay) dropDisplay.textContent = displayName || 'You';
-};
+
 
 
   // Dropdown toggle
@@ -196,30 +282,55 @@ const showLoggedIn = (displayName, photoUrl) => {
 }
 
 
-// ========== Auth UI update ==========
+// ========== Auth UI update (single canonical version) ==========
 function updateAuthUI() {
   const btnShowLogin = document.getElementById('btn-show-login');
   const btnLogout = document.getElementById('btn-logout');
   const userNameSpan = document.getElementById('user-name');
-
+  const avatarImg = document.getElementById('user-avatar');
+  const userInitial = document.getElementById('user-initial');
+  const dropDisplay = document.getElementById('drop-display');
 
   if (!btnShowLogin || !btnLogout || !userNameSpan) {
     console.warn("updateAuthUI() called before header loaded");
     return;
   }
 
-
   const token = localStorage.getItem('token');
+
   if (token) {
+    // Logged-in state
     btnShowLogin.style.display = 'none';
     btnLogout.style.display = 'inline-block';
     userNameSpan.style.display = 'inline-block';
-    userNameSpan.textContent = localStorage.getItem('user_display') || 'You';
+    const storedDisplay = localStorage.getItem('user_display') || 'You';
+    userNameSpan.textContent = storedDisplay;
+    if (dropDisplay) dropDisplay.textContent = storedDisplay;
+
+    // Prefer stored photo if present
+    const storedPhoto = localStorage.getItem('user_photo') || null;
+    if (storedPhoto && avatarImg) {
+      avatarImg.src = storedPhoto;
+      avatarImg.style.display = 'inline-block';
+      if (userInitial) userInitial.style.display = 'none';
+    } else {
+      // Show initials fallback
+      if (avatarImg) { avatarImg.style.display = 'none'; avatarImg.src = ''; }
+      if (userInitial) {
+        const initials = (storedDisplay.split(' ').filter(Boolean).slice(0,2).map(s => s[0].toUpperCase()).join('')) || 'U';
+        userInitial.textContent = initials;
+        userInitial.style.display = 'inline-flex';
+      }
+    }
   } else {
+    // Logged-out state — hide everything that could show a user marker
     btnShowLogin.style.display = 'inline-block';
     btnLogout.style.display = 'none';
     userNameSpan.style.display = 'none';
     userNameSpan.textContent = '';
+    if (dropDisplay) dropDisplay.textContent = 'You';
+    if (avatarImg) { avatarImg.style.display = 'none'; avatarImg.src = ''; }
+    if (userInitial) { userInitial.style.display = 'none'; userInitial.textContent = ''; }
   }
 }
 
