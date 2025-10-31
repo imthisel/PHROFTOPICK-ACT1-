@@ -268,7 +268,11 @@ if (btnShowLogin) {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     
-    if (!resp.ok) return showLoggedOut();
+if (resp.status === 401) {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user_display');
+  return showLoggedOut();
+}
     const json = await resp.json();
     const user = json.user || {};
     localStorage.setItem('user_display', user.display_name || 'You');

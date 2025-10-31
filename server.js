@@ -458,7 +458,7 @@ app.get('/api/me', authenticateJWT, (req, res) => {
   const db = getDb(school);
   db.get('SELECT id, email, display_name, photo_path, college, course, batch, username, bio FROM users WHERE id = ?', [req.userId], (err, row) => {
     db.close();
-    if (err || !row) return res.status(500).json({ error: 'User not found' });
+if (err || !row) return res.status(401).json({ error: 'User not found' });
     res.json({ user: row });
   });
 });
