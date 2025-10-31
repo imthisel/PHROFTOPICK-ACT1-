@@ -1,0 +1,78 @@
+/* =========================================
+   MOBILE OPTIMIZATION FOR school.html ONLY
+   ========================================= */
+
+@media screen and (max-width: 768px) {
+
+  /* Make body fit mobile */
+  body {
+    min-width: unset;
+    overflow-x: hidden;
+    padding: 20px;
+    background: #ffffff;
+  }
+
+  .school-container {
+    width: 100%;
+    padding: 30px 20px;
+    border-radius: 16px;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.05);
+    margin-top: 40px;
+  }
+
+  .school-container h1 {
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+  }
+
+  .school-container p {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 25px;
+  }
+
+  /* Stack buttons vertically */
+  .school-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .school-btn {
+    width: 100%;
+    font-size: 1rem;
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  /* Adjust header */
+  .site-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 15px;
+  }
+
+  .site-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .site-header .header-search {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .site-header nav {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Footer */
+  .footer {
+    font-size: 0.85rem;
+    padding: 15px 5px;
+  }
+}

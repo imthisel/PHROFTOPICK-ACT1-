@@ -689,6 +689,8 @@ if (headerTitle) {
 
 
 // --- Robust logo setup (replace existing logo initialization block) ---
+// ...existing code...
+
 if (logoImg) {
   const logoMap = {
     dlsu: "/images/dlsu-logo.png",
@@ -701,26 +703,47 @@ if (logoImg) {
 
   // Reset class and handlers
   logoImg.classList.remove('loaded');
+
   logoImg.onload = () => {
     // mark as loaded so CSS can fade/show it
     logoImg.classList.add('loaded');
-    logoImg.style.opacity = ''; // let CSS control if needed
+    // clear any temporary inline fallback styling
+    logoImg.style.background = '';
+    logoImg.style.padding = '';
+    logoImg.style.borderRadius = '';
+    logoImg.style.objectFit = 'contain';
   };
+
+  // Robust onerror -> set inline SVG fallback (prevents broken image icon)
   logoImg.onerror = () => {
-    console.warn(`⚠ Missing logo for ${school}, using fallback.`);
-    // Prevent infinite loop if fallback missing
-    if (logoImg.src !== fallbackLogo) {
-      logoImg.src = fallbackLogo;
-    } else {
-      // fallback missing too; hide broken icon
-      logoImg.style.display = 'none';
+    try {
+      // avoid loop if we already replaced src with a data URL
+      if (!logoImg.src || logoImg.src.startsWith('data:image/svg+xml')) {
+        // if already data URL, just ensure it's revealed
+        logoImg.classList.add('loaded');
+        return;
+      }
+      // Prefer real fallback file first; if that fails, use SVG data URL
+      if (logoImg.src !== fallbackLogo) {
+        logoImg.src = fallbackLogo;
+        return;
+      }
+      // As last resort use inline SVG so UI always looks intentional
+      logoImg.src = generateLogoDataUrl(school);
+      // Add subtle inline styling for consistent appearance
+      logoImg.style.background = 'transparent';
+      logoImg.style.padding = '6px';
+      logoImg.style.borderRadius = '6px';
+      logoImg.style.objectFit = 'contain';
+      logoImg.classList.add('loaded');
+    } catch (err) {
+      console.warn('Logo fallback failed', err);
+      logoImg.classList.add('loaded');
     }
   };
 
   // Use preloaded global if present, otherwise selectedLogo
-  // Use absolute path to avoid relative path problems on nested pages
   logoImg.src = window.__PRELOADED_LOGO || selectedLogo;
-  // Ensure the browser attempts to decode early
   try { logoImg.decoding = 'async'; } catch (e) {}
 }
 
@@ -960,11 +983,12 @@ window.addEventListener("load", () => {
 });
 
 
+// ...existing code...
+
 function updateSchoolLogo() {
   const school = localStorage.getItem("selectedSchool") || "dlsu";
   const logo = document.querySelector(".school-logo");
   const title = document.getElementById("site-title");
-
 
   const logoMap = {
     dlsu: "images/dlsu-logo.png",
@@ -974,44 +998,68 @@ function updateSchoolLogo() {
   };
   const fallback = "images/default-logo.png";
 
-
   if (logo) {
-  const selected = logoMap[school] || fallback;
+    const selected = logoMap[school] || fallback;
+    const targetSrc = window.__PRELOADED_LOGO || selected;
 
-  // Use preloaded logo if available (fast)
-  const targetSrc = window.__PRELOADED_LOGO || selected;
-
-  // Clear any previous handlers
-  logo.onload = null;
-  logo.onerror = null;
-
-  // When image loads successfully, add .loaded to reveal it smoothly
-  logo.onload = () => {
-    logo.classList.add('loaded');
-    // remove onerror to avoid loops
+    // Clear previous handlers
+    logo.onload = null;
     logo.onerror = null;
-  };
 
-  // If image fails to load, fallback to default and still reveal safely
-  logo.onerror = () => {
-    if (logo.src !== fallback) {
-      logo.src = fallback;
-      // onload will fire for fallback once it loads and then add .loaded
-    } else {
-      // fallback didn't load — still ensure we reveal something
+    logo.onload = () => {
       logo.classList.add('loaded');
-    }
-  };
+      logo.style.background = '';
+      logo.style.padding = '';
+      logo.style.borderRadius = '';
+      logo.style.objectFit = 'contain';
+      logo.onerror = null;
+    };
 
-  // set the src (triggers load)
-  // remove .loaded while we switch to ensure transition
-  logo.classList.remove('loaded');
-  logo.src = targetSrc;
-}
+    logo.onerror = () => {
+      try {
+        if (!logo.src || logo.src.startsWith('data:image/svg+xml')) {
+          logo.classList.add('loaded');
+          return;
+        }
+        if (logo.src !== fallback) {
+          logo.src = fallback;
+          return;
+        }
+        // last-resort inline SVG fallback
+        logo.src = generateLogoDataUrl(school);
+        logo.style.padding = '6px';
+        logo.style.borderRadius = '6px';
+        logo.classList.add('loaded');
+      } catch (e) {
+        logo.classList.add('loaded');
+        console.warn('updateSchoolLogo fallback error', e);
+      }
+    };
+
+    logo.classList.remove('loaded');
+    logo.src = targetSrc;
+  }
 
   if (title) title.textContent = `${school.toUpperCase()} — PHROFS TO PICK`;
 }
 
+// ...existing code...
+
+function generateLogoDataUrl(school) {
+  const code = (school || 'dlsu').toLowerCase();
+  const initialsMap = { dlsu: 'DL', ateneo: 'AT', benilde: 'BD', up: 'UP' };
+  const colorMap = { dlsu: '#074E6A', ateneo: '#0B3D91', benilde: '#7B1FA2', up: '#006400' };
+  const initials = initialsMap[code] || code.slice(0, 2).toUpperCase();
+  const bg = colorMap[code] || '#666';
+  const fg = '#fff';
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
+      <rect width="100%" height="100%" rx="6" fill="${bg}"/>
+      <text x="50%" y="50%" fill="${fg}" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif"
+            font-size="18" font-weight="600" dominant-baseline="middle" text-anchor="middle">${initials}</text>
+    </svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
 
 window.updateSchoolLogo = updateSchoolLogo;
 window.updateAuthUI = updateAuthUI;
