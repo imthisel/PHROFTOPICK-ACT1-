@@ -500,10 +500,11 @@ app.get('/auth/google/callback', (req, res, next) => {
       return res.redirect('/auth/failure');
     }
     
-    const token = jwt.sign({ id: user.id, school }, JWT_SECRET);
-    const photoParam = user.photo_path ? `&photo=${encodeURIComponent(user.photo_path)}` : '';
-    
-    res.redirect(`/oauth-success.html?token=${token}&display=${encodeURIComponent(user.display_name || 'You')}&school=${school}${photoParam}`);
+    // after user created / found in DB
+const token = jwt.sign({ id: user.id, school }, JWT_SECRET);
+const photoParam = user.photo_path ? `&photo=${encodeURIComponent(user.photo_path)}` : '';
+res.redirect(`/oauth-success.html?token=${token}&display=${encodeURIComponent(user.display_name || 'You')}&school=${school}${photoParam}`);
+
   });
 });
 

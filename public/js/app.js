@@ -78,10 +78,20 @@ async function initializeHeader() {
       const g = document.getElementById('oauth-google');
 
       if (g) {
-        g.addEventListener('click', () => {
-          window.location.href = `/auth/google?school=${school}`;
-        });
-      }
+  g.addEventListener('click', () => {
+    // remember where to return after OAuth completes
+    try {
+      sessionStorage.setItem('post_auth_redirect', window.location.pathname || '/index.html');
+    } catch (e) {
+      // ignore storage failures (private mode, etc.)
+      console.warn('Could not set post_auth_redirect', e);
+    }
+
+    // start OAuth with the selected school
+    window.location.href = `/auth/google?school=${encodeURIComponent(school)}`;
+  });
+}
+
 
       modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.remove();
