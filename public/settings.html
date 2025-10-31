@@ -3,7 +3,10 @@
 <head>
   <meta charset="utf-8">
   <title>User Settings</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="/css/base.css">
+  <!-- optional: add your mobile override if you have one -->
+  <!-- <link rel="stylesheet" href="/css/mobile-override.css"> -->
   <script src="/js/theme-loader.js" defer></script>
 </head>
 <body>
@@ -11,58 +14,132 @@
 
   <main class="container">
     <h1>User Settings</h1>
-    <form id="profile-form" style="max-width:700px">
-      <label>Display name
-        <input id="fld-display" name="display_name" />
-      </label>
-      <label>College
-        <input id="fld-college" name="college" />
-      </label>
-      <label>Course
-        <input id="fld-course" name="course" />
-      </label>
-      <label>Batch
-        <input id="fld-batch" name="batch" />
-      </label>
-      <label>Username
-        <input id="fld-username" name="username" />
-      </label>
-      <label>Biography
-        <textarea id="fld-bio" name="bio"></textarea>
-      </label>
-      <label>Photo URL (or leave blank to keep OAuth photo)
-        <input id="fld-photo" name="photo_path" />
-      </label>
-      <button type="submit">Save</button>
-    </form>
-    <div id="save-result"></div>
+
+    <div class="card" style="max-width:720px; margin-top:16px;">
+      <form id="profile-form" class="p-3">
+        <label>Display name
+          <input id="fld-display" name="display_name" />
+        </label>
+
+        <label>College
+          <input id="fld-college" name="college" />
+        </label>
+
+        <label>Course
+          <input id="fld-course" name="course" />
+        </label>
+
+        <label>Batch
+          <input id="fld-batch" name="batch" />
+        </label>
+
+        <label>Username
+          <input id="fld-username" name="username" />
+        </label>
+
+        <label>Biography
+          <textarea id="fld-bio" name="bio"></textarea>
+        </label>
+
+        <label>Photo URL (or leave blank to keep OAuth photo)
+          <input id="fld-photo" name="photo_path" />
+        </label>
+
+        <div style="margin-top:12px;">
+          <button type="submit" class="auth-btn">Save</button>
+          <span id="save-result" style="margin-left:12px;"></span>
+        </div>
+      </form>
+    </div>
   </main>
 
   <script>
-    // load shared header (same method you already use)
+    // ---------- Header insertion + safe loader for /js/app.js ----------
     document.addEventListener('DOMContentLoaded', async () => {
       const headerContainer = document.getElementById('header-placeholder');
-      const res = await fetch('/components/header.html');
-      headerContainer.innerHTML = await res.text();
-      initializeHeader && initializeHeader(); // run header init if present
+      if (!headerContainer) {
+        console.warn('Header placeholder not found');
+        return;
+      }
 
+      try {
+        // 1) Insert header HTML
+        const res = await fetch('/components/header.html');
+        if (!res.ok) throw new Error('Failed to fetch header.html: ' + res.status);
+        headerContainer.innerHTML = await res.text();
+
+        // Let browser parse inserted nodes
+        await new Promise(requestAnimationFrame);
+
+        // 2) Dynamically load /js/app.js AFTER header exists
+        await new Promise((resolve, reject) => {
+          // avoid duplicate load
+          if (document.querySelector('script[src="/js/app.js"]')) {
+            return resolve();
+          }
+          const s = document.createElement('script');
+          s.src = '/js/app.js';
+          s.async = false; // keep execution order
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error('Failed to load /js/app.js'));
+          document.head.appendChild(s);
+        });
+
+        // 3) Call header helpers in safe order (if present)
+        if (typeof window.updateSchoolLogo === 'function') {
+          try { window.updateSchoolLogo(); } catch(e){ console.warn('updateSchoolLogo error',e); }
+        }
+        if (typeof window.initializeHeader === 'function') {
+          // initializeHeader may be async
+          await window.initializeHeader();
+        }
+        if (typeof window.updateAuthUI === 'function') {
+          try { window.updateAuthUI(); } catch(e){ console.warn('updateAuthUI error',e); }
+        }
+        // optional header search init if those exist in app.js
+        if (typeof window.initializeHeaderSearch === 'function') {
+          try { window.initializeHeaderSearch(); } catch(e){ console.warn('initializeHeaderSearch error',e); }
+        }
+
+        console.log('Header injected and initialized (settings).');
+      } catch (err) {
+        console.error('Header load/init failed:', err);
+      }
+
+      // ---------- Profile load & save logic (unchanged behavior) ----------
       const token = localStorage.getItem('token');
-      if (!token) return alert('You must be logged in');
+      if (!token) {
+        // not logged in — show consistent header state (updateAuthUI handles UI, but also stop further actions)
+        // Optionally redirect to login page instead of alert
+        return alert('You must be logged in');
+      }
 
       const school = localStorage.getItem('selectedSchool') || 'dlsu';
-      const meRes = await fetch(`/api/me?school=${school}`, { headers: { 'Authorization': 'Bearer ' + token }});
-      if (!meRes.ok) return alert('Failed to load profile');
-      const data = await meRes.json();
-      const u = data.user || {};
+      try {
+        const meRes = await fetch(`/api/me?school=${school}`, {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!meRes.ok) {
+          const txt = await meRes.text().catch(()=>null);
+          throw new Error('Failed to load profile: ' + meRes.status + ' ' + (txt||''));
+        }
+        const data = await meRes.json();
+        const u = data.user || {};
 
-      document.getElementById('fld-display').value = u.display_name || '';
-      document.getElementById('fld-college').value = u.college || '';
-      document.getElementById('fld-course').value = u.course || '';
-      document.getElementById('fld-batch').value = u.batch || '';
-      document.getElementById('fld-username').value = u.username || '';
-      document.getElementById('fld-bio').value = u.bio || '';
-      document.getElementById('fld-photo').value = u.photo_path || '';
+        document.getElementById('fld-display').value = u.display_name || '';
+        document.getElementById('fld-college').value = u.college || '';
+        document.getElementById('fld-course').value = u.course || '';
+        document.getElementById('fld-batch').value = u.batch || '';
+        document.getElementById('fld-username').value = u.username || '';
+        document.getElementById('fld-bio').value = u.bio || '';
+        document.getElementById('fld-photo').value = u.photo_path || '';
 
+      } catch (err) {
+        console.error(err);
+        return alert('Failed to load profile — check console for details.');
+      }
+
+      // Save handler
       document.getElementById('profile-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const body = {
@@ -74,22 +151,38 @@
           bio: document.getElementById('fld-bio').value.trim(),
           photo_path: document.getElementById('fld-photo').value.trim() || null
         };
-        const save = await fetch(`/api/me?school=${school}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type':'application/json',
-            'Authorization':'Bearer ' + token
-          },
-          body: JSON.stringify(body)
-        });
-        const j = await save.json();
-        if (!save.ok) return document.getElementById('save-result').textContent = 'Save failed: ' + (j.error || save.status);
-        document.getElementById('save-result').textContent = 'Saved!';
-        // update header display & avatar
-        initializeHeader && initializeHeader();
+        try {
+          const save = await fetch(`/api/me?school=${school}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(body)
+          });
+          const j = await save.json().catch(()=>({}));
+          if (!save.ok) {
+            document.getElementById('save-result').textContent = 'Save failed: ' + (j.error || save.status);
+            return;
+          }
+          document.getElementById('save-result').textContent = 'Saved!';
+          // update header visuals after successful save
+          if (typeof window.updateAuthUI === 'function') {
+            window.updateAuthUI();
+          }
+          if (typeof window.initializeHeader === 'function') {
+            // refresh header (avatar/display)
+            try { window.initializeHeader(); } catch(e){ console.warn('initializeHeader after save failed', e); }
+          }
+        } catch (err) {
+          console.error('Save failed', err);
+          document.getElementById('save-result').textContent = 'Save failed (network error)';
+        }
       });
     });
   </script>
-  <script src="/js/app.js"></script>
+
+  <!-- NOTE: DO NOT keep a static <script src="/js/app.js"></script> here.
+       app.js is loaded dynamically above after the header is inserted. -->
 </body>
 </html>
