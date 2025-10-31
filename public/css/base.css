@@ -791,3 +791,143 @@ body.up .change-school-btn {
   from { opacity: 0; transform: translateY(-4px);}
   to { opacity: 1; transform: translateY(0);}
 }
+
+/* =========================
+   Review Form Modern UI
+   ========================= */
+
+.review-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 30px;
+  background: var(--bg-secondary, #fff);
+  border-radius: 14px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  animation: fadeUp .25s ease-out;
+}
+
+.review-container h2 {
+  margin-bottom: 10px;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.review-container p {
+  color: #555;
+  margin-bottom: 20px;
+}
+
+/* Floating Label Inputs */
+.review-field {
+  position: relative;
+  margin-bottom: 22px;
+}
+
+.review-field input,
+.review-field select,
+.review-field textarea {
+  width: 100%;
+  padding: 14px 12px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: var(--bg-primary, #fafafa);
+  transition: 0.2s;
+}
+
+.review-field textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.review-field input:focus,
+.review-field select:focus,
+.review-field textarea:focus {
+  border-color: #009f6b;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(0,159,107,0.12);
+}
+
+/* Floating labels text */
+.review-field label {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  background: var(--bg-primary, #fafafa);
+  padding: 0 6px;
+  font-size: 14px;
+  color: #777;
+  pointer-events: none;
+  transition: 0.2s ease;
+}
+
+.review-field input:focus + label,
+.review-field input:not(:placeholder-shown) + label,
+.review-field select:focus + label,
+.review-field textarea:focus + label,
+.review-field textarea:not(:placeholder-shown) + label {
+  top: -8px;
+  font-size: 12px;
+  color: #009f6b;
+}
+
+/* Submit Button */
+.review-submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: #009f6b;
+  color: white;
+  font-size: 16px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: .2s;
+  font-weight: 600;
+}
+
+.review-submit-btn:hover {
+  background: #00b67c;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0,159,107,0.25);
+}
+
+/* Status text */
+#rev-result {
+  font-weight: 600;
+  margin-top: 14px;
+}
+
+/* Smooth fade */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+
+/* Modal styling for professor selection */
+.modal-inner {
+  max-width: 500px !important;
+  border-radius: 14px !important;
+  padding: 25px !important;
+  animation: fadeUp 0.25s ease-out;
+}
+
+#search-review-prof {
+  border-radius: 10px;
+  padding: 12px !important;
+  border: 1px solid #aaa;
+}
+
+#review-prof-container .card {
+  padding: 12px;
+  background: var(--bg-secondary, #fff);
+  border-radius: 8px;
+  transition: .15s;
+  border: 1px solid #ddd;
+}
+
+#review-prof-container .card:hover {
+  background: #e8fff3;
+  border-color: #009f6b;
+  transform: translateY(-2px);
+}

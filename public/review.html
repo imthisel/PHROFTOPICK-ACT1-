@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Create Review</title>
+<link rel="stylesheet" href="css/base.css">
+<script src="js/theme-loader.js"></script>
+</head>
+<body>
+<div id="header-placeholder"></div>
+
+<main class="container">
+  <a href="javascript:history.back()">⬅ Back</a>
+  <h2>Create a Review</h2>
+
+  <p>Ensure your review follows the DLSU handbook.</p>
+
+  <form id="review-form" class="review-container">
+  <h2>Create a Review</h2>
+  <p>Ensure your review follows the DLSU student handbook.</p>
+
+  <div class="review-field">
+    <input id="rev-title" placeholder=" " required>
+    <label>Title *</label>
+  </div>
+
+  <div class="review-field">
+    <input id="rev-course" placeholder=" " required>
+    <label>Course Code *</label>
+  </div>
+
+  <div class="review-field">
+    <select id="rev-again">
+      <option>Yes</option><option>No</option>
+    </select>
+    <label>Would take again?</label>
+  </div>
+
+  <div class="review-field">
+    <select id="rev-4">
+      <option>Yes</option><option>No</option>
+    </select>
+    <label>4.0 attainable?</label>
+  </div>
+
+  <div class="review-field">
+    <select id="rev-deadline">
+      <option>Yes</option><option>No</option>
+    </select>
+    <label>Deadline leniency</label>
+  </div>
+
+  <div class="review-field">
+    <select id="rev-workload">
+      <option>Low</option><option>Medium</option><option>High</option>
+    </select>
+    <label>Workload</label>
+  </div>
+
+  <div class="review-field">
+    <input id="rev-tags" placeholder=" ">
+    <label>Tags (comma separated)</label>
+  </div>
+
+  <div class="review-field">
+    <textarea id="rev-text" placeholder=" " required></textarea>
+    <label>Review *</label>
+  </div>
+
+  <label style="margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+    <input type="checkbox" id="rev-anon"> Post anonymously
+  </label>
+
+  <button class="review-submit-btn" type="submit">Submit Review</button>
+  <p id="rev-result"></p>
+</form>
+
+  <p id="rev-result"></p>
+</main>
+
+<script src="js/app.js"></script>
+<script>
+(async function() {
+  const profId = new URLSearchParams(window.location.search).get('prof');
+  const revForm = document.getElementById('review-form');
+  const revResult = document.getElementById('rev-result');
+
+  // Basic guard
+  if (!profId) {
+    revResult.textContent = 'Invalid professor selected. Returning to home...';
+    setTimeout(() => window.location.href = '/index.html', 1200);
+    return;
+  }
+
+  // Element references (always use getElementById)
+  const titleEl = document.getElementById('rev-title');
+  const courseEl = document.getElementById('rev-course');
+  const againEl = document.getElementById('rev-again');
+  const attainableEl = document.getElementById('rev-4');
+  const deadlineEl = document.getElementById('rev-deadline');
+  const workloadEl = document.getElementById('rev-workload');
+  const tagsEl = document.getElementById('rev-tags');
+  const textEl = document.getElementById('rev-text');
+  const anonEl = document.getElementById('rev-anon');
+  const submitBtn = revForm.querySelector('button[type="submit"]');
+
+  function disableForm(state = true) {
+    if (submitBtn) submitBtn.disabled = state;
+    [titleEl, courseEl, againEl, attainableEl, deadlineEl, workloadEl, tagsEl, textEl, anonEl]
+      .forEach(el => { if (el) el.disabled = state; });
+  }
+
+  revForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    revResult.textContent = '';
+
+    // Require login
+    const token = localStorage.getItem('token');
+    if (!token) return alert('You must be logged in to post a review.');
+
+    // Basic validation
+    if (!titleEl.value.trim()) return alert('Please enter a title.');
+    if (!courseEl.value.trim()) return alert('Please enter a course code.');
+    if (!textEl.value.trim()) return alert('Please write your review.');
+
+    const payload = {
+      title: titleEl.value.trim(),
+      course_code: courseEl.value.trim(),
+      would_take_again: againEl.value,
+      attainable_4: attainableEl.value,
+      deadline_leniency: deadlineEl.value,
+      workload_rating: workloadEl.value,
+      tags: tagsEl.value.trim(),
+      review_text: textEl.value.trim(),
+      anonymous: !!anonEl.checked
+    };
+
+    disableForm(true);
+    revResult.textContent = 'Submitting review...';
+
+    try {
+      const res = await fetch(`/api/profs/${profId}/review?school=${currentSchool()}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const j = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        revResult.textContent = j.error || ('Submission failed (' + (res.status || 'error') + ')');
+        disableForm(false);
+        return;
+      }
+
+      // success
+      revResult.textContent = '✅ Review submitted! Redirecting to professor page...';
+      // optionally clear form
+      revForm.reset();
+
+      // short delay so user sees confirmation
+      setTimeout(() => {
+        window.location.href = `/prof.html?id=${profId}`;
+      }, 900);
+
+    } catch (err) {
+      console.error('Network error submitting review', err);
+      revResult.textContent = 'Network error. Please try again.';
+      disableForm(false);
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

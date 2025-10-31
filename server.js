@@ -126,6 +126,24 @@ CREATE TABLE IF NOT EXISTS comments (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS prof_reviews (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  prof_id INTEGER,
+  user_id INTEGER,
+  display_name TEXT,
+  anonymous INTEGER DEFAULT 0,
+  title TEXT,
+  course_code TEXT,
+  would_take_again TEXT,
+  attainable_4 TEXT,
+  deadline_leniency TEXT,
+  workload_rating TEXT,
+  tags TEXT,
+  review_text TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+
 
 CREATE TABLE IF NOT EXISTS notes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -362,6 +380,58 @@ app.post('/api/profs/:id/rate', (req, res) => {
           res.json({ ok: true, avg, count, newStars: s });
         });
       });
+    }
+  );
+});
+// =================== CREATE PROFESSOR REVIEW ===================
+app.post('/api/profs/:id/review', (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const db = getDb(school);
+  const profId = req.params.id;
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) return res.status(401).json({ error: 'Login required' });
+
+  let user;
+  try { user = jwt.verify(token, JWT_SECRET); }
+  catch { return res.status(401).json({ error: 'Invalid token' }); }
+
+  const {
+    title, course_code, would_take_again, attainable_4, deadline_leniency,
+    workload_rating, tags, review_text, anonymous
+  } = req.body;
+
+  db.run(`
+    INSERT INTO prof_reviews (
+      prof_id, user_id, display_name, anonymous,
+      title, course_code, would_take_again, attainable_4,
+      deadline_leniency, workload_rating, tags, review_text
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `,
+  [
+    profId, user.id, user.display_name, anonymous ? 1 : 0, title, course_code,
+    would_take_again, attainable_4, deadline_leniency, workload_rating, tags,
+    review_text
+  ],
+  function(err) {
+    db.close();
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json({ ok: true, review_id: this.lastID });
+  });
+});
+
+// =================== GET PROFESSOR REVIEWS ===================
+app.get('/api/profs/:id/reviews', (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const db = getDb(school);
+
+  db.all(
+    "SELECT * FROM prof_reviews WHERE prof_id = ? ORDER BY created_at DESC",
+    [req.params.id],
+    (err, rows) => {
+      db.close();
+      if (err) return res.status(500).json({ error: 'DB error' });
+      res.json({ reviews: rows });
     }
   );
 });

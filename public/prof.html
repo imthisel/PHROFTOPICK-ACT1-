@@ -72,7 +72,8 @@
       <h3>Comments</h3>
       <div id="comments"></div>
     </div>
-
+    <h3>Student Reviews</h3>
+   <div id="full-reviews"></div>
     <div class="panel">
       <h3>Notes</h3>
       <div id="notes"></div>
@@ -155,6 +156,22 @@
               </div>
             `).join('')
           : "<p>No comments yet.</p>";
+
+          // Load full reviews
+const revRes = await fetch(`/api/profs/${profId}/reviews?school=${school}`);
+const revData = await revRes.json();
+
+document.getElementById("full-reviews").innerHTML = revData.reviews.length
+? revData.reviews.map(r => `
+  <div class="card">
+    <strong>${r.anonymous ? "Anonymous" : r.display_name}</strong>
+    <p><strong>${r.title}</strong> — ${r.course_code}</p>
+    <p>${r.review_text}</p>
+    <small>${new Date(r.created_at).toLocaleDateString()}</small>
+  </div>
+`).join("")
+: "<p>No reviews yet.</p>";
+
 
         // Notes
         const notesDiv = document.getElementById("notes");
