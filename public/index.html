@@ -83,49 +83,42 @@
 
     <!-- remove the static app.js include above (if present) and use this block below -->
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        // 1) Always fetch header using absolute path so it resolves correctly
-        const res = await fetch("/components/header.html");
-        if (!res.ok) throw new Error('Failed to fetch header (status ' + res.status + ')');
-        const html = await res.text();
-        document.getElementById("header-placeholder").innerHTML = html;
+  document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      // 1) Inject header
+      const res = await fetch("/components/header.html");
+      if (!res.ok) throw new Error('Failed to fetch header');
+      document.getElementById("header-placeholder").innerHTML = await res.text();
 
-        // 2) Initialize any header-only small helpers immediately
-        // If initChangeSchoolButton is defined in your app.js, it's safe to call later;
-        // we call it if it's already defined. If not, app.js will also call it later.
-        try { if (typeof initChangeSchoolButton === 'function') initChangeSchoolButton(); } catch(e) { console.warn(e); }
+      // 2) Wait for DOM parsing
+      await new Promise(resolve => requestAnimationFrame(resolve));
 
-        // 3) Wait for the key header elements to finish parsing by browser
-        await new Promise(resolve => requestAnimationFrame(resolve));
+      // 3) Load app.js dynamically
+      await new Promise((resolve, reject) => {
+        if (document.querySelector('script[src="/js/app.js"]')) return resolve();
+        const s = document.createElement('script');
+        s.src = '/js/app.js';
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error('Failed to load app.js'));
+        document.head.appendChild(s);
+      });
 
-        // 4) Dynamically load the main app.js AFTER the header is inserted.
-        // This guarantees that app.js runs after #prof-search / suggestions exist.
-        await new Promise((resolve, reject) => {
-          const s = document.createElement('script');
-          s.src = '/js/app.js';
-          s.onload = () => resolve();
-          s.onerror = () => reject(new Error('Failed to load /js/app.js'));
-          document.head.appendChild(s);
-        });
-
-        // 5) After app.js is loaded, call the global initialization functions (if available).
-        // app.js defines initializeHeader, updateAuthUI, enableAutocomplete, initializeHeaderSearch, etc.
-        if (typeof initializeHeader === "function") await initializeHeader();
-        if (typeof updateAuthUI === "function") updateAuthUI();
-        // initializeHeaderSearch and enableAutocomplete are safe to call even if they internally retry.
-        if (typeof initializeHeaderSearch === "function") initializeHeaderSearch();
-        if (typeof enableAutocomplete === "function") {
-          enableAutocomplete("subject-search", "index-suggestions");
-          enableAutocomplete("prof-search", "header-suggestions");
-        }
-
-        console.log("✅ Header injected and app.js loaded and initialized (index).");
-      } catch (err) {
-        console.error("❌ Failed to load header or app.js:", err);
+      // 4) Initialize everything in correct order
+      if (typeof updateSchoolLogo === "function") updateSchoolLogo();
+      if (typeof initializeHeader === "function") await initializeHeader();
+      if (typeof updateAuthUI === "function") updateAuthUI();
+      if (typeof initializeHeaderSearch === "function") initializeHeaderSearch();
+      if (typeof enableAutocomplete === "function") {
+        enableAutocomplete("subject-search", "index-suggestions");
+        enableAutocomplete("prof-search", "header-suggestions");
       }
-    });
-  </script>
+
+      console.log("✅ Header and app initialized (index)");
+    } catch (err) {
+      console.error("❌ Initialization failed:", err);
+    }
+  });
+</script>
 
 </body>
 </html>

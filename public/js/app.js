@@ -42,109 +42,94 @@ const api = {
 };
 
 
-// ========== Header initialization (separate function used elsewhere) ==========
 async function initializeHeader() {
   const school = localStorage.getItem('selectedSchool') || 'dlsu';
   const avatarImg = document.getElementById('user-avatar');
+  const userInitial = document.getElementById('user-initial');
   const drop = document.getElementById('user-dropdown');
   const dropDisplay = document.getElementById('drop-display');
   const btnLogout = document.getElementById('btn-logout');
   const btnShowLogin = document.getElementById('btn-show-login');
 
-// ---------- Login button handler (Google modal with outside click close) ----------
-if (btnShowLogin) {
-  btnShowLogin.style.cursor = 'pointer';
-  btnShowLogin.addEventListener('click', () => {
-    const school = localStorage.getItem('selectedSchool') || 'dlsu';
+  // ✅ Login button handler
+  if (btnShowLogin) {
+    btnShowLogin.style.cursor = 'pointer';
+    btnShowLogin.addEventListener('click', () => {
+      const school = localStorage.getItem('selectedSchool') || 'dlsu';
 
-    // Remove any previous modal first
-    const existingModal = document.getElementById('auth-modal');
-    if (existingModal) existingModal.remove();
+      const existingModal = document.getElementById('auth-modal');
+      if (existingModal) existingModal.remove();
 
-    // Insert modal directly into body (not inside #modal)
-    const html = `
-      <div class="auth-modal" id="auth-modal">
-        <div class="auth-modal-content">
-          <h2 class="auth-title">Welcome Back 👋</h2>
-          <p class="auth-subtitle">Sign in with your Google account to continue.</p>
-          <button id="oauth-google" class="auth-google-btn">
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="google-icon" />
-            Continue with Google
-          </button>
+      const html = `
+        <div class="auth-modal" id="auth-modal">
+          <div class="auth-modal-content">
+            <h2 class="auth-title">Welcome Back 👋</h2>
+            <p class="auth-subtitle">Sign in with your Google account to continue.</p>
+            <button id="oauth-google" class="auth-google-btn">
+              <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="google-icon" />
+              Continue with Google
+            </button>
+          </div>
         </div>
-      </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', html);
+      `;
+      document.body.insertAdjacentHTML('beforeend', html);
 
-    // Attach handlers
-    const modal = document.getElementById('auth-modal');
-    const content = modal.querySelector('.auth-modal-content');
-    const g = document.getElementById('oauth-google');
+      const modal = document.getElementById('auth-modal');
+      const g = document.getElementById('oauth-google');
 
-    // Handle Google click
-    if (g) {
-      g.addEventListener('click', () => {
-        window.location.href = `/auth/google?school=${school}`;
+      if (g) {
+        g.addEventListener('click', () => {
+          window.location.href = `/auth/google?school=${school}`;
+        });
+      }
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
       });
-    }
 
-    // ✅ Close modal when clicking outside content
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) modal.remove();
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal) modal.remove();
+      });
     });
+  }
 
-    // ✅ Close on Escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && modal) modal.remove();
-    });
-  });
-}
-// ---------- end login handler ----------
+  // ✅ Logout handlers
+  const handleLogout = (e) => {
+    e.preventDefault();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user_display');
+    localStorage.removeItem('user_photo');
+    showLoggedOut();
+    if (typeof updateAuthUI === 'function') updateAuthUI();
+    if (drop) drop.style.display = 'none';
+    alert('Signed out');
+  };
 
+  const dropLogout = document.getElementById('drop-logout');
+  if (dropLogout) dropLogout.onclick = handleLogout;
+  if (btnLogout) btnLogout.onclick = handleLogout;
 
-
-
-
-
-    // add this near the top of initializeHeader (where avatarImg, drop, etc. are grabbed)
-  const userInitial = document.getElementById('user-initial');
-
-  // -------------------------
-  // Replace showLoggedOut / showLoggedIn
-  // -------------------------
+  // ✅ Logged-out state
   const showLoggedOut = () => {
     if (btnShowLogin) btnShowLogin.style.display = 'inline-block';
     if (btnLogout) btnLogout.style.display = 'none';
-
-    // hide avatar and initial circle when logged out
-    if (avatarImg) {
-      avatarImg.style.display = 'none';
-      avatarImg.src = '';
-    }
-    if (userInitial) {
-      userInitial.style.display = 'none';
-      userInitial.textContent = '';
-    }
+    if (avatarImg) { avatarImg.style.display = 'none'; avatarImg.src = ''; }
+    if (userInitial) { userInitial.style.display = 'none'; userInitial.textContent = ''; }
     if (dropDisplay) dropDisplay.textContent = 'You';
   };
 
+  // ✅ Logged-in state
   const showLoggedIn = (displayName, photoUrl) => {
     if (btnShowLogin) btnShowLogin.style.display = 'none';
     if (btnLogout) btnLogout.style.display = 'inline-block';
 
-    // Prefer actual photo; fall back to initials if photoUrl absent
     if (avatarImg && photoUrl) {
       avatarImg.src = photoUrl;
       avatarImg.style.display = 'inline-block';
       if (userInitial) userInitial.style.display = 'none';
     } else {
-      // No photo: hide image and show initials circle
-      if (avatarImg) {
-        avatarImg.style.display = 'none';
-        avatarImg.src = '';
-      }
+      if (avatarImg) { avatarImg.style.display = 'none'; avatarImg.src = ''; }
       if (userInitial) {
-        // create initials from displayName (e.g., "John Doe" -> "JD")
         let initials = 'U';
         if (displayName) {
           initials = displayName.split(' ')
@@ -161,58 +146,7 @@ if (btnShowLogin) {
     if (dropDisplay) dropDisplay.textContent = displayName || 'You';
   };
 
-  // -------------------------
-  // Replace updateAuthUI
-  // -------------------------
-  function updateAuthUI() {
-    const btnShowLogin = document.getElementById('btn-show-login');
-    const btnLogout = document.getElementById('btn-logout');
-    const userNameSpan = document.getElementById('user-name');
-
-    if (!btnShowLogin || !btnLogout || !userNameSpan) {
-      console.warn("updateAuthUI() called before header loaded");
-      return;
-    }
-
-    const token = localStorage.getItem('token');
-    if (token) {
-      btnShowLogin.style.display = 'none';
-      btnLogout.style.display = 'inline-block';
-      userNameSpan.style.display = 'inline-block';
-      userNameSpan.textContent = localStorage.getItem('user_display') || 'You';
-
-      // show avatar or initials depending on whether we have a photo stored.
-      const photo = null; // we don't always have photo here; prefer initializeHeader to set final state
-      const storedDisplay = localStorage.getItem('user_display') || 'You';
-      // If you already stored a photo URL in localStorage, show it:
-      const storedPhoto = localStorage.getItem('user_photo') || null;
-      if (storedPhoto && avatarImg) {
-        avatarImg.src = storedPhoto;
-        avatarImg.style.display = 'inline-block';
-        if (userInitial) userInitial.style.display = 'none';
-      } else {
-        // show initials
-        if (avatarImg) { avatarImg.style.display = 'none'; avatarImg.src = ''; }
-        if (userInitial) {
-          const initials = (storedDisplay.split(' ').filter(Boolean).slice(0,2).map(s=>s[0].toUpperCase()).join('')) || 'U';
-          userInitial.textContent = initials;
-          userInitial.style.display = 'inline-flex';
-        }
-      }
-    } else {
-      // logged out — hide both avatar and initials
-      btnShowLogin.style.display = 'inline-block';
-      btnLogout.style.display = 'none';
-      userNameSpan.style.display = 'none';
-      userNameSpan.textContent = '';
-      if (avatarImg) { avatarImg.style.display = 'none'; avatarImg.src = ''; }
-      if (userInitial) { userInitial.style.display = 'none'; userInitial.textContent = ''; }
-    }
-  }
-
-
-
-  // Dropdown toggle
+  // ✅ Dropdown toggle
   const userArea = document.getElementById('user-area');
   if (userArea && drop) {
     userArea.addEventListener('click', (e) => {
@@ -222,67 +156,36 @@ if (btnShowLogin) {
     document.addEventListener('click', () => { drop.style.display = 'none'; });
   }
 
-
-    const dropLogout = document.getElementById('drop-logout');
-  if (dropLogout) {
-    dropLogout.onclick = (e) => {
-      e.preventDefault();
-      localStorage.removeItem('token');
-      localStorage.removeItem('user_display');
-      // Update the header visuals
-      showLoggedOut();
-      // Update any other UI that depends on auth
-      if (typeof updateAuthUI === 'function') updateAuthUI();
-      // Optional: close dropdown if open
-      if (drop) drop.style.display = 'none';
-      // Provide user feedback
-      alert('Signed out');
-      // Optional: force refresh to clear pages that rely on auth
-      // window.location.href = '/index.html';
-    };
-  }
-
-  // ✔ Attach same handler to the main header logout button so clicking it works
-  if (btnLogout) {
-    btnLogout.onclick = (e) => {
-      e.preventDefault();
-      localStorage.removeItem('token');
-      localStorage.removeItem('user_display');
-      showLoggedOut();
-      if (typeof updateAuthUI === 'function') updateAuthUI();
-      if (drop) drop.style.display = 'none';
-      alert('Signed out');
-      // window.location.href = '/index.html';
-    };
-  }
-
-
-
-  // Load user info
+  // ✅ Load user info
   const token = localStorage.getItem('token');
   if (!token) return showLoggedOut();
-
 
   try {
     const resp = await fetch(`/api/me?school=${school}`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     
-if (resp.status === 401) {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user_display');
-  return showLoggedOut();
-}
+    if (resp.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user_display');
+      localStorage.removeItem('user_photo');
+      return showLoggedOut();
+    }
+
     const json = await resp.json();
     const user = json.user || {};
+    
+    // ✅ Store user data
     localStorage.setItem('user_display', user.display_name || 'You');
+    if (user.photo_path) {
+      localStorage.setItem('user_photo', user.photo_path);
+    }
+    
     showLoggedIn(user.display_name || 'You', user.photo_path);
   } catch (err) {
     console.error('Failed to load /api/me', err);
     showLoggedOut();
-    
   }
-  
 }
 
 

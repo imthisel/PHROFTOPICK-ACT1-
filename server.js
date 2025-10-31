@@ -420,8 +420,21 @@ app.get('/auth/google/callback', (req, res, next) => {
   })(req, res, next);
 }, (req, res) => {
   const school = req.query.state || 'dlsu';
-  const token = jwt.sign({ id: req.user.id, school }, JWT_SECRET);
-  res.redirect(`/oauth-success.html?token=${token}&display=${encodeURIComponent(req.user.display_name)}&school=${school}`);
+  const db = getDb(school);
+  
+  // ✅ Fetch fresh user data to include photo
+  db.get('SELECT id, display_name, photo_path FROM users WHERE id = ?', [req.user.id], (err, user) => {
+    db.close();
+    
+    if (err || !user) {
+      return res.redirect('/auth/failure');
+    }
+    
+    const token = jwt.sign({ id: user.id, school }, JWT_SECRET);
+    const photoParam = user.photo_path ? `&photo=${encodeURIComponent(user.photo_path)}` : '';
+    
+    res.redirect(`/oauth-success.html?token=${token}&display=${encodeURIComponent(user.display_name || 'You')}&school=${school}${photoParam}`);
+  });
 });
 
 

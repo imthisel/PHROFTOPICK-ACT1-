@@ -1,22 +1,59 @@
 <!doctype html>
 <html>
-<head><meta charset="utf-8"><title>Signing you in…</title></head>
+<head>
+  <meta charset="utf-8">
+  <title>Signing you in…</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      margin: 0;
+    }
+    .loader { border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
 <body>
-<script>
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get('token');
-  const display = params.get('display') || 'You';
-  const school = params.get('school') || localStorage.getItem('selectedSchool') || 'dlsu';
-  if (token) {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user_display', decodeURIComponent(display));
-    // Optionally store selected school from callback
-    localStorage.setItem('selectedSchool', school);
-    // Redirect to homepage
-    window.location.href = '/index.html';
-  } else {
-    document.body.innerText = 'Login failed (no token).';
-  }
-</script>
+  <div style="text-align: center;">
+    <div class="loader"></div>
+    <h2>Signing you in...</h2>
+  </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const display = params.get('display') || 'You';
+    const school = params.get('school') || localStorage.getItem('selectedSchool') || 'dlsu';
+    
+    if (token) {
+      // ✅ Store all auth data
+      localStorage.setItem('token', token);
+      localStorage.setItem('user_display', decodeURIComponent(display));
+      localStorage.setItem('selectedSchool', school);
+      
+      // ✅ Fetch user profile to get photo
+      fetch(`/api/me?school=${school}`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.user && data.user.photo_path) {
+          localStorage.setItem('user_photo', data.user.photo_path);
+        }
+        // Redirect after storing photo
+        window.location.href = '/index.html';
+      })
+      .catch(() => {
+        // Redirect even if profile fetch fails
+        window.location.href = '/index.html';
+      });
+    } else {
+      document.body.innerHTML = '<h2 style="color:#ff6b6b">Login failed (no token)</h2>';
+    }
+  </script>
 </body>
 </html>
