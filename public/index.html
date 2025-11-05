@@ -1,8 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta http-equiv="refresh" content="0; url=home.html">
-  <script>window.location.replace('home.html');</script>
+  <script>
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const fromSchool = sessionStorage.getItem('skipLanding') === '1' || params.get('app') === '1' || params.get('from') === 'school';
+      if (fromSchool) {
+        sessionStorage.removeItem('skipLanding');
+        // Do NOT redirect to home.html; show the app page
+      } else {
+        // Default: send users to the marketing/landing page
+        window.location.replace('home.html');
+      }
+    } catch (e) {
+      // Fallback
+      window.location.replace('home.html');
+    }
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=1100, initial-scale=0.3, user-scalable=yes" />
   <title>PHrofstopick — Home</title>
