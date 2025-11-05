@@ -945,7 +945,8 @@ html.dark body { background: #0f1214; color: #e6e6e6; }
 html.dark .card { background: #14191c; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
 html.dark .site-header { box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
 html.dark .suggestions { background:#1a2024; color:#f0f0f0; border-color:#2a2f34; }
+html.dark .suggestion-item { color:#f0f0f0; }
 html.dark .suggestion-item:hover { background:#232a2f; }
-html.dark #user-dropdown { background:#1a2024; }
+html.dark #user-dropdown { background:#1a2024; color:#e6e6e6; }
 html.dark #user-dropdown a { color:#e6e6e6; }
 html.dark #user-dropdown a:hover { background:#232a2f; }

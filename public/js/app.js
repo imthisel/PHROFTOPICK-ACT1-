@@ -61,16 +61,26 @@ async function initializeHeader() {
 
   // Header no longer shows a Login button; login happens via dedicated pages
 
+  // Prefill avatar promptly using cached photo while fetching /api/me
+  const cachedPhoto = localStorage.getItem('user_photo');
+  if (cachedPhoto && avatarImg) {
+    avatarImg.src = cachedPhoto;
+    avatarImg.style.display = 'inline-block';
+    if (userInitial) userInitial.style.display = 'none';
+  }
+
   // ✅ Logout handlers
   const handleLogout = (e) => {
     e.preventDefault();
     localStorage.removeItem('token');
     localStorage.removeItem('user_display');
     localStorage.removeItem('user_photo');
+    localStorage.removeItem('visitedApp');
+    try { sessionStorage.removeItem('skipLanding'); } catch (_) {}
     showLoggedOut();
     if (typeof updateAuthUI === 'function') updateAuthUI();
     if (drop) drop.style.display = 'none';
-    alert('Signed out');
+    window.location.replace('home.html');
   };
 
   const dropLogout = document.getElementById('drop-logout');
@@ -100,6 +110,7 @@ async function initializeHeader() {
       avatarImg.src = photoUrl;
       avatarImg.style.display = 'inline-block';
       if (userInitial) userInitial.style.display = 'none';
+      try { localStorage.setItem('user_photo', photoUrl); } catch (_) {}
     } else {
       if (avatarImg) { avatarImg.style.display = 'none'; avatarImg.src = ''; }
       if (userInitial) {
@@ -164,11 +175,10 @@ async function initializeHeader() {
     
     // ✅ Store user data
     localStorage.setItem('user_display', user.display_name || 'You');
-    if (user.photo_path) {
-      localStorage.setItem('user_photo', user.photo_path);
-    }
+    const photoUrl = user.photo_path || localStorage.getItem('user_photo') || '';
+    if (photoUrl) localStorage.setItem('user_photo', photoUrl);
     
-    showLoggedIn(user.display_name || 'You', user.photo_path);
+    showLoggedIn(user.display_name || 'You', photoUrl);
   } catch (err) {
     console.error('Failed to load /api/me', err);
     showLoggedOut();
