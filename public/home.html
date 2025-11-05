@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phroftopick - Find Your Perfect Professor</title>
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      color: #1a1a1a;
+      overflow-x: hidden;
+      background: linear-gradient(135deg, #f8fffe 0%, #f0f9f4 50%, #fef5f5 100%);
+    }
+
+    /* ========== HEADER ========== */
+    .landing-header {
+      background: linear-gradient(135deg, #00693e 0%, #004d2b 100%);
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0,105,62,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-img {
+      height: 50px;
+      width: 50px;
+      border-radius: 12px;
+      background: white;
+      padding: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .brand-name {
+      font-size: 28px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.5px;
+    }
+
+    .auth-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .auth-btn {
+      padding: 10px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .btn-login {
+      background: transparent;
+      color: white;
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    .btn-login:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: white;
+    }
+
+    .btn-signup {
+      background: white;
+      color: #00693e;
+      box-shadow: 0 4px 12px rgba(255,255,255,0.2);
+    }
+
+    .btn-signup:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255,255,255,0.3);
+    }
+
+    /* ========== HERO SECTION ========== */
+    .hero {
+      max-width: 1200px;
+      margin: 80px auto;
+      padding: 0 40px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 56px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #00693e 0%, #dc2626 50%, #2563eb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+
+    .hero-subtitle {
+      font-size: 22px;
+      color: #555;
+      margin-bottom: 40px;
+      font-weight: 400;
+    }
+
+    .cta-button {
+      background: linear-gradient(135deg, #00693e 0%, #004d2b 100%);
+      color: white;
+      padding: 18px 48px;
+      border-radius: 50px;
+      font-size: 18px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0,105,62,0.3);
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(0,105,62,0.4);
+    }
+
+    .cta-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .cta-button:hover::before {
+      left: 100%;
+    }
+
+    /* ========== FEATURES GRID ========== */
+    .features {
+      max-width: 1200px;
+      margin: 100px auto;
+      padding: 0 40px;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 60px;
+      color: #1a1a1a;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+    }
+
+    .feature-card {
+      background: white;
+      border-radius: 20px;
+      padding: 35px 30px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+      border: 2px solid transparent;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #00693e, #dc2626, #2563eb);
+      transform: scaleX(0);
+      transition: transform 0.4s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 20px 60px rgba(0,105,62,0.15);
+      border-color: #00693e;
+    }
+
+    .feature-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .feature-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .feature-card h3 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 12px;
+    }
+
+    .feature-card p {
+      font-size: 16px;
+      color: #666;
+      line-height: 1.7;
+    }
+
+    .price-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 14px;
+      margin-top: 12px;
+    }
+
+    .warning-badge {
+      display: inline-block;
+      background: #fef3c7;
+      color: #92400e;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    /* ========== ABOUT SECTION ========== */
+    .about {
+      max-width: 900px;
+      margin: 100px auto;
+      padding: 60px 40px;
+      background: white;
+      border-radius: 30px;
+      box-shadow: 0 15px 50px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    .about h2 {
+      font-size: 38px;
+      font-weight: 700;
+      color: #00693e;
+      margin-bottom: 25px;
+    }
+
+    .about p {
+      font-size: 18px;
+      color: #555;
+      line-height: 1.8;
+    }
+
+    /* ========== FAQ SECTION ========== */
+    .faq {
+      max-width: 900px;
+      margin: 100px auto 80px;
+      padding: 0 40px;
+    }
+
+    .faq-item {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+      border-left: 5px solid transparent;
+    }
+
+    .faq-item:hover {
+      border-left-color: #00693e;
+      box-shadow: 0 8px 30px rgba(0,105,62,0.1);
+    }
+
+    .faq-question {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .faq-icon {
+      color: #00693e;
+      font-size: 24px;
+    }
+
+    .faq-answer {
+      font-size: 16px;
+      color: #666;
+      line-height: 1.7;
+    }
+
+    /* ========== MODAL ========== */
+    .auth-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .auth-modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 50px 45px;
+      border-radius: 24px;
+      max-width: 440px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+      animation: slideUp 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-content h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #00693e;
+      margin-bottom: 12px;
+    }
+
+    .modal-subtitle {
+      color: #666;
+      font-size: 15px;
+      margin-bottom: 30px;
+    }
+
+    .google-btn {
+      width: 100%;
+      background: white;
+      border: 2px solid #ddd;
+      padding: 14px 20px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .google-btn:hover {
+      border-color: #00693e;
+      box-shadow: 0 4px 15px rgba(0,105,62,0.15);
+      transform: translateY(-2px);
+    }
+
+    .google-icon {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* ========== FOOTER ========== */
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #00693e 0%, #004d2b 100%);
+      color: white;
+      margin-top: 100px;
+    }
+
+    .footer p {
+      font-size: 15px;
+      opacity: 0.9;
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 38px;
+      }
+
+      .hero-subtitle {
+        font-size: 18px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .landing-header {
+        padding: 12px 20px;
+      }
+
+      .brand-name {
+        font-size: 22px;
+      }
+
+      .auth-buttons {
+        gap: 8px;
+      }
+
+      .auth-btn {
+        padding: 8px 16px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header class="landing-header">
+    <div class="logo-section">
+      <img src="images/default-logo.png" alt="Phroftopick Logo" class="logo-img">
+      <h1 class="brand-name">Phroftopick</h1>
+    </div>
+    <div class="auth-buttons">
+      <button class="auth-btn btn-login" onclick="openAuthModal()">Log In</button>
+      <button class="auth-btn btn-signup" onclick="openAuthModal()">Sign Up</button>
+    </div>
+  </header>
+
+  <!-- ========== HERO SECTION ========== -->
+  <section class="hero">
+    <h1>Find Your Perfect Professor</h1>
+    <p class="hero-subtitle">Honest reviews, transparent experiences, and study resources for DLSU, Ateneo, UP, and Benilde students.</p>
+    <button class="cta-button" onclick="openAuthModal()">Let's Get Started →</button>
+  </section>
+
+  <!-- ========== FEATURES ========== -->
+  <section class="features">
+    <h2 class="section-title">Why Use Our Platform?</h2>
+    <div class="features-grid">
+      
+      <div class="feature-card">
+        <span class="feature-icon">🎭</span>
+        <h3>Post Anonymously</h3>
+        <p>Share honest reviews and experiences without revealing your identity.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">✉️</span>
+        <h3>No School Email Required</h3>
+        <p>You can sign up and use the platform with any email — fast and hassle-free.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">🗣️</span>
+        <h3>No Censorship of Experiences</h3>
+        <p>We believe students deserve transparency. You can freely express your experiences and opinions about professors.<br><small style="color:#999;">(Note: We still moderate extreme harassment, threats, or illegal content to keep the platform safe.)</small></p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">🎓</span>
+        <h3>Easily Find Professors for GEs</h3>
+        <p>Quickly discover which professors are teaching General Education courses — no need to browse Facebook groups or spreadsheets.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">🔍</span>
+        <h3>Search Professors and Subjects</h3>
+        <p>Not just a professor-rating site — get insights on both professors and specific courses.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">📚</span>
+        <h3>Affordable Access to Subject Notes</h3>
+        <p>Get premium subject notes and study resources for only <span class="price-badge">₱200 today</span></p>
+        <span class="warning-badge">⚠️ Price will increase to ₱399 by 2026 — grab it now while it's 50% off!</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========== ABOUT SECTION ========== -->
+  <section class="about">
+    <h2>What is Phroftopick?</h2>
+    <p>A website that tries to compile all reviews from Facebook groups, Reddit, existing websites, etc. for all the Big Four schools (DLSU, Ateneo, UP, Benilde).</p>
+  </section>
+
+  <!-- ========== FAQ SECTION ========== -->
+  <section class="faq">
+    <h2 class="section-title">Frequently Asked Questions</h2>
+
+    <div class="faq-item">
+      <div class="faq-question">
+        <span class="faq-icon">❓</span>
+        Is this website free to use?
+      </div>
+      <div class="faq-answer">
+        Yes — viewing and making professor reviews is completely free. We also offer optional paid features such as access to detailed subject notes and study resources.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">
+        <span class="faq-icon">📖</span>
+        What do I get if I upgrade to the Subject Page?
+      </div>
+      <div class="faq-answer">
+        Upgrading gives you access to premium features, including:<br>
+        ✅ Curated subject notes<br>
+        ✅ Study guides & reviewer materials<br>
+        ✅ Tips from students who previously took the class<br>
+        ✅ Access to exclusive future academic tools & updates
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">
+        <span class="faq-icon">💳</span>
+        How do I know I will get access after paying?
+      </div>
+      <div class="faq-answer">
+        We use trusted and secure Philippine payment providers like PayMongo to process payments. Access to your purchased pages is automatically unlocked after payment — no manual waiting or approval needed.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">
+        <span class="faq-icon">🏫</span>
+        Is this an official university website (DLSU, Ateneo, UP, Benilde, etc.)?
+      </div>
+      <div class="faq-answer">
+        No. We are an independent platform created by students to help fellow students choose professors and prepare better for their subjects.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">
+        <span class="faq-icon">🔒</span>
+        Is this website safe?
+      </div>
+      <div class="faq-answer">
+        Yes. We use secure login and authentication systems such as Google OAuth to protect user accounts and ensure your data remains private.
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <p>&copy; 2025 Phroftopick. Built by students, for students.</p>
+  </footer>
+
+  <!-- ========== AUTH MODAL ========== -->
+  <div class="auth-modal" id="authModal" onclick="closeAuthModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <h2>Welcome to Phroftopick 👋</h2>
+      <p class="modal-subtitle">Sign in with your Google account to continue.</p>
+      <button class="google-btn" onclick="handleGoogleAuth()">
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="google-icon">
+        Continue with Google
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function openAuthModal() {
+      document.getElementById('authModal').classList.add('active');
+    }
+
+    function closeAuthModal(event) {
+      if (event.target.id === 'authModal') {
+        document.getElementById('authModal').classList.remove('active');
+      }
+    }
+
+    function handleGoogleAuth() {
+      // Store redirect intention
+      try {
+        sessionStorage.setItem('post_auth_redirect', '/school.html');
+      } catch (e) {
+        console.warn('Could not set redirect', e);
+      }
+      
+      // Redirect to Google OAuth (will default to DLSU or let user choose later)
+      window.location.href = '/auth/google?school=dlsu';
+    }
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.getElementById('authModal').classList.remove('active');
+      }
+    });
+  </script>
+
+</body>
+</html>
