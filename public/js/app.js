@@ -10,6 +10,15 @@ function currentSchool() {
   return localStorage.getItem('selectedSchool') || 'dlsu';
 }
 
+// ========== Global: Change School (used by header button) ==========
+// Makes the header's onclick="changeSchool()" work on all pages
+window.changeSchool = function() {
+  try { localStorage.removeItem('selectedSchool'); } catch (e) {}
+  // Optional: also clear auth if switching schools should reset session
+  // try { localStorage.removeItem('token'); } catch (e) {}
+  window.location.href = 'school.html';
+};
+
 
 // ========== API ==========
 const api = {
@@ -48,60 +57,9 @@ async function initializeHeader() {
   const userInitial = document.getElementById('user-initial');
   const drop = document.getElementById('user-dropdown');
   const dropDisplay = document.getElementById('drop-display');
-  const btnLogout = document.getElementById('btn-logout');
-  const btnShowLogin = document.getElementById('btn-show-login');
+  const darkToggle = document.getElementById('dark-toggle');
 
-  // ✅ Login button handler
-  if (btnShowLogin) {
-    btnShowLogin.style.cursor = 'pointer';
-    btnShowLogin.addEventListener('click', () => {
-      const school = localStorage.getItem('selectedSchool') || 'dlsu';
-
-      const existingModal = document.getElementById('auth-modal');
-      if (existingModal) existingModal.remove();
-
-      const html = `
-        <div class="auth-modal" id="auth-modal">
-          <div class="auth-modal-content">
-            <h2 class="auth-title">Welcome Back 👋</h2>
-            <p class="auth-subtitle">Sign in with your Google account to continue.</p>
-            <button id="oauth-google" class="auth-google-btn">
-              <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="google-icon" />
-              Continue with Google
-            </button>
-          </div>
-        </div>
-      `;
-      document.body.insertAdjacentHTML('beforeend', html);
-
-      const modal = document.getElementById('auth-modal');
-      const g = document.getElementById('oauth-google');
-
-      if (g) {
-  g.addEventListener('click', () => {
-    // remember where to return after OAuth completes
-    try {
-      sessionStorage.setItem('post_auth_redirect', window.location.pathname || '/index.html');
-    } catch (e) {
-      // ignore storage failures (private mode, etc.)
-      console.warn('Could not set post_auth_redirect', e);
-    }
-
-    // start OAuth with the selected school
-    window.location.href = `/auth/google?school=${encodeURIComponent(school)}`;
-  });
-}
-
-
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.remove();
-      });
-
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal) modal.remove();
-      });
-    });
-  }
+  // Header no longer shows a Login button; login happens via dedicated pages
 
   // ✅ Logout handlers
   const handleLogout = (e) => {
@@ -117,12 +75,9 @@ async function initializeHeader() {
 
   const dropLogout = document.getElementById('drop-logout');
   if (dropLogout) dropLogout.onclick = handleLogout;
-  if (btnLogout) btnLogout.onclick = handleLogout;
 
   // ✅ Logged-out state
   const showLoggedOut = () => {
-    if (btnShowLogin) btnShowLogin.style.display = 'inline-block';
-    if (btnLogout) btnLogout.style.display = 'none';
     if (avatarImg) { avatarImg.style.display = 'none'; avatarImg.src = ''; }
     if (userInitial) { userInitial.style.display = 'none'; userInitial.textContent = ''; }
     if (dropDisplay) dropDisplay.textContent = 'You';
@@ -130,8 +85,7 @@ async function initializeHeader() {
 
   // ✅ Logged-in state
   const showLoggedIn = (displayName, photoUrl) => {
-    if (btnShowLogin) btnShowLogin.style.display = 'none';
-    if (btnLogout) btnLogout.style.display = 'inline-block';
+    // Only show avatar/initials in header
 
     if (avatarImg && photoUrl) {
       avatarImg.src = photoUrl;
@@ -164,6 +118,20 @@ async function initializeHeader() {
       drop.style.display = drop.style.display === 'block' ? 'none' : 'block';
     });
     document.addEventListener('click', () => { drop.style.display = 'none'; });
+  }
+
+  // ✅ Dark mode toggle wiring (persist in localStorage)
+  function applyDarkFromStorage() {
+    const enabled = localStorage.getItem('darkMode') === '1';
+    document.documentElement.classList.toggle('dark', enabled);
+    if (darkToggle) darkToggle.checked = enabled;
+  }
+  if (darkToggle) {
+    applyDarkFromStorage();
+    darkToggle.addEventListener('change', () => {
+      localStorage.setItem('darkMode', darkToggle.checked ? '1' : '0');
+      applyDarkFromStorage();
+    });
   }
 
   // ✅ Load user info

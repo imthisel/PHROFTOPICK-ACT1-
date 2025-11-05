@@ -931,3 +931,21 @@ body.up .change-school-btn {
   border-color: #009f6b;
   transform: translateY(-2px);
 }
+
+/* ===== Simple switch (for dark mode toggle) ===== */
+.switch { position: relative; display: inline-block; width: 42px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; transition: .2s; border-radius: 24px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; top: 3px; background: #fff; transition: .2s; border-radius: 50%; }
+input:checked + .slider { background: #00693e; }
+input:checked + .slider:before { transform: translateX(18px); }
+
+/* ===== Minimal dark mode support (class added by JS) ===== */
+html.dark body { background: #0f1214; color: #e6e6e6; }
+html.dark .card { background: #14191c; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+html.dark .site-header { box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
+html.dark .suggestions { background:#1a2024; color:#f0f0f0; border-color:#2a2f34; }
+html.dark .suggestion-item:hover { background:#232a2f; }
+html.dark #user-dropdown { background:#1a2024; }
+html.dark #user-dropdown a { color:#e6e6e6; }
+html.dark #user-dropdown a:hover { background:#232a2f; }

@@ -18,14 +18,6 @@
 </div>
 
   <nav class="nav-right">
-<button id="change-school-btn" class="change-school-btn" onclick="changeSchool()">Change School</button>
-
-    <button id="btn-show-login">Login</button>
-    <button id="btn-logout" style="display:none;">Logout</button>
-
-    <span id="user-name" style="display:none; margin-left:8px; font-weight:600;"></span>
-
-
     <div id="user-area" style="display:inline-block; cursor:pointer; margin-left:12px; position:relative;">
   <img id="user-avatar" src=""
     style="display:none; width:36px; height:36px; border-radius:50%; vertical-align:middle;">
@@ -35,10 +27,19 @@
 
 
   <div id="user-dropdown" class="dropdown-menu">
-  <div id="drop-display" style="font-weight:600;margin-bottom:8px;"></div>
+  <div id="drop-display" style="font-weight:700; margin-bottom:6px;"></div>
+  <div style="padding:6px 0; border-bottom:1px solid rgba(0,0,0,0.08);"></div>
   <a id="drop-profile" href="/settings.html">Profile</a>
-  <a id="drop-settings" href="/settings.html">Account settings</a>
-  <a id="drop-logout" href="#">Logout</a>
+  <a id="drop-settings" href="/settings.html">Settings</a>
+  <a id="drop-contact" href="/settings.html#contact">Contact Us</a>
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 0;">
+    <span>Dark Mode</span>
+    <label class="switch">
+      <input id="dark-toggle" type="checkbox">
+      <span class="slider"></span>
+    </label>
+  </div>
+  <a id="drop-logout" href="#">Sign Out</a>
 </div>
 
 </div>

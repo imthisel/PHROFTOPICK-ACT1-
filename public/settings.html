@@ -15,41 +15,75 @@
   <main class="container">
     <h1>User Settings</h1>
 
-    <div class="card" style="max-width:720px; margin-top:16px;">
-      <form id="profile-form" class="p-3">
-        <label>Display name
-          <input id="fld-display" name="display_name" />
-        </label>
+    <p style="max-width:820px; color:#555; margin-top:6px;">Make sure your information is true to keep our community safe and make our reviews more authentic to students!</p>
 
-        <label>College
-          <input id="fld-college" name="college" />
-        </label>
+    <div class="card" style="max-width:840px; margin-top:18px; padding:24px;">
+      <form id="profile-form">
+        <div style="display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap;">
+          <div style="flex:0 0 120px; text-align:center;">
+            <img id="settings-avatar" src="" alt="Profile" style="width:96px; height:96px; border-radius:50%; object-fit:cover; background:#f3f3f3;">
+            <div style="margin-top:10px;">
+              <label for="fld-photo" class="auth-btn" style="cursor:pointer; display:inline-block;">Update Photo</label>
+              <input id="fld-photo" name="photo_path" type="text" placeholder="Photo URL" style="display:block; width:100%; margin-top:8px;">
+            </div>
+          </div>
 
-        <label>Course
-          <input id="fld-course" name="course" />
-        </label>
+          <div style="flex:1 1 420px; min-width:280px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+              <label>College *
+                <select id="fld-college" name="college">
+                  <option value="">Select what college you are currently enrolled at.</option>
+                  <option value="CCS">CCS</option>
+                  <option value="CLA">CLA</option>
+                  <option value="COB">COB</option>
+                  <option value="COS">COS</option>
+                </select>
+              </label>
 
-        <label>Batch
-          <input id="fld-batch" name="batch" />
-        </label>
+              <label>Course *
+                <input id="fld-course" name="course" placeholder="Computer Science">
+              </label>
 
-        <label>Username
-          <input id="fld-username" name="username" />
-        </label>
+              <label>Batch ID Number *
+                <input id="fld-batch" name="batch" placeholder="125">
+              </label>
 
-        <label>Biography
-          <textarea id="fld-bio" name="bio"></textarea>
-        </label>
+              <label>Username
+                <div style="display:flex; gap:8px;">
+                  <input id="fld-username" name="username" placeholder="immanuel-angeles-a6" style="flex:1;">
+                  <button id="btn-check-username" type="button" class="auth-btn" style="white-space:nowrap;">Check</button>
+                </div>
+              </label>
 
-        <label>Photo URL (or leave blank to keep OAuth photo)
-          <input id="fld-photo" name="photo_path" />
-        </label>
+              <label style="grid-column:1/-1;">Display Name
+                <input id="fld-display" name="display_name" placeholder="Your full name from Google">
+              </label>
 
-        <div style="margin-top:12px;">
-          <button type="submit" class="auth-btn">Save</button>
-          <span id="save-result" style="margin-left:12px;"></span>
+              <label style="grid-column:1/-1;">Biography
+                <textarea id="fld-bio" name="bio" placeholder="Type your biography here" rows="4"></textarea>
+              </label>
+            </div>
+
+            <div class="card" style="padding:16px; margin-top:16px;">
+              <h3 style="margin-bottom:8px;">Platform Notifications</h3>
+              <label style="display:flex; align-items:center; gap:10px;">
+                <input id="notif-toggle" type="checkbox"> Enable notifications
+              </label>
+            </div>
+
+            <div style="margin-top:16px; display:flex; gap:10px;">
+              <button type="submit" class="auth-btn">Save Changes</button>
+              <button id="btn-reset" type="button">Reset</button>
+              <span id="save-result" style="margin-left:12px;"></span>
+            </div>
+          </div>
         </div>
       </form>
+    </div>
+
+    <div id="contact" class="card" style="max-width:840px; margin-top:18px; padding:20px;">
+      <h3>Contact Us</h3>
+      <p style="color:#555;">For inquiries, issues, or feedback, please reach out via your preferred channel.</p>
     </div>
   </main>
 
@@ -149,6 +183,11 @@ if (!token) {
         document.getElementById('fld-username').value = u.username || '';
         document.getElementById('fld-bio').value = u.bio || '';
         document.getElementById('fld-photo').value = u.photo_path || '';
+        const avatar = document.getElementById('settings-avatar');
+        if (avatar) {
+          const src = u.photo_path || localStorage.getItem('user_photo') || '';
+          if (src) avatar.src = src;
+        }
 
       } catch (err) {
         console.error(err);
@@ -165,7 +204,8 @@ if (!token) {
           batch: document.getElementById('fld-batch').value.trim(),
           username: document.getElementById('fld-username').value.trim(),
           bio: document.getElementById('fld-bio').value.trim(),
-          photo_path: document.getElementById('fld-photo').value.trim() || null
+          photo_path: document.getElementById('fld-photo').value.trim() || null,
+          notifications_enabled: document.getElementById('notif-toggle').checked ? 1 : 0
         };
         try {
           const save = await fetch(`/api/me?school=${school}`, {
@@ -195,6 +235,36 @@ if (!token) {
           document.getElementById('save-result').textContent = 'Save failed (network error)';
         }
       });
+
+      // username check (format/slug validation; optional server check if available)
+      const btnCheck = document.getElementById('btn-check-username');
+      if (btnCheck) {
+        btnCheck.addEventListener('click', async () => {
+          const el = document.getElementById('fld-username');
+          const v = (el.value || '').trim();
+          if (!v || !/^[-a-z0-9]+$/i.test(v.replace(/\s+/g,'-').toLowerCase())) {
+            alert('Username should contain letters, numbers, or dashes.');
+            return;
+          }
+          try {
+            const r = await fetch(`/api/username-available?school=${school}&u=${encodeURIComponent(v)}`);
+            if (r.ok) {
+              const j = await r.json().catch(()=>({}));
+              if (j && typeof j.available !== 'undefined') {
+                alert(j.available ? 'Username available!' : 'Username already taken.');
+                return;
+              }
+            }
+          } catch (_) {}
+          alert('Looks good.');
+        });
+      }
+
+      // reset
+      const btnReset = document.getElementById('btn-reset');
+      if (btnReset) {
+        btnReset.addEventListener('click', () => window.location.reload());
+      }
     });
   </script>
 
