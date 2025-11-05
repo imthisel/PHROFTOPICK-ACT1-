@@ -1,23 +1,56 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Create Review</title>
-<link rel="stylesheet" href="css/base.css">
-<script src="js/theme-loader.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Review</title>
+  <link rel="stylesheet" href="css/base.css">
+  <script src="js/theme-loader.js" defer></script>
+  <style>
+    .page-hero { max-width:1100px; margin:30px auto 10px; padding:18px 20px; border-radius:16px; background: linear-gradient(180deg, rgba(0,105,62,0.06), rgba(0,0,0,0.02)); border:1px solid rgba(0,0,0,0.06); }
+    .page-hero h1 { font-size:26px; margin:0 0 6px; }
+    .page-hero p { color:#4b5563; margin:0; }
+    .step { display:inline-block; padding:6px 10px; background:#e8fff3; color:#06603e; border-radius:9999px; font-weight:700; margin-bottom:8px; }
+    .picker { max-width:1100px; margin:14px auto; background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,0.06); }
+    .picker h3 { margin:0 0 10px; }
+    .picker input { width:100%; padding:12px 14px; border-radius:10px; border:1px solid #d1d5db; }
+    .prof-results { margin-top:12px; display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:12px; }
+    .prof-item { display:flex; gap:10px; align-items:center; padding:10px; border:1px solid #e5e7eb; border-radius:12px; background:#fff; cursor:pointer; transition:transform .12s ease, box-shadow .12s ease; }
+    .prof-item:hover { transform: translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,0.06); }
+    .prof-item img { width:40px; height:40px; border-radius:50%; object-fit:cover; background:#f3f4f6; }
+    .form-shell { max-width:1100px; margin:18px auto 50px; display:grid; grid-template-columns: 1fr 0.6fr; gap:18px; }
+    .form-card { background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:20px; box-shadow:0 8px 24px rgba(0,0,0,0.06); }
+    .summary { background:#ffffff; border:1px solid #e5e7eb; border-radius:16px; padding:20px; box-shadow:0 8px 24px rgba(0,0,0,0.06); position:sticky; top:20px; height: fit-content; }
+    .summary h4 { margin:0 0 10px; }
+    .summary .row { display:flex; align-items:center; gap:10px; }
+    .summary img { width:56px; height:56px; border-radius:12px; object-fit:cover; background:#f3f4f6; }
+    @media (max-width: 900px) { .form-shell { grid-template-columns: 1fr; } .summary { position:static; } }
+    html.dark .picker, html.dark .form-card, html.dark .summary { background:#14191c; border-color:#2a2f34; }
+    html.dark .page-hero { background: linear-gradient(180deg, rgba(0,105,62,0.12), rgba(255,255,255,0.02)); border-color:#2a2f34; }
+    html.dark .picker input { background:#0f1214; color:#e6e6e6; border-color:#2a2f34; }
+    html.dark .prof-item { background:#1a2024; border-color:#2a2f34; }
+  </style>
 </head>
 <body>
 <div id="header-placeholder"></div>
 
-<main class="container">
-  <a href="javascript:history.back()">⬅ Back</a>
-  <h2>Create a Review</h2>
+<main>
+  <section class="page-hero container">
+    <span class="step">Create Review</span>
+    <h1>Share your experience with a professor</h1>
+    <p>Keep it constructive and respectful. Your insights help thousands of students.</p>
+  </section>
 
-  <p>Ensure your review follows the DLSU handbook.</p>
+  <section id="prof-picker" class="picker container" style="display:none;">
+    <h3>Select a professor</h3>
+    <input id="prof-search-input" placeholder="Search professor..." autocomplete="off">
+    <div id="prof-results" class="prof-results"></div>
+  </section>
 
-  <form id="review-form" class="review-container">
-  <h2>Create a Review</h2>
-  <p>Ensure your review follows the DLSU student handbook.</p>
+  <section class="form-shell container" id="review-sections" style="display:none;">
+    <form id="review-form" class="form-card">
+      <h2 style="margin:0 0 6px;">Your review</h2>
+      <p style="margin:0 0 12px;color:#666;">Please be honest and avoid personal attacks.</p>
 
   <div class="review-field">
     <input id="rev-title" placeholder=" " required>
@@ -71,28 +104,96 @@
     <input type="checkbox" id="rev-anon"> Post anonymously
   </label>
 
-  <button class="review-submit-btn" type="submit">Submit Review</button>
-  <p id="rev-result"></p>
-</form>
+      <button class="review-submit-btn" type="submit">Submit Review</button>
+      <p id="rev-result"></p>
+    </form>
 
-  <p id="rev-result"></p>
+    <aside class="summary">
+      <h4>Professor</h4>
+      <div class="row">
+        <img id="prof-photo" alt="">
+        <div>
+          <div id="prof-name" style="font-weight:700;">—</div>
+          <small id="prof-meta" style="color:#6b7280;">Select a professor to begin</small>
+        </div>
+      </div>
+    </aside>
+  </section>
 </main>
 
-<script src="js/app.js"></script>
 <script>
-(async function() {
-  const profId = new URLSearchParams(window.location.search).get('prof');
-  const revForm = document.getElementById('review-form');
+document.addEventListener('DOMContentLoaded', async () => {
+  const headerContainer = document.getElementById('header-placeholder');
+  try {
+    const res = await fetch('/components/header.html');
+    if (!res.ok) throw new Error('Failed to fetch header.html');
+    headerContainer.innerHTML = await res.text();
+    await new Promise(r => requestAnimationFrame(r));
+    if (!document.querySelector('script[src="/js/app.js"]')) {
+      await new Promise((resolve, reject) => { const s = document.createElement('script'); s.src='/js/app.js'; s.onload=resolve; s.onerror=()=>reject(new Error('app.js load failed')); document.head.appendChild(s); });
+    }
+    if (window.updateSchoolLogo) try { window.updateSchoolLogo(); } catch(e){}
+    if (window.initializeHeader) try { await window.initializeHeader(); } catch(e){}
+  } catch (e) { console.warn('Header injection failed', e); }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  let profId = urlParams.get('prof');
+  const picker = document.getElementById('prof-picker');
+  const results = document.getElementById('prof-results');
+  const searchInput = document.getElementById('prof-search-input');
+  const sections = document.getElementById('review-sections');
+  const form = document.getElementById('review-form');
   const revResult = document.getElementById('rev-result');
 
-  // Basic guard
-  if (!profId) {
-    revResult.textContent = 'Invalid professor selected. Returning to home...';
-    setTimeout(() => window.location.href = '/index.html', 1200);
-    return;
+  const profNameEl = document.getElementById('prof-name');
+  const profMetaEl = document.getElementById('prof-meta');
+  const profPhotoEl = document.getElementById('prof-photo');
+
+  function showPicker() { picker.style.display = 'block'; sections.style.display = 'none'; }
+  function showForm() { picker.style.display = 'none'; sections.style.display = 'grid'; }
+
+  async function populateProfessor(p) {
+    profNameEl.textContent = p.name || 'Professor';
+    profMetaEl.textContent = p.subject_name ? `${p.subject_code || ''} ${p.subject_name}` : (p.department || '');
+    if (profPhotoEl) profPhotoEl.src = p.photo_path || '';
   }
 
-  // Element references (always use getElementById)
+  if (!profId) {
+    showPicker();
+    const doSearch = async (q='') => {
+      try {
+        const res = await fetch(`/api/profs/search?school=${(localStorage.getItem('selectedSchool')||'dlsu')}&q=${encodeURIComponent(q)}`);
+        const j = await res.json();
+        const list = j.professors || [];
+        results.innerHTML = list.map(p => `
+          <div class="prof-item" data-id="${p.id}" data-name="${p.name}" data-photo="${p.photo_path||''}" data-meta="${p.subject_name||''}">
+            <img src="${p.photo_path||''}" alt="${p.name}">
+            <div>
+              <div style=\"font-weight:700;\">${p.name}</div>
+              <small style=\"color:#6b7280;\">${p.subject_code||''} ${p.subject_name||''}</small>
+            </div>
+          </div>`).join('');
+        results.querySelectorAll('.prof-item').forEach(el => el.addEventListener('click', () => {
+          profId = el.dataset.id;
+          populateProfessor({ name: el.dataset.name, photo_path: el.dataset.photo, subject_name: el.dataset.meta });
+          showForm();
+        }));
+      } catch(e) {
+        results.innerHTML = '<div class="card">Failed to load results.</div>';
+      }
+    };
+    searchInput.addEventListener('input', e => doSearch(e.target.value.trim()));
+    doSearch('');
+  } else {
+    showForm();
+    try {
+      const res = await fetch(`/api/prof?id=${profId}&school=${(localStorage.getItem('selectedSchool')||'dlsu')}`);
+      const j = await res.json();
+      const p = (j && j.professor) || {};
+      populateProfessor(p);
+    } catch(_) {}
+  }
+
   const titleEl = document.getElementById('rev-title');
   const courseEl = document.getElementById('rev-course');
   const againEl = document.getElementById('rev-again');
@@ -102,7 +203,7 @@
   const tagsEl = document.getElementById('rev-tags');
   const textEl = document.getElementById('rev-text');
   const anonEl = document.getElementById('rev-anon');
-  const submitBtn = revForm.querySelector('button[type="submit"]');
+  const submitBtn = form.querySelector('button[type="submit"]');
 
   function disableForm(state = true) {
     if (submitBtn) submitBtn.disabled = state;
@@ -110,15 +211,12 @@
       .forEach(el => { if (el) el.disabled = state; });
   }
 
-  revForm.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     revResult.textContent = '';
-
-    // Require login
     const token = localStorage.getItem('token');
     if (!token) return alert('You must be logged in to post a review.');
-
-    // Basic validation
+    if (!profId) return alert('Please select a professor first.');
     if (!titleEl.value.trim()) return alert('Please enter a title.');
     if (!courseEl.value.trim()) return alert('Please enter a course code.');
     if (!textEl.value.trim()) return alert('Please write your review.');
@@ -139,40 +237,27 @@
     revResult.textContent = 'Submitting review...';
 
     try {
-      const res = await fetch(`/api/profs/${profId}/review?school=${currentSchool()}`, {
+      const res = await fetch(`/api/profs/${profId}/review?school=${(localStorage.getItem('selectedSchool')||'dlsu')}` , {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify(payload)
       });
-
       const j = await res.json().catch(() => ({}));
-
       if (!res.ok) {
         revResult.textContent = j.error || ('Submission failed (' + (res.status || 'error') + ')');
         disableForm(false);
         return;
       }
-
-      // success
       revResult.textContent = '✅ Review submitted! Redirecting to professor page...';
-      // optionally clear form
-      revForm.reset();
-
-      // short delay so user sees confirmation
-      setTimeout(() => {
-        window.location.href = `/prof.html?id=${profId}`;
-      }, 900);
-
+      form.reset();
+      setTimeout(() => { window.location.href = `/prof.html?id=${profId}`; }, 900);
     } catch (err) {
       console.error('Network error submitting review', err);
       revResult.textContent = 'Network error. Please try again.';
       disableForm(false);
     }
   });
-})();
+});
 </script>
 
 </body>

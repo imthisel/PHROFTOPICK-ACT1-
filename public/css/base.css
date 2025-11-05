@@ -86,6 +86,18 @@ body {
   transition: 0.25s;
 }
 
+/* Create Review header link */
+#btn-create-review {
+  background: #ffffff;
+  color: var(--primary);
+  border: 2px solid #ffffff;
+}
+#btn-create-review:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
 
 .site-header nav button:hover {
   background: var(--accent);
