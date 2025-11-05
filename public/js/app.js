@@ -78,8 +78,17 @@ async function initializeHeader() {
 
   // ✅ Logged-out state
   const showLoggedOut = () => {
-    if (avatarImg) { avatarImg.style.display = 'none'; avatarImg.src = ''; }
-    if (userInitial) { userInitial.style.display = 'none'; userInitial.textContent = ''; }
+    // Even if logged out, show a generic avatar/initial so dropdown UI is testable
+    const storedPhoto = localStorage.getItem('user_photo');
+    if (storedPhoto && avatarImg) {
+      avatarImg.src = storedPhoto;
+      avatarImg.style.display = 'inline-block';
+      if (userInitial) { userInitial.style.display = 'none'; userInitial.textContent = ''; }
+    } else if (userInitial) {
+      userInitial.textContent = 'U';
+      userInitial.style.display = 'inline-flex';
+      if (avatarImg) { avatarImg.style.display = 'none'; avatarImg.src = ''; }
+    }
     if (dropDisplay) dropDisplay.textContent = 'You';
   };
 

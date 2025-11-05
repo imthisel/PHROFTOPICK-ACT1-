@@ -5,11 +5,16 @@
     try {
       const params = new URLSearchParams(window.location.search);
       const fromSchool = sessionStorage.getItem('skipLanding') === '1' || params.get('app') === '1' || params.get('from') === 'school';
-      if (fromSchool) {
+      const hasSchool = !!localStorage.getItem('selectedSchool');
+      const hasToken = !!localStorage.getItem('token');
+      const visitedApp = localStorage.getItem('visitedApp') === '1';
+
+      if (fromSchool || hasSchool || hasToken || visitedApp) {
         sessionStorage.removeItem('skipLanding');
-        // Do NOT redirect to home.html; show the app page
+        localStorage.setItem('visitedApp', '1');
+        // Stay on this page; no redirect
       } else {
-        // Default: send users to the marketing/landing page
+        // First-time visitors without context → show landing
         window.location.replace('home.html');
       }
     } catch (e) {

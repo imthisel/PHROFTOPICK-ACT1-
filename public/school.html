@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1100, initial-scale=0.4, user-scalable=yes" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Select Your School — PHrofstopick</title>
   <link rel="icon" type="image/png" href="images/favicon.png">
 
@@ -56,14 +56,9 @@
 
     .school-btn { display:flex; align-items:center; gap:12px; width:100%; border-radius:14px; border:1px solid #e7e7e7; padding:14px 16px; background:linear-gradient(180deg,#ffffff,#f8fbff); cursor:pointer; transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
     .school-btn:hover { transform: translateY(-2px); border-color:#cfd8e3; box-shadow:0 10px 26px rgba(0,0,0,0.09); }
-    .pill { width:14px; height:14px; border-radius:9999px; box-shadow: 0 0 0 3px rgba(0,0,0,0.06) inset; }
+    .logo { width:28px; height:28px; border-radius:6px; object-fit:contain; background:#fff; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
     .lab { font-weight:700; letter-spacing:.2px; }
     .sub { font-size:12px; color:#5f6570; }
-
-    .dot-dlsu { background:#00703c; }
-    .dot-ateneo { background:#003da5; }
-    .dot-up { background:#7b1113; }
-    .dot-benilde { background:#00843d; }
 
     .footer { text-align:center; color:#5f7a71; margin-top:10px; }
 
@@ -86,28 +81,28 @@
     <h2>Select school</h2>
     <div class="grid">
       <button class="school-btn" onclick="chooseSchool('dlsu')">
-        <span class="pill dot-dlsu"></span>
+        <img class="logo" src="images/dlsu-logo.png" alt="DLSU">
         <div>
           <div class="lab">DLSU Manila</div>
           <div class="sub">De La Salle University</div>
         </div>
       </button>
       <button class="school-btn" onclick="chooseSchool('ateneo')">
-        <span class="pill dot-ateneo"></span>
+        <img class="logo" src="images/ateneo-logo.png" alt="Ateneo">
         <div>
           <div class="lab">Ateneo de Manila</div>
           <div class="sub">Ateneo de Manila University</div>
         </div>
       </button>
       <button class="school-btn" onclick="chooseSchool('up')">
-        <span class="pill dot-up"></span>
+        <img class="logo" src="images/up-logo.png" alt="UP">
         <div>
           <div class="lab">UP Diliman</div>
           <div class="sub">University of the Philippines</div>
         </div>
       </button>
       <button class="school-btn" onclick="chooseSchool('benilde')">
-        <span class="pill dot-benilde"></span>
+        <img class="logo" src="images/benilde-logo.png" alt="Benilde">
         <div>
           <div class="lab">DLSU Benilde</div>
           <div class="sub">De La Salle–College of Saint Benilde</div>
