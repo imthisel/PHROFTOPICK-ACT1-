@@ -137,9 +137,17 @@ async function initializeHeader() {
       e.stopPropagation();
       drop.style.display = drop.style.display === 'block' ? 'none' : 'block';
     });
-    if (avatarImg) avatarImg.addEventListener('click', (e) => { e.stopPropagation(); drop.style.display = drop.style.display === 'block' ? 'none' : 'block'; });
-    if (userInitial) userInitial.addEventListener('click', (e) => { e.stopPropagation(); drop.style.display = drop.style.display === 'block' ? 'none' : 'block'; });
+    const toggle = (e) => { e.stopPropagation(); drop.style.display = drop.style.display === 'block' ? 'none' : 'block'; };
+    if (avatarImg) {
+      avatarImg.addEventListener('click', toggle);
+      avatarImg.addEventListener('touchstart', toggle, { passive: true });
+    }
+    if (userInitial) {
+      userInitial.addEventListener('click', toggle);
+      userInitial.addEventListener('touchstart', toggle, { passive: true });
+    }
     document.addEventListener('click', () => { drop.style.display = 'none'; });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') drop.style.display = 'none'; });
   }
 
   // ✅ Dark mode toggle wiring (persist in localStorage)

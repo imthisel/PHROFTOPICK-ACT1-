@@ -8,83 +8,99 @@
   <!-- optional: add your mobile override if you have one -->
   <!-- <link rel="stylesheet" href="/css/mobile-override.css"> -->
   <script src="/js/theme-loader.js" defer></script>
+  <style>
+    .settings-hero { max-width:980px; margin:30px auto 10px; padding:18px 20px; border-radius:16px; background: linear-gradient(180deg, rgba(0,105,62,0.06), rgba(0,0,0,0.02)); border:1px solid rgba(0,0,0,0.06); }
+    .settings-grid { max-width:980px; margin:16px auto 60px; display:grid; grid-template-columns: 0.9fr 1.1fr; gap:18px; }
+    .settings-card { background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:20px; box-shadow:0 8px 24px rgba(0,0,0,0.06); }
+    .settings-left { text-align:center; }
+    .settings-left img { width:120px; height:120px; border-radius:50%; object-fit:cover; background:#f3f4f6; }
+    .form-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+    .form-grid label { display:block; font-weight:600; margin-bottom:6px; color:#374151; }
+    .form-grid input, .form-grid select, .form-grid textarea { width:100%; padding:12px 14px; border:1px solid #d1d5db; border-radius:10px; }
+    .form-grid textarea { min-height:120px; }
+    .actions { display:flex; gap:10px; align-items:center; margin-top:12px; }
+    @media (max-width: 900px) { .settings-grid { grid-template-columns: 1fr; } }
+    html.dark .settings-card { background:#14191c; border-color:#2a2f34; }
+    html.dark .settings-hero { background: linear-gradient(180deg, rgba(0,105,62,0.12), rgba(255,255,255,0.02)); border-color:#2a2f34; }
+    html.dark .form-grid input, html.dark .form-grid select, html.dark .form-grid textarea { background:#0f1214; color:#e6e6e6; border-color:#2a2f34; }
+  </style>
 </head>
 <body>
   <div id="header-placeholder"></div>
 
-  <main class="container">
-    <h1>User Settings</h1>
+  <main>
+    <section class="settings-hero container">
+      <h1 style="margin:0 0 6px;">User Settings</h1>
+      <p style="margin:0;color:#555;max-width:840px;">Make sure your information is true to keep our community safe and make our reviews more authentic to students!</p>
+    </section>
 
-    <p style="max-width:820px; color:#555; margin-top:6px;">Make sure your information is true to keep our community safe and make our reviews more authentic to students!</p>
-
-    <div class="card" style="max-width:840px; margin-top:18px; padding:24px;">
-      <form id="profile-form">
-        <div style="display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap;">
-          <div style="flex:0 0 120px; text-align:center;">
-            <img id="settings-avatar" src="" alt="Profile" style="width:96px; height:96px; border-radius:50%; object-fit:cover; background:#f3f3f3;">
-            <div style="margin-top:10px;">
-              <label for="fld-photo" class="auth-btn" style="cursor:pointer; display:inline-block;">Update Photo</label>
-              <input id="fld-photo" name="photo_path" type="text" placeholder="Photo URL" style="display:block; width:100%; margin-top:8px;">
-            </div>
-          </div>
-
-          <div style="flex:1 1 420px; min-width:280px;">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-              <label>College *
-                <select id="fld-college" name="college">
-                  <option value="">Select what college you are currently enrolled at.</option>
-                  <option value="CCS">CCS</option>
-                  <option value="CLA">CLA</option>
-                  <option value="COB">COB</option>
-                  <option value="COS">COS</option>
-                </select>
-              </label>
-
-              <label>Course *
-                <input id="fld-course" name="course" placeholder="Computer Science">
-              </label>
-
-              <label>Batch ID Number *
-                <input id="fld-batch" name="batch" placeholder="125">
-              </label>
-
-              <label>Username
-                <div style="display:flex; gap:8px;">
-                  <input id="fld-username" name="username" placeholder="immanuel-angeles-a6" style="flex:1;">
-                  <button id="btn-check-username" type="button" class="auth-btn" style="white-space:nowrap;">Check</button>
-                </div>
-              </label>
-
-              <label style="grid-column:1/-1;">Display Name
-                <input id="fld-display" name="display_name" placeholder="Your full name from Google">
-              </label>
-
-              <label style="grid-column:1/-1;">Biography
-                <textarea id="fld-bio" name="bio" placeholder="Type your biography here" rows="4"></textarea>
-              </label>
-            </div>
-
-            <div class="card" style="padding:16px; margin-top:16px;">
-              <h3 style="margin-bottom:8px;">Platform Notifications</h3>
-              <label style="display:flex; align-items:center; gap:10px;">
-                <input id="notif-toggle" type="checkbox"> Enable notifications
-              </label>
-            </div>
-
-            <div style="margin-top:16px; display:flex; gap:10px;">
-              <button type="submit" class="auth-btn">Save Changes</button>
-              <button id="btn-reset" type="button">Reset</button>
-              <span id="save-result" style="margin-left:12px;"></span>
-            </div>
-          </div>
+    <section class="settings-grid container">
+      <aside class="settings-card settings-left">
+        <img id="settings-avatar" src="" alt="Profile">
+        <div style="margin-top:10px;">
+          <label for="fld-photo" class="auth-btn" style="cursor:pointer; display:inline-block;">Update Photo</label>
+          <input id="fld-photo" name="photo_path" type="text" placeholder="Photo URL" style="display:block; width:100%; margin-top:8px;">
         </div>
-      </form>
-    </div>
+      </aside>
 
-    <div id="contact" class="card" style="max-width:840px; margin-top:18px; padding:20px;">
+      <section class="settings-card">
+        <form id="profile-form">
+          <div class="form-grid">
+            <div>
+              <label>College *</label>
+              <select id="fld-college" name="college">
+                <option value="">Select what college you are currently enrolled at.</option>
+                <option value="CCS">CCS</option>
+                <option value="CLA">CLA</option>
+                <option value="COB">COB</option>
+                <option value="COS">COS</option>
+              </select>
+            </div>
+            <div>
+              <label>Course *</label>
+              <input id="fld-course" name="course" placeholder="Computer Science">
+            </div>
+            <div>
+              <label>Batch ID Number *</label>
+              <input id="fld-batch" name="batch" placeholder="125">
+            </div>
+            <div>
+              <label>Username</label>
+              <div style="display:flex; gap:8px;">
+                <input id="fld-username" name="username" placeholder="immanuel-angeles-a6" style="flex:1;">
+                <button id="btn-check-username" type="button" class="auth-btn" style="white-space:nowrap;">Check</button>
+              </div>
+            </div>
+            <div style="grid-column:1/-1;">
+              <label>Display Name</label>
+              <input id="fld-display" name="display_name" placeholder="Your full name from Google">
+            </div>
+            <div style="grid-column:1/-1;">
+              <label>Biography</label>
+              <textarea id="fld-bio" name="bio" placeholder="Type your biography here" rows="4"></textarea>
+            </div>
+          </div>
+
+          <div class="settings-card" style="padding:16px; margin-top:16px;">
+            <h3 style="margin-bottom:8px;">Platform Notifications</h3>
+            <label style="display:flex; align-items:center; gap:10px;">
+              <input id="notif-toggle" type="checkbox"> Enable notifications
+            </label>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="auth-btn">Save Changes</button>
+            <button id="btn-reset" type="button">Reset</button>
+            <span id="save-result" style="margin-left:12px;"></span>
+          </div>
+        </form>
+      </section>
+    </section>
+
+    <section id="contact" class="settings-card container" style="max-width:980px;">
       <h3>Contact Us</h3>
       <p style="color:#555;">For inquiries, issues, or feedback, please reach out via your preferred channel.</p>
-    </div>
+    </section>
   </main>
 
   <script>

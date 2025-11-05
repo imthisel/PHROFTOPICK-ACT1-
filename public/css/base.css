@@ -777,6 +777,7 @@ body.up .change-school-btn {
   right: 0;
   top: 52px;
   background: #fff;
+  color: #111;
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0,0,0,.12);
   padding: 12px;
@@ -963,3 +964,7 @@ html.dark .suggestion-item:hover { background:#232a2f; }
 html.dark #user-dropdown { background:#1a2024; color:#e6e6e6; }
 html.dark #user-dropdown a { color:#e6e6e6; }
 html.dark #user-dropdown a:hover { background:#232a2f; }
+
+/* Ensure Dark Mode label is visible in both themes */
+#user-dropdown span { color: inherit; }
+html.dark #user-dropdown span { color: #e6e6e6; }
