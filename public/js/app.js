@@ -137,6 +137,8 @@ async function initializeHeader() {
       e.stopPropagation();
       drop.style.display = drop.style.display === 'block' ? 'none' : 'block';
     });
+    if (avatarImg) avatarImg.addEventListener('click', (e) => { e.stopPropagation(); drop.style.display = drop.style.display === 'block' ? 'none' : 'block'; });
+    if (userInitial) userInitial.addEventListener('click', (e) => { e.stopPropagation(); drop.style.display = drop.style.display === 'block' ? 'none' : 'block'; });
     document.addEventListener('click', () => { drop.style.display = 'none'; });
   }
 

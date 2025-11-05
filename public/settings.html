@@ -141,7 +141,7 @@
       }
 
      // ---------- Profile load & save logic (robust version) ----------
-let token = localStorage.getItem('token') || null;
+let token = localStorage.getItem('token') || sessionStorage.getItem('token') || null;
 
 // Support token coming via URL (helpful for some OAuth setups)
 const urlToken = new URLSearchParams(window.location.search).get('token');
@@ -153,14 +153,10 @@ if (!token && urlToken) {
 }
 
 // If no token: send the user to the OAuth sign-in (instead of a blocking alert)
+// If no token, do not redirect immediately (prevents mobile loop);
+// allow header to render and user to re-auth explicitly if needed.
 if (!token) {
-  console.warn('No token found for settings — redirecting to login.');
-  // Use selectedSchool if stored so the OAuth flow returns to the correct school
-  const school = localStorage.getItem('selectedSchool') || 'dlsu';
-  // Replace this with your real auth entry point if different
-  window.location.href = `/auth/google?school=${encodeURIComponent(school)}`;
-  // stop further execution (redirect will happen)
-  throw new Error('Redirecting to login');
+  console.warn('No token found for settings — showing page without auto-redirect.');
 }
 
 
