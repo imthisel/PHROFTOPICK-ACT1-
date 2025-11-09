@@ -91,11 +91,19 @@ body {
   background: #ffffff;
   color: var(--primary);
   border: 2px solid #ffffff;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
 }
 #btn-create-review:hover {
-  background: var(--accent);
+  background: var(--primary);
   color: #fff;
-  border-color: var(--accent);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 
@@ -771,6 +779,22 @@ body.up .change-school-btn {
   border-color: rgba(255, 255, 255, 0.8);
 }
 
+/* User area and dropdown */
+#user-area {
+  display: inline-block;
+  cursor: pointer;
+  margin-left: 12px;
+  position: relative;
+  z-index: 10001;
+}
+
+#user-area img,
+#user-area #user-initial {
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+}
+
 /* Modern user dropdown */
 #user-dropdown {
   position: absolute;
@@ -783,8 +807,10 @@ body.up .change-school-btn {
   padding: 12px;
   min-width: 200px;
   display: none;
-  animation: fadeIn .15s ease;
   z-index: 10000;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 #user-dropdown a {

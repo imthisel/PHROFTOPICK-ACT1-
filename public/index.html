@@ -76,7 +76,6 @@
       <div id="index-suggestions" class="suggestions"></div>
       <button id="btn-search">Search</button>
       <button id="btn-list-all">List All Subjects</button>
-      <button id="btn-create-review" style="margin-left: 10px;">Create Review</button>
 
     </div>
 
@@ -137,37 +136,6 @@
         enableAutocomplete("subject-search", "index-suggestions");
         enableAutocomplete("prof-search", "header-suggestions");
       }
-    // ✅ Initialize Create Review button after modal + header exist
-const reviewBtn = document.getElementById("btn-create-review");
-if (reviewBtn) {
-  reviewBtn.addEventListener("click", () => {
-    showModal(`
-      <h2>Select a Professor</h2>
-      <input id="search-review-prof" placeholder="Search professor..." style="margin-bottom:10px;width:100%;padding:8px;" />
-      <div id="review-prof-container" style="max-height:300px;overflow:auto;"></div>
-    `);
-
-    const input = document.getElementById("search-review-prof");
-    const container = document.getElementById("review-prof-container");
-
-    async function loadProfs(q = "") {
-      const res = await api.searchProfs(q);
-      const list = res.professors || [];
-      container.innerHTML = list
-        .map(p => `<div class="card" data-id="${p.id}" style="cursor:pointer;margin-bottom:5px;">${p.name}</div>`)
-        .join("");
-
-      container.querySelectorAll(".card").forEach(c => {
-        c.onclick = () => {
-          window.location.href = `/review.html?prof=${c.dataset.id}`;
-        };
-      });
-    }
-
-    input.addEventListener("input", e => loadProfs(e.target.value));
-    loadProfs();
-  });
-}
 
       console.log("✅ Header and app initialized (index)");
     } catch (err) {

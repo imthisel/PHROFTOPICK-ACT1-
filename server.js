@@ -45,7 +45,8 @@ function getDb(school) {
   const dbPath = resolveDbPath(school);
   console.log(`📂 Opening SQLite DB for school="${school}" -> ${dbPath}`);
   try {
-    return new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE);
+    // Use OPEN_READWRITE | OPEN_CREATE to create if doesn't exist
+    return new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE);
   } catch (e) {
     console.error(`❌ Failed to open DB at ${dbPath}:`, e.message);
     throw e;
@@ -570,6 +571,178 @@ app.post('/api/me', authenticateJWT, (req, res) => {
   );
 });
 
+
+// =================== ADMIN ROUTES ===================
+// Simple password-based admin authentication
+// Set ADMIN_PASSWORD environment variable or change the default below
+// To change password: Update the value after || or set ADMIN_PASSWORD in .env file
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'niggerstoplooking'; // ⚠️ CHANGE THIS PASSWORD!
+
+app.get('/api/admin/users', (req, res) => {
+  const password = req.query.password || req.headers['x-admin-password'] || '';
+  
+  // Simple password check (you can make this more secure)
+  if (!password || password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'Unauthorized. Invalid admin password.' });
+  }
+
+  const school = req.query.school || 'dlsu';
+  
+  // If 'all', query all schools
+  if (school === 'all') {
+    const allUsers = [];
+    const schools = ['dlsu', 'ateneo', 'up', 'benilde'];
+    
+    Promise.all(schools.map(s => {
+      return new Promise((resolve, reject) => {
+        try {
+          const db = getDb(s);
+          
+          // First ensure table and columns exist
+          db.serialize(() => {
+            db.run(`CREATE TABLE IF NOT EXISTS users (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              school_id_or_email TEXT UNIQUE,
+              email TEXT,
+              password_hash TEXT,
+              display_name TEXT,
+              anonymous INTEGER DEFAULT 0,
+              oauth_provider TEXT,
+              oauth_id TEXT,
+              photo_path TEXT,
+              college TEXT,
+              course TEXT,
+              batch TEXT,
+              username TEXT,
+              bio TEXT
+            )`, () => {
+              // Add missing columns
+              const cols = ['college', 'course', 'batch', 'username', 'bio'];
+              let colIndex = 0;
+              const addNextCol = () => {
+                if (colIndex >= cols.length) {
+                  // All columns added, now query
+                  db.all('SELECT id, email, display_name, school_id_or_email, oauth_provider, college, course, batch, username FROM users ORDER BY id DESC', [], (err, rows) => {
+                    db.close();
+                    if (err) {
+                      console.error(`Error querying ${s} database:`, err);
+                      resolve();
+                      return;
+                    }
+                    if (rows) {
+                      rows.forEach(row => {
+                        row.school = s.toUpperCase();
+                        allUsers.push(row);
+                      });
+                    }
+                    resolve();
+                  });
+                } else {
+                  db.run(`ALTER TABLE users ADD COLUMN ${cols[colIndex]} TEXT`, () => {
+                    colIndex++;
+                    addNextCol();
+                  });
+                }
+              };
+              addNextCol();
+            });
+          });
+        } catch (error) {
+          console.error(`Error opening ${s} database:`, error);
+          resolve();
+        }
+      });
+    })).then(() => {
+      res.json({ users: allUsers });
+    }).catch((error) => {
+      console.error('Error in Promise.all:', error);
+      res.status(500).json({ error: 'Database error: ' + error.message });
+    });
+    return;
+  }
+
+  // Query single school
+  try {
+    const db = getDb(school);
+    
+    // First, ensure the users table exists and has all columns
+    db.serialize(() => {
+      // Create table if it doesn't exist
+      db.run(`CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        school_id_or_email TEXT UNIQUE,
+        email TEXT,
+        password_hash TEXT,
+        display_name TEXT,
+        anonymous INTEGER DEFAULT 0,
+        oauth_provider TEXT,
+        oauth_id TEXT,
+        photo_path TEXT,
+        college TEXT,
+        course TEXT,
+        batch TEXT,
+        username TEXT,
+        bio TEXT
+      )`, (err) => {
+        if (err) {
+          db.close();
+          console.error(`Error creating users table for ${school}:`, err);
+          return res.status(500).json({ error: 'Database error: ' + err.message });
+        }
+        
+        // Add missing columns if they don't exist (for existing databases)
+        // SQLite doesn't support IF NOT EXISTS for ALTER TABLE, so we try and ignore errors
+        const columnsToAdd = [
+          { name: 'college', type: 'TEXT' },
+          { name: 'course', type: 'TEXT' },
+          { name: 'batch', type: 'TEXT' },
+          { name: 'username', type: 'TEXT' },
+          { name: 'bio', type: 'TEXT' }
+        ];
+        
+        let pendingOps = columnsToAdd.length;
+        const tryAddColumn = (index) => {
+          if (index >= columnsToAdd.length) {
+            // All columns processed, now query
+            queryUsers();
+            return;
+          }
+          
+          const col = columnsToAdd[index];
+          db.run(`ALTER TABLE users ADD COLUMN ${col.name} ${col.type}`, (err) => {
+            // Ignore error if column already exists (SQLite error code 1)
+            if (err && !err.message.includes('duplicate column name') && !err.message.includes('duplicate')) {
+              console.warn(`Could not add column ${col.name} for ${school}:`, err.message);
+            }
+            // Continue to next column
+            tryAddColumn(index + 1);
+          });
+        };
+        
+        const queryUsers = () => {
+          db.all(
+            'SELECT id, email, display_name, school_id_or_email, oauth_provider, college, course, batch, username FROM users ORDER BY id DESC',
+            [],
+            (err, rows) => {
+              db.close();
+              if (err) {
+                console.error(`Database error for ${school}:`, err);
+                return res.status(500).json({ error: 'Database error: ' + err.message });
+              }
+              res.json({ users: rows || [] });
+            }
+          );
+        };
+        
+        // Start adding columns
+        tryAddColumn(0);
+      });
+    });
+  } catch (error) {
+    console.error(`Error opening database for ${school}:`, error);
+    res.status(500).json({ error: 'Failed to open database: ' + error.message });
+  }
+});
 
 // =================== DEBUG ROUTE ===================
 app.get('/api/debug/dbinfo', (req, res) => {

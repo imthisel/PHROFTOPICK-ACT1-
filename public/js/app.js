@@ -130,24 +130,114 @@ async function initializeHeader() {
     if (dropDisplay) dropDisplay.textContent = displayName || 'You';
   };
 
-  // ✅ Dropdown toggle
+  // ✅ Dropdown toggle - Fixed to work consistently
   const userArea = document.getElementById('user-area');
   if (userArea && drop) {
+    // Ensure dropdown is hidden by default
+    drop.style.display = 'none';
+    drop.style.opacity = '0';
+    drop.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+    drop.style.transform = 'translateY(-10px)';
+    drop.style.pointerEvents = 'none';
+    
+    let isOpen = false;
+    let clickTimeout = null;
+
+    const openDropdown = () => {
+      if (clickTimeout) {
+        clearTimeout(clickTimeout);
+        clickTimeout = null;
+      }
+      // Set display first, then animate
+      drop.style.display = 'block';
+      drop.style.pointerEvents = 'auto';
+      // Force reflow to ensure display is applied
+      drop.offsetHeight;
+      // Then animate
+      drop.style.opacity = '1';
+      drop.style.transform = 'translateY(0)';
+      isOpen = true;
+    };
+
+    const closeDropdown = () => {
+      if (clickTimeout) {
+        clearTimeout(clickTimeout);
+        clickTimeout = null;
+      }
+      drop.style.opacity = '0';
+      drop.style.transform = 'translateY(-10px)';
+      setTimeout(() => {
+        if (!isOpen) {
+          drop.style.display = 'none';
+          drop.style.pointerEvents = 'none';
+        }
+      }, 200); // Wait for transition
+      isOpen = false;
+    };
+
+    const toggleDropdown = (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      if (isOpen) {
+        closeDropdown();
+      } else {
+        openDropdown();
+      }
+    };
+
+    // Click handler for user area - use a flag to prevent immediate close
+    let isToggleClick = false;
+    
     userArea.addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
-      drop.style.display = drop.style.display === 'block' ? 'none' : 'block';
+      isToggleClick = true;
+      toggleDropdown(e);
+      // Reset flag after a brief delay
+      setTimeout(() => {
+        isToggleClick = false;
+      }, 100);
     });
-    const toggle = (e) => { e.stopPropagation(); drop.style.display = drop.style.display === 'block' ? 'none' : 'block'; };
-    if (avatarImg) {
-      avatarImg.addEventListener('click', toggle);
-      avatarImg.addEventListener('touchstart', toggle, { passive: true });
-    }
-    if (userInitial) {
-      userInitial.addEventListener('click', toggle);
-      userInitial.addEventListener('touchstart', toggle, { passive: true });
-    }
-    document.addEventListener('click', () => { drop.style.display = 'none'; });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') drop.style.display = 'none'; });
+
+    // Prevent dropdown from closing when clicking inside it
+    drop.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      // Don't close if this was a toggle click
+      if (isToggleClick) {
+        return;
+      }
+      // Don't close if clicking inside user area or dropdown
+      if (userArea.contains(e.target) || drop.contains(e.target)) {
+        return;
+      }
+      // Close if dropdown is open and clicking outside
+      if (isOpen) {
+        closeDropdown();
+      }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        closeDropdown();
+      }
+    });
+
+    // Close dropdown when clicking on links inside it (after navigation)
+    const dropdownLinks = drop.querySelectorAll('a');
+    dropdownLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        // Small delay to allow navigation
+        setTimeout(() => closeDropdown(), 100);
+      });
+    });
   }
 
   // ✅ Dark mode toggle wiring (persist in localStorage)

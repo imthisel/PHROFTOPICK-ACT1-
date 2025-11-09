@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - View Registered Emails</title>
+  <link rel="stylesheet" href="css/base.css">
+  <style>
+    .admin-container {
+      max-width: 1200px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .admin-header {
+      background: linear-gradient(135deg, #00693e 0%, #004d2b 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+    }
+    .admin-header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+    .login-form {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 400px;
+      margin: 50px auto;
+    }
+    .login-form input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .login-form button {
+      width: 100%;
+      padding: 12px;
+      background: #00693e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .login-form button:hover {
+      background: #004d2b;
+    }
+    .error-message {
+      color: #dc2626;
+      margin-top: 10px;
+      padding: 10px;
+      background: #fef2f2;
+      border-radius: 8px;
+      display: none;
+    }
+    .users-table {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .table-header {
+      background: #f8f9fa;
+      padding: 15px 20px;
+      border-bottom: 2px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .table-header h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+    .stats {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      flex: 1;
+    }
+    .stat-card h3 {
+      margin: 0 0 10px;
+      color: #666;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #00693e;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead {
+      background: #f8f9fa;
+    }
+    th {
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      color: #374151;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    td {
+      padding: 15px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    tr:hover {
+      background: #f9fafb;
+    }
+    .school-filter {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .school-filter button {
+      padding: 8px 16px;
+      border: 2px solid #00693e;
+      background: white;
+      color: #00693e;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    .school-filter button.active {
+      background: #00693e;
+      color: white;
+    }
+    .school-filter button:hover {
+      background: #004d2b;
+      color: white;
+      border-color: #004d2b;
+    }
+    .export-btn {
+      padding: 10px 20px;
+      background: #00693e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+    .export-btn:hover {
+      background: #004d2b;
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>🔐 Admin Panel - Registered Users</h1>
+    </div>
+
+    <!-- Login Form (shown initially) -->
+    <div id="login-section" class="login-form">
+      <h2>Admin Login</h2>
+      <input type="password" id="admin-password" placeholder="Enter admin password" autocomplete="off">
+      <button onclick="handleLogin()">Login</button>
+      <div id="login-error" class="error-message"></div>
+    </div>
+
+    <!-- Admin Content (shown after login) -->
+    <div id="admin-content" style="display: none;">
+      <div class="stats">
+        <div class="stat-card">
+          <h3>Total Users</h3>
+          <div class="value" id="total-users">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Users with Emails</h3>
+          <div class="value" id="users-with-emails">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>OAuth Users</h3>
+          <div class="value" id="oauth-users">0</div>
+        </div>
+      </div>
+
+      <div class="school-filter">
+        <button onclick="loadUsers('dlsu')" class="active" data-school="dlsu">DLSU</button>
+        <button onclick="loadUsers('ateneo')" data-school="ateneo">Ateneo</button>
+        <button onclick="loadUsers('up')" data-school="up">UP</button>
+        <button onclick="loadUsers('benilde')" data-school="benilde">Benilde</button>
+        <button onclick="loadUsers('all')" data-school="all">All Schools</button>
+        <button class="export-btn" onclick="exportEmails()">📥 Export CSV</button>
+      </div>
+
+      <div class="users-table">
+        <div class="table-header">
+          <h2>Registered Users</h2>
+          <div id="table-count">0 users</div>
+        </div>
+        <div id="loading" class="loading">Loading users...</div>
+        <div id="users-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentSchool = 'dlsu';
+    let allUsersData = [];
+
+    async function handleLogin() {
+      const password = document.getElementById('admin-password').value;
+      const errorDiv = document.getElementById('login-error');
+      
+      if (!password) {
+        errorDiv.textContent = 'Please enter a password.';
+        errorDiv.style.display = 'block';
+        return;
+      }
+
+      // Test the password by making a test API call
+      try {
+        const testResponse = await fetch(`/api/admin/users?school=dlsu&password=${encodeURIComponent(password)}`);
+        if (testResponse.ok) {
+          // Password is correct - store it and show admin panel
+          localStorage.setItem('admin_token', password);
+          document.getElementById('login-section').style.display = 'none';
+          document.getElementById('admin-content').style.display = 'block';
+          loadUsers('dlsu');
+        } else {
+          const errorData = await testResponse.json();
+          errorDiv.textContent = errorData.error || 'Incorrect password. Please try again.';
+          errorDiv.style.display = 'block';
+          document.getElementById('admin-password').value = '';
+        }
+      } catch (error) {
+        errorDiv.textContent = 'Error connecting to server. Please try again.';
+        errorDiv.style.display = 'block';
+        console.error('Login error:', error);
+      }
+    }
+
+    // Allow Enter key to submit
+    document.getElementById('admin-password').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        handleLogin();
+      }
+    });
+
+    async function loadUsers(school) {
+      currentSchool = school;
+      
+      // Update active button
+      document.querySelectorAll('.school-filter button').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.school === school) {
+          btn.classList.add('active');
+        }
+      });
+
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('users-list').innerHTML = '';
+
+      try {
+        const password = localStorage.getItem('admin_token');
+        if (!password) {
+          alert('Session expired. Please refresh and login again.');
+          location.reload();
+          return;
+        }
+        
+        const response = await fetch(`/api/admin/users?school=${school}&password=${encodeURIComponent(password)}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            alert('Session expired. Please refresh and login again.');
+            localStorage.removeItem('admin_token');
+            location.reload();
+            return;
+          }
+          throw new Error(data.error || 'Failed to load users');
+        }
+
+        allUsersData = data.users || [];
+        displayUsers(allUsersData);
+        updateStats(allUsersData);
+      } catch (error) {
+        const errorMsg = error.message || 'Unknown error occurred';
+        document.getElementById('users-list').innerHTML = `
+          <div class="no-data" style="padding: 40px; text-align: center;">
+            <h3 style="color: #dc2626; margin-bottom: 10px;">Error Loading Users</h3>
+            <p style="color: #666;">${errorMsg}</p>
+            <p style="color: #999; font-size: 14px; margin-top: 20px;">Check the server console for more details.</p>
+          </div>
+        `;
+        console.error('Error loading users:', error);
+      } finally {
+        document.getElementById('loading').style.display = 'none';
+      }
+    }
+
+    function displayUsers(users) {
+      const container = document.getElementById('users-list');
+      document.getElementById('table-count').textContent = `${users.length} users`;
+
+      if (users.length === 0) {
+        container.innerHTML = '<div class="no-data">No users found</div>';
+        return;
+      }
+
+      const showSchool = currentSchool === 'all';
+      
+      let html = `
+        <table>
+          <thead>
+            <tr>
+              ${showSchool ? '<th>School</th>' : ''}
+              <th>ID</th>
+              <th>Email</th>
+              <th>Display Name</th>
+              <th>School/Email ID</th>
+              <th>OAuth Provider</th>
+              <th>College</th>
+              <th>Course</th>
+              <th>Batch</th>
+              <th>Username</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      users.forEach(user => {
+        html += `
+          <tr>
+            ${showSchool ? `<td>${user.school || 'N/A'}</td>` : ''}
+            <td>${user.id}</td>
+            <td>${user.email || '<span style="color:#999;">N/A</span>'}</td>
+            <td>${user.display_name || '<span style="color:#999;">N/A</span>'}</td>
+            <td>${user.school_id_or_email || '<span style="color:#999;">N/A</span>'}</td>
+            <td>${user.oauth_provider || '<span style="color:#999;">N/A</span>'}</td>
+            <td>${user.college || '<span style="color:#999;">N/A</span>'}</td>
+            <td>${user.course || '<span style="color:#999;">N/A</span>'}</td>
+            <td>${user.batch || '<span style="color:#999;">N/A</span>'}</td>
+            <td>${user.username || '<span style="color:#999;">N/A</span>'}</td>
+          </tr>
+        `;
+      });
+
+      html += `
+          </tbody>
+        </table>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    function updateStats(users) {
+      const total = users.length;
+      const withEmails = users.filter(u => u.email).length;
+      const oauthUsers = users.filter(u => u.oauth_provider).length;
+
+      document.getElementById('total-users').textContent = total;
+      document.getElementById('users-with-emails').textContent = withEmails;
+      document.getElementById('oauth-users').textContent = oauthUsers;
+    }
+
+    function exportEmails() {
+      if (allUsersData.length === 0) {
+        alert('No data to export');
+        return;
+      }
+
+      // Filter users with emails
+      const usersWithEmails = allUsersData.filter(u => u.email);
+      
+      if (usersWithEmails.length === 0) {
+        alert('No users with email addresses to export');
+        return;
+      }
+
+      // Create CSV content
+      const showSchool = currentSchool === 'all';
+      let csv = showSchool ? 'School,' : '';
+      csv += 'ID,Email,Display Name,School/Email ID,OAuth Provider,College,Course,Batch,Username\n';
+      usersWithEmails.forEach(user => {
+        const row = [
+          ...(showSchool ? [user.school || ''] : []),
+          user.id,
+          user.email || '',
+          user.display_name || '',
+          user.school_id_or_email || '',
+          user.oauth_provider || '',
+          user.college || '',
+          user.course || '',
+          user.batch || '',
+          user.username || ''
+        ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(',');
+        csv += row + '\n';
+      });
+
+      // Download CSV
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `registered_emails_${currentSchool}_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
+
