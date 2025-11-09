@@ -39,15 +39,37 @@ const api = {
   }).then(r => r.json()),
  
   getComments: profId => fetch(`/api/profs/${profId}?school=${currentSchool()}`).then(r => r.json()).then(data => data.comments || []),
-  postComment: (profId, content, token, anonymous = false) => fetch(`/api/profs/${profId}/rate?school=${currentSchool()}`, {
-    method: 'POST',
-    headers: {
+
+  // FIXED: normalize token and return 401 indicator so caller can act
+  postComment: (profId, content, token, anonymous = false) => {
+    // Normalize token: accept raw token or "Bearer ..." stored
+    let authHeader = null;
+    if (token) {
+      authHeader = token.startsWith('Bearer ') ? token : 'Bearer ' + token;
+    }
+    const headers = {
       'Content-Type': 'application/json',
-      ...(token ? { 'Authorization': 'Bearer ' + token } : {}),
       'x-user-display': localStorage.getItem('user_display') || 'Anonymous'
-    },
-    body: JSON.stringify({ stars: 5, comment: content, anonymous })
-  }).then(r => r.json())
+    };
+    if (authHeader) headers['Authorization'] = authHeader;
+
+    return fetch(`/api/profs/${profId}/rate?school=${currentSchool()}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ stars: 5, comment: content, anonymous })
+    }).then(async r => {
+      if (r.status === 401) {
+        // provide a consistent 401 response object
+        return { status: 401, error: 'Unauthorized' };
+      }
+      // propagate non-JSON or error responses sensibly
+      try {
+        return await r.json();
+      } catch (e) {
+        return { status: r.status, error: 'Invalid response from server' };
+      }
+    });
+  }
 };
 
 
@@ -413,23 +435,62 @@ async function renderProfList(list, container) {
 
     const form = document.getElementById(`comment-form-${p.id}`);
     if (form) {
-      form.addEventListener('submit', async e => {
-        e.preventDefault();
-        const input = e.target.querySelector('input[type="text"]');
-        const anonCheckbox = e.target.querySelector('input[type="checkbox"]');
-        const content = input.value.trim();
-        if (!content) return;
-        const token = localStorage.getItem('token');
-        const anonymous = anonCheckbox ? anonCheckbox.checked : false;
-        const res = await api.postComment(p.id, content, token, anonymous);
-        if (res.error) return alert(res.error);
-        input.value = '';
-        loadComments(p.id);
+      form.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const textInput = form.querySelector('input[type="text"]');
+        const anonCheckbox = form.querySelector('input[type="checkbox"]');
+        const content = textInput ? textInput.value.trim() : '';
+        const anonymous = !!(anonCheckbox && anonCheckbox.checked);
+
+        if (!content) {
+          alert('Please enter a comment before submitting.');
+          return;
+        }
+
+        // Read token and normalize it
+        let token = localStorage.getItem('token');
+        if (!token || token === 'null' || token === 'undefined') {
+          // not logged in on client side
+          alert('You must be logged in to post a comment.');
+          // optional: redirect to login page
+          // window.location.href = 'login.html';
+          return;
+        }
+
+        try {
+          const res = await api.postComment(p.id, content, token, anonymous);
+
+          // Handle 401 from API
+          if (res && res.status === 401) {
+            // Clear invalid token and update UI
+            localStorage.removeItem('token');
+            if (typeof updateAuthUI === 'function') updateAuthUI();
+            alert('Session expired. Please log in again to post a comment.');
+            // optional: redirect to login
+            // window.location.href = 'login.html';
+            return;
+          }
+
+          // success: clear input, reload comments, give visual feedback
+          if (res && !res.error) {
+            if (textInput) textInput.value = '';
+            if (anonCheckbox) anonCheckbox.checked = false;
+            await loadComments(p.id);
+            // small success cue
+            // prefer non-blocking UI; using alert here as minimal fallback
+            alert('Comment posted.');
+          } else {
+            console.warn('Unexpected response posting comment', res);
+            alert('Could not post comment. Please try again.');
+          }
+        } catch (err) {
+          console.error('Failed to post comment', err);
+          alert('Failed to post comment. Please try again later.');
+        }
       });
     }
   }
 }
-
 
 async function loadComments(profId) {
   const container = document.getElementById(`comments-list-${profId}`);
