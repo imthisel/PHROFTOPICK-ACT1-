@@ -294,13 +294,25 @@ app.get('/api/profs/search', (req, res) => {
   const q = (req.query.q || '').trim();
   console.log(`🔎 Search prof — school=${school}, q="${q}"`);
 
-
+  // If no query, return all professors
   if (!q) {
-    db.close();
-    return res.json({ professors: [] });
+    const sql = `
+      SELECT p.id, p.name, p.photo_path,
+             s.id AS subject_id, s.code AS subject_code, s.name AS subject_name,
+             p.rating_avg, p.rating_count, p.workload
+      FROM professors p
+      LEFT JOIN subjects s ON p.subject_id = s.id
+      ORDER BY p.name ASC
+    `;
+    db.all(sql, [], (err, rows) => {
+      db.close();
+      if (err) return res.status(500).json({ error: 'DB error' });
+      res.json({ professors: rows });
+    });
+    return;
   }
 
-
+  // If query exists, search
   const sql = `
     SELECT p.id, p.name, p.photo_path,
            s.id AS subject_id, s.code AS subject_code, s.name AS subject_name,
@@ -313,7 +325,6 @@ app.get('/api/profs/search', (req, res) => {
     ORDER BY p.name ASC
   `;
   const like = `%${q}%`;
-
 
   db.all(sql, [like, like, like], (err, rows) => {
     db.close();

@@ -2,34 +2,363 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1100, initial-scale=0.4, user-scalable=yes">
+  <meta name="viewport" content="width=1100, initial-scale=0.3, user-scalable=yes">
   <title>Create Review</title>
   <link rel="stylesheet" href="css/base.css">
   <script src="js/theme-loader.js" defer></script>
   <style>
-    .page-hero { max-width:1100px; margin:30px auto 10px; padding:18px 20px; border-radius:16px; background: linear-gradient(180deg, rgba(0,105,62,0.06), rgba(0,0,0,0.02)); border:1px solid rgba(0,0,0,0.06); }
-    .page-hero h1 { font-size:26px; margin:0 0 6px; }
-    .page-hero p { color:#4b5563; margin:0; }
-    .step { display:inline-block; padding:6px 10px; background:#e8fff3; color:#06603e; border-radius:9999px; font-weight:700; margin-bottom:8px; }
-    .picker { max-width:1100px; margin:14px auto; background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,0.06); }
-    .picker h3 { margin:0 0 10px; }
-    .picker input { width:100%; padding:12px 14px; border-radius:10px; border:1px solid #d1d5db; }
-    .prof-results { margin-top:12px; display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:12px; }
-    .prof-item { display:flex; gap:10px; align-items:center; padding:10px; border:1px solid #e5e7eb; border-radius:12px; background:#fff; cursor:pointer; transition:transform .12s ease, box-shadow .12s ease; }
-    .prof-item:hover { transform: translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,0.06); }
-    .prof-item img { width:40px; height:40px; border-radius:50%; object-fit:cover; background:#f3f4f6; }
-    .form-shell { max-width:1100px; margin:18px auto 50px; display:grid; grid-template-columns: 1fr 0.6fr; gap:18px; }
-    .form-card { background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:20px; box-shadow:0 8px 24px rgba(0,0,0,0.06); }
-    .summary { background:#ffffff; border:1px solid #e5e7eb; border-radius:16px; padding:20px; box-shadow:0 8px 24px rgba(0,0,0,0.06); position:sticky; top:20px; height: fit-content; }
-    .summary h4 { margin:0 0 10px; }
-    .summary .row { display:flex; align-items:center; gap:10px; }
-    .summary img { width:56px; height:56px; border-radius:12px; object-fit:cover; background:#f3f4f6; }
-    @media (max-width: 900px) { .form-shell { grid-template-columns: 1fr; } .summary { position:static; } }
-    html.dark .picker, html.dark .form-card, html.dark .summary { background:#14191c; border-color:#2a2f34; }
-    html.dark .page-hero { background: linear-gradient(180deg, rgba(0,105,62,0.12), rgba(255,255,255,0.02)); border-color:#2a2f34; }
-    html.dark .picker input { background:#0f1214; color:#e6e6e6; border-color:#2a2f34; }
-    html.dark .prof-item { background:#1a2024; border-color:#2a2f34; }
+    /* ===== ENHANCED PAGE HERO ===== */
+    .page-hero { 
+      max-width: 1100px; 
+      margin: 30px auto 24px; 
+      padding: 28px 32px; 
+      border-radius: 20px; 
+      background: linear-gradient(135deg, rgba(0,105,62,0.08) 0%, rgba(0,0,0,0.02) 100%); 
+      border: 1px solid rgba(0,0,0,0.08); 
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    }
+    .page-hero h1 { 
+      font-size: 32px; 
+      margin: 0 0 8px; 
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .page-hero p { 
+      color: #4b5563; 
+      margin: 0; 
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .step { 
+      display: inline-block; 
+      padding: 8px 14px; 
+      background: linear-gradient(135deg, #e8fff3 0%, #d1fae5 100%); 
+      color: #06603e; 
+      border-radius: 9999px; 
+      font-weight: 700; 
+      margin-bottom: 12px;
+      font-size: 13px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    /* ===== PROFESSIONAL PROFESSOR PICKER ===== */
+    .picker { 
+      max-width: 1100px; 
+      margin: 24px auto; 
+      background: #fff; 
+      border: 1px solid #e5e7eb; 
+      border-radius: 20px; 
+      padding: 32px; 
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+    }
+    .picker h3 { 
+      margin: 0 0 20px; 
+      font-size: 24px;
+      font-weight: 700;
+      color: #111827;
+      letter-spacing: -0.3px;
+    }
+    
+    /* Enhanced Search Input */
+    .search-wrapper {
+      position: relative;
+      margin-bottom: 24px;
+    }
+    .search-wrapper::before {
+      content: '🔍';
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .picker input { 
+      width: 100%; 
+      padding: 16px 18px 16px 50px; 
+      border-radius: 12px; 
+      border: 2px solid #e5e7eb; 
+      font-size: 15px;
+      transition: all 0.2s ease;
+      background: #fafafa;
+    }
+    .picker input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(0,105,62,0.1);
+    }
+    .picker input::placeholder {
+      color: #9ca3af;
+    }
+
+    /* Loading State */
+    .prof-results.loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+      color: #6b7280;
+    }
+    .prof-results.loading::after {
+      content: '';
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e5e7eb;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Professional Professor Cards */
+    .prof-results { 
+      margin-top: 20px; 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+      gap: 16px;
+    }
+    .prof-item { 
+      display: flex; 
+      gap: 16px; 
+      align-items: center; 
+      padding: 18px; 
+      border: 2px solid #e5e7eb; 
+      border-radius: 16px; 
+      background: #fff; 
+      cursor: pointer; 
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .prof-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--primary);
+      transform: scaleX(0);
+      transition: transform 0.2s ease;
+    }
+    .prof-item:hover { 
+      transform: translateY(-2px); 
+      box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+      border-color: var(--primary);
+    }
+    .prof-item:hover::before {
+      transform: scaleX(1);
+    }
+    .prof-item img { 
+      width: 64px; 
+      height: 64px; 
+      border-radius: 50%; 
+      object-fit: cover; 
+      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+      border: 3px solid #f3f4f6;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    .prof-item:hover img {
+      border-color: var(--primary);
+      transform: scale(1.05);
+    }
+    .prof-item-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .prof-item-name {
+      font-weight: 700;
+      font-size: 16px;
+      color: #111827;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .prof-item-meta {
+      color: #6b7280;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .prof-item-rating {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .prof-item-rating .stars {
+      color: #fbbf24;
+    }
+
+    /* Empty State */
+    .prof-results.empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #6b7280;
+    }
+    .prof-results.empty::before {
+      content: '👤';
+      display: block;
+      font-size: 48px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+
+    /* ===== ENHANCED FORM DESIGN ===== */
+    .form-shell { 
+      max-width: 1100px; 
+      margin: 24px auto 50px; 
+      display: grid; 
+      grid-template-columns: 1fr 0.65fr; 
+      gap: 24px;
+    }
+    .form-card { 
+      background: #fff; 
+      border: 1px solid #e5e7eb; 
+      border-radius: 20px; 
+      padding: 32px; 
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    }
+    .form-card h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      font-weight: 700;
+      color: #111827;
+      letter-spacing: -0.3px;
+    }
+    .form-card > p {
+      margin: 0 0 24px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    /* Enhanced Summary Card */
+    .summary { 
+      background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%); 
+      border: 2px solid #e5e7eb; 
+      border-radius: 20px; 
+      padding: 28px; 
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      position: sticky; 
+      top: 24px; 
+      height: fit-content;
+    }
+    .summary h4 { 
+      margin: 0 0 20px; 
+      font-size: 18px;
+      font-weight: 700;
+      color: #111827;
+    }
+    .summary .row { 
+      display: flex; 
+      align-items: center; 
+      gap: 16px; 
+    }
+    .summary img { 
+      width: 72px; 
+      height: 72px; 
+      border-radius: 16px; 
+      object-fit: cover; 
+      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+      border: 3px solid #e5e7eb;
+    }
+    .summary-name {
+      font-weight: 700;
+      font-size: 18px;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+    .summary-meta {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    /* Review Fields Enhancement */
+    .review-field {
+      margin-bottom: 20px;
+    }
+    .review-field input,
+    .review-field select,
+    .review-field textarea {
+      transition: all 0.2s ease;
+    }
+    .review-field input:focus,
+    .review-field select:focus,
+    .review-field textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(0,105,62,0.1);
+    }
+
+    /* Submit Button Enhancement */
+    .review-submit-btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      margin-top: 8px;
+    }
+    .review-submit-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px rgba(0,105,62,0.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) { 
+      .form-shell { 
+        grid-template-columns: 1fr; 
+      } 
+      .summary { 
+        position: static; 
+      }
+      .prof-results {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Dark Mode */
+    html.dark .picker, 
+    html.dark .form-card, 
+    html.dark .summary { 
+      background: #14191c; 
+      border-color: #2a2f34; 
+    }
+    html.dark .page-hero { 
+      background: linear-gradient(135deg, rgba(0,105,62,0.12) 0%, rgba(255,255,255,0.02) 100%); 
+      border-color: #2a2f34; 
+    }
+    html.dark .picker input { 
+      background: #0f1214; 
+      color: #e6e6e6; 
+      border-color: #2a2f34; 
+    }
+    html.dark .prof-item { 
+      background: #1a2024; 
+      border-color: #2a2f34; 
+    }
+    html.dark .prof-item-name {
+      color: #e6e6e6;
+    }
+    html.dark .summary-name {
+      color: #e6e6e6;
+    }
+    html.dark .form-card h2 {
+      color: #e6e6e6;
+    }
   </style>
+  <link rel="stylesheet" href="css/mobile-override.css">
 </head>
 <body>
 <div id="header-placeholder"></div>
@@ -38,71 +367,73 @@
   <section class="page-hero container">
     <span class="step">Create Review</span>
     <h1>Share your experience with a professor</h1>
-    <p>Keep it constructive and respectful. Your insights help thousands of students.</p>
+    <p>Keep it constructive and respectful. Your insights help thousands of students make better decisions.</p>
   </section>
 
-  <section id="prof-picker" class="picker container" style="display:none;">
+  <section id="prof-picker" class="picker container">
     <h3>Select a professor</h3>
-    <input id="prof-search-input" placeholder="Search professor..." autocomplete="off">
-    <div id="prof-results" class="prof-results"></div>
+    <div class="search-wrapper">
+      <input id="prof-search-input" placeholder="Search by name, subject, or course code..." autocomplete="off">
+    </div>
+    <div id="prof-results" class="prof-results loading"></div>
   </section>
 
   <section class="form-shell container" id="review-sections" style="display:none;">
     <form id="review-form" class="form-card">
-      <h2 style="margin:0 0 6px;">Your review</h2>
-      <p style="margin:0 0 12px;color:#666;">Please be honest and avoid personal attacks.</p>
+      <h2>Your review</h2>
+      <p>Please be honest and avoid personal attacks.</p>
 
-  <div class="review-field">
-    <input id="rev-title" placeholder=" " required>
-    <label>Title *</label>
-  </div>
+      <div class="review-field">
+        <input id="rev-title" placeholder=" " required>
+        <label>Title *</label>
+      </div>
 
-  <div class="review-field">
-    <input id="rev-course" placeholder=" " required>
-    <label>Course Code *</label>
-  </div>
+      <div class="review-field">
+        <input id="rev-course" placeholder=" " required>
+        <label>Course Code *</label>
+      </div>
 
-  <div class="review-field">
-    <select id="rev-again">
-      <option>Yes</option><option>No</option>
-    </select>
-    <label>Would take again?</label>
-  </div>
+      <div class="review-field">
+        <select id="rev-again">
+          <option>Yes</option><option>No</option>
+        </select>
+        <label>Would take again?</label>
+      </div>
 
-  <div class="review-field">
-    <select id="rev-4">
-      <option>Yes</option><option>No</option>
-    </select>
-    <label>4.0 attainable?</label>
-  </div>
+      <div class="review-field">
+        <select id="rev-4">
+          <option>Yes</option><option>No</option>
+        </select>
+        <label>4.0 attainable?</label>
+      </div>
 
-  <div class="review-field">
-    <select id="rev-deadline">
-      <option>Yes</option><option>No</option>
-    </select>
-    <label>Deadline leniency</label>
-  </div>
+      <div class="review-field">
+        <select id="rev-deadline">
+          <option>Yes</option><option>No</option>
+        </select>
+        <label>Deadline leniency</label>
+      </div>
 
-  <div class="review-field">
-    <select id="rev-workload">
-      <option>Low</option><option>Medium</option><option>High</option>
-    </select>
-    <label>Workload</label>
-  </div>
+      <div class="review-field">
+        <select id="rev-workload">
+          <option>Low</option><option>Medium</option><option>High</option>
+        </select>
+        <label>Workload</label>
+      </div>
 
-  <div class="review-field">
-    <input id="rev-tags" placeholder=" ">
-    <label>Tags (comma separated)</label>
-  </div>
+      <div class="review-field">
+        <input id="rev-tags" placeholder=" ">
+        <label>Tags (comma separated)</label>
+      </div>
 
-  <div class="review-field">
-    <textarea id="rev-text" placeholder=" " required></textarea>
-    <label>Review *</label>
-  </div>
+      <div class="review-field">
+        <textarea id="rev-text" placeholder=" " required></textarea>
+        <label>Review *</label>
+      </div>
 
-  <label style="margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-    <input type="checkbox" id="rev-anon"> Post anonymously
-  </label>
+      <label style="margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+        <input type="checkbox" id="rev-anon"> Post anonymously
+      </label>
 
       <button class="review-submit-btn" type="submit">Submit Review</button>
       <p id="rev-result"></p>
@@ -113,8 +444,8 @@
       <div class="row">
         <img id="prof-photo" alt="">
         <div>
-          <div id="prof-name" style="font-weight:700;">—</div>
-          <small id="prof-meta" style="color:#6b7280;">Select a professor to begin</small>
+          <div id="prof-name" class="summary-name">—</div>
+          <small id="prof-meta" class="summary-meta">Select a professor to begin</small>
         </div>
       </div>
     </aside>
@@ -130,7 +461,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     headerContainer.innerHTML = await res.text();
     await new Promise(r => requestAnimationFrame(r));
     if (!document.querySelector('script[src="/js/app.js"]')) {
-      await new Promise((resolve, reject) => { const s = document.createElement('script'); s.src='/js/app.js'; s.onload=resolve; s.onerror=()=>reject(new Error('app.js load failed')); document.head.appendChild(s); });
+      await new Promise((resolve, reject) => { 
+        const s = document.createElement('script'); 
+        s.src='/js/app.js'; 
+        s.onload=resolve; 
+        s.onerror=()=>reject(new Error('app.js load failed')); 
+        document.head.appendChild(s); 
+      });
     }
     if (window.updateSchoolLogo) try { window.updateSchoolLogo(); } catch(e){}
     if (window.initializeHeader) try { await window.initializeHeader(); } catch(e){}
@@ -149,40 +486,98 @@ document.addEventListener('DOMContentLoaded', async () => {
   const profMetaEl = document.getElementById('prof-meta');
   const profPhotoEl = document.getElementById('prof-photo');
 
-  function showPicker() { picker.style.display = 'block'; sections.style.display = 'none'; }
-  function showForm() { picker.style.display = 'none'; sections.style.display = 'grid'; }
+  function showPicker() { 
+    picker.style.display = 'block'; 
+    sections.style.display = 'none'; 
+  }
+  function showForm() { 
+    picker.style.display = 'none'; 
+    sections.style.display = 'grid'; 
+  }
 
   async function populateProfessor(p) {
     profNameEl.textContent = p.name || 'Professor';
     profMetaEl.textContent = p.subject_name ? `${p.subject_code || ''} ${p.subject_name}` : (p.department || '');
-    if (profPhotoEl) profPhotoEl.src = p.photo_path || '';
+    if (profPhotoEl) {
+      profPhotoEl.src = p.photo_path || '';
+      profPhotoEl.style.display = p.photo_path ? 'block' : 'none';
+    }
+  }
+
+  // Debounce function for search
+  let searchTimeout;
+  function debounceSearch(func, delay) {
+    return function(...args) {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => func.apply(this, args), delay);
+    };
   }
 
   if (!profId) {
     showPicker();
-    const doSearch = async (q='') => {
+    
+    const doSearch = async (q = '') => {
+      results.classList.add('loading');
+      results.classList.remove('empty');
+      
       try {
         const res = await fetch(`/api/profs/search?school=${(localStorage.getItem('selectedSchool')||'dlsu')}&q=${encodeURIComponent(q)}`);
         const j = await res.json();
         const list = j.professors || [];
-        results.innerHTML = list.map(p => `
-          <div class="prof-item" data-id="${p.id}" data-name="${p.name}" data-photo="${p.photo_path||''}" data-meta="${p.subject_name||''}">
-            <img src="${p.photo_path||''}" alt="${p.name}">
-            <div>
-              <div style=\"font-weight:700;\">${p.name}</div>
-              <small style=\"color:#6b7280;\">${p.subject_code||''} ${p.subject_name||''}</small>
+        
+        results.classList.remove('loading');
+        
+        if (list.length === 0) {
+          results.classList.add('empty');
+          results.innerHTML = q ? 'No professors found. Try a different search.' : 'No professors available.';
+          return;
+        }
+        
+        results.innerHTML = list.map(p => {
+          const rating = p.rating_avg ? Number(p.rating_avg).toFixed(1) : '0.0';
+          const stars = Math.round(p.rating_avg || 0);
+          const starDisplay = '★'.repeat(stars) + '☆'.repeat(5 - stars);
+          
+          return `
+            <div class="prof-item" data-id="${p.id}" data-name="${p.name}" data-photo="${p.photo_path||''}" data-subject-code="${p.subject_code||''}" data-subject-name="${p.subject_name||''}">
+              <img src="${p.photo_path||'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'64\' height=\'64\'%3E%3Crect fill=\'%23f3f4f6\' width=\'64\' height=\'64\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-size=\'24\'%3E👤%3C/text%3E%3C/svg%3E'}" alt="${p.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'64\' height=\'64\'%3E%3Crect fill=\'%23f3f4f6\' width=\'64\' height=\'64\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-size=\'24\'%3E👤%3C/text%3E%3C/svg%3E'">
+              <div class="prof-item-content">
+                <div class="prof-item-name">${p.name}</div>
+                <div class="prof-item-meta">${p.subject_code || ''} ${p.subject_name || 'No subject'}</div>
+                ${p.rating_avg ? `<div class="prof-item-rating"><span class="stars">${starDisplay}</span> <span>${rating}</span> <span>(${p.rating_count || 0})</span></div>` : ''}
+              </div>
             </div>
-          </div>`).join('');
-        results.querySelectorAll('.prof-item').forEach(el => el.addEventListener('click', () => {
-          profId = el.dataset.id;
-          populateProfessor({ name: el.dataset.name, photo_path: el.dataset.photo, subject_name: el.dataset.meta });
-          showForm();
-        }));
+          `;
+        }).join('');
+        
+        results.querySelectorAll('.prof-item').forEach(el => {
+          el.addEventListener('click', () => {
+            profId = el.dataset.id;
+            populateProfessor({ 
+              name: el.dataset.name, 
+              photo_path: el.dataset.photo, 
+              subject_code: el.dataset.subjectCode,
+              subject_name: el.dataset.subjectName 
+            });
+            showForm();
+          });
+        });
       } catch(e) {
-        results.innerHTML = '<div class="card">Failed to load results.</div>';
+        console.error('Search error:', e);
+        results.classList.remove('loading');
+        results.classList.add('empty');
+        results.innerHTML = 'Failed to load professors. Please try again.';
       }
     };
-    searchInput.addEventListener('input', e => doSearch(e.target.value.trim()));
+    
+    // Live search with debounce
+    const debouncedSearch = debounceSearch((q) => doSearch(q), 300);
+    searchInput.addEventListener('input', e => {
+      const query = e.target.value.trim();
+      debouncedSearch(query);
+    });
+    
+    // Load all professors initially
     doSearch('');
   } else {
     showForm();
