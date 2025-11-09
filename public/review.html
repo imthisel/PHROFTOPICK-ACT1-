@@ -672,17 +672,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  // Replace the token retrieval / submit-block with this improved normalization
+  function getNormalizedToken() {
+    // Prefer localStorage, fall back to URL token (OAuth redirect)
+    const urlToken = new URLSearchParams(window.location.search).get('token') || '';
+    let token = localStorage.getItem('token') || urlToken || '';
+
+    // Treat literal strings "null"/"undefined" as missing
+    if (token === 'null' || token === 'undefined') token = '';
+
+    // If token was provided in URL, persist it for subsequent pages
+    if (urlToken && !localStorage.getItem('token')) {
+      try { localStorage.setItem('token', urlToken); } catch (e) { /* ignore */ }
+    }
+
+    // If stored token has "Bearer " prefix, strip it (avoid "Bearer Bearer ..." when sending)
+    if (token && token.startsWith('Bearer ')) {
+      token = token.slice(7);
+    }
+
+    return token;
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     revResult.textContent = '';
-    const token = localStorage.getItem('token');
-    if (!token) return alert('You must be logged in to post a review.');
-    if (!profId) return alert('Please select a professor first.');
-    if (!courseEl.value.trim()) return alert('Please enter a course code.');
-    const ratingValue = parseInt(ratingEl.value) || 0;
-    if (ratingValue === 0) return alert('Please select a rating.');
-    if (!textEl.value.trim()) return alert('Please write your notes/comments.');
 
+    const token = getNormalizedToken();
+    if (!token) {
+      return alert('You must be logged in to post a review.');
+    }
+
+    // Build payload as before...
     const payload = {
       course_code: courseEl.value.trim(),
       would_take_again: againEl.value,
@@ -695,11 +716,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       rating: ratingValue
     };
 
-    disableForm(true);
-    revResult.textContent = 'Submitting review...';
-
     try {
-      const res = await fetch(`/api/profs/${profId}/review?school=${(localStorage.getItem('selectedSchool')||'dlsu')}` , {
+      const res = await fetch(`/api/profs/${profId}/review?school=${(localStorage.getItem('selectedSchool')||'dlsu')}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify(payload)
