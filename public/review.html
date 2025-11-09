@@ -713,7 +713,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       tags: tagsEl.value.trim(),
       review_text: textEl.value.trim(),
       anonymous: !!anonEl.checked,
-      rating: ratingValue
+      rating: parseInt(ratingEl.value) || 0
     };
 
     try {
