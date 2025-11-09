@@ -141,6 +141,11 @@ CREATE TABLE IF NOT EXISTS prof_reviews (
   workload_rating TEXT,
   tags TEXT,
   review_text TEXT,
+  rating INTEGER DEFAULT 0,
+  college TEXT,
+  batch_id TEXT,
+  photo_path TEXT,
+  view_count INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -409,26 +414,92 @@ app.post('/api/profs/:id/review', (req, res) => {
   catch { return res.status(401).json({ error: 'Invalid token' }); }
 
   const {
-    title, course_code, would_take_again, attainable_4, deadline_leniency,
-    workload_rating, tags, review_text, anonymous
+    course_code, would_take_again, attainable_4, deadline_leniency,
+    workload_rating, tags, review_text, anonymous, rating
   } = req.body;
 
-  db.run(`
-    INSERT INTO prof_reviews (
-      prof_id, user_id, display_name, anonymous,
-      title, course_code, would_take_again, attainable_4,
-      deadline_leniency, workload_rating, tags, review_text
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `,
-  [
-    profId, user.id, user.display_name, anonymous ? 1 : 0, title, course_code,
-    would_take_again, attainable_4, deadline_leniency, workload_rating, tags,
-    review_text
-  ],
-  function(err) {
-    db.close();
-    if (err) return res.status(500).json({ error: 'DB error' });
-    res.json({ ok: true, review_id: this.lastID });
+  // Fetch user profile data
+  db.get('SELECT display_name, photo_path, college, batch FROM users WHERE id = ?', [user.id], (err, userData) => {
+    if (err) {
+      db.close();
+      return res.status(500).json({ error: 'Failed to fetch user data' });
+    }
+
+    const displayName = anonymous ? null : (userData?.display_name || user.display_name || 'User');
+    const photoPath = anonymous ? null : (userData?.photo_path || null);
+    const college = anonymous ? null : (userData?.college || null);
+    const batchId = anonymous ? null : (userData?.batch || null);
+    const ratingValue = parseInt(rating) || 0;
+
+    // Add missing columns if they don't exist (migration)
+    db.serialize(() => {
+      const columnsToAdd = [
+        { name: 'rating', type: 'INTEGER DEFAULT 0' },
+        { name: 'college', type: 'TEXT' },
+        { name: 'batch_id', type: 'TEXT' },
+        { name: 'photo_path', type: 'TEXT' },
+        { name: 'view_count', type: 'INTEGER DEFAULT 0' }
+      ];
+
+      let colIndex = 0;
+      const tryAddColumn = (index) => {
+        if (index >= columnsToAdd.length) {
+          // All columns processed, now insert review
+          db.run(`
+            INSERT INTO prof_reviews (
+              prof_id, user_id, display_name, anonymous,
+              course_code, would_take_again, attainable_4,
+              deadline_leniency, workload_rating, tags, review_text,
+              rating, college, batch_id, photo_path
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `,
+          [
+            profId, user.id, displayName, anonymous ? 1 : 0,
+            course_code, would_take_again, attainable_4,
+            deadline_leniency, workload_rating, tags, review_text,
+            ratingValue, college, batchId, photoPath
+          ],
+          function(insertErr) {
+            if (insertErr) {
+              db.close();
+              return res.status(500).json({ error: 'DB error: ' + insertErr.message });
+            }
+
+            // Update professor rating average and count based on review ratings
+            if (ratingValue > 0) {
+              db.get("SELECT AVG(rating) AS avg, COUNT(*) AS count FROM prof_reviews WHERE prof_id = ? AND rating > 0", [profId], (err2, row) => {
+                if (!err2 && row) {
+                  const avg = row.avg ? parseFloat(row.avg.toFixed(2)) : 0;
+                  const count = row.count || 0;
+                  db.run("UPDATE professors SET rating_avg = ?, rating_count = ? WHERE id = ?", [avg, count, profId], (err3) => {
+                    db.close();
+                    if (err3) console.error('Failed to update professor rating:', err3);
+                    res.json({ ok: true, review_id: this.lastID });
+                  });
+                } else {
+                  db.close();
+                  res.json({ ok: true, review_id: this.lastID });
+                }
+              });
+            } else {
+              db.close();
+              res.json({ ok: true, review_id: this.lastID });
+            }
+          });
+          return;
+        }
+
+        const col = columnsToAdd[index];
+        db.run(`ALTER TABLE prof_reviews ADD COLUMN ${col.name} ${col.type}`, (alterErr) => {
+          if (alterErr && !alterErr.message.includes('duplicate column name') && !alterErr.message.includes('duplicate')) {
+            console.warn(`Could not add column ${col.name}:`, alterErr.message);
+          }
+          tryAddColumn(index + 1);
+        });
+      };
+
+      tryAddColumn(0);
+    });
   });
 });
 
@@ -438,12 +509,98 @@ app.get('/api/profs/:id/reviews', (req, res) => {
   const db = getDb(school);
 
   db.all(
-    "SELECT * FROM prof_reviews WHERE prof_id = ? ORDER BY created_at DESC",
+    "SELECT id, prof_id, user_id, display_name, anonymous, course_code, would_take_again, attainable_4, deadline_leniency, workload_rating, tags, review_text, rating, college, batch_id, photo_path, view_count, created_at FROM prof_reviews WHERE prof_id = ? ORDER BY created_at DESC",
     [req.params.id],
     (err, rows) => {
       db.close();
       if (err) return res.status(500).json({ error: 'DB error' });
       res.json({ reviews: rows });
+    }
+  );
+});
+
+// =================== GET REVIEW SUMMARY ===================
+app.get('/api/profs/:id/review-summary', (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const db = getDb(school);
+  const profId = req.params.id;
+
+  db.all(
+    "SELECT would_take_again, attainable_4, deadline_leniency, workload_rating, rating FROM prof_reviews WHERE prof_id = ?",
+    [profId],
+    (err, rows) => {
+      if (err) {
+        db.close();
+        return res.status(500).json({ error: 'DB error' });
+      }
+
+      const total = rows.length;
+      let wouldTakeAgainYes = 0;
+      let wouldTakeAgainNo = 0;
+      let attainable4Yes = 0;
+      let attainable4No = 0;
+      let deadlineLenientYes = 0;
+      let deadlineLenientNo = 0;
+      const workloadCounts = { Low: 0, Medium: 0, High: 0 };
+      let totalRating = 0;
+      let ratingCount = 0;
+
+      rows.forEach(r => {
+        if (r.would_take_again === 'Yes') wouldTakeAgainYes++;
+        if (r.would_take_again === 'No') wouldTakeAgainNo++;
+        if (r.attainable_4 === 'Yes') attainable4Yes++;
+        if (r.attainable_4 === 'No') attainable4No++;
+        if (r.deadline_leniency === 'Yes') deadlineLenientYes++;
+        if (r.deadline_leniency === 'No') deadlineLenientNo++;
+        if (r.workload_rating) workloadCounts[r.workload_rating] = (workloadCounts[r.workload_rating] || 0) + 1;
+        if (r.rating && r.rating > 0) {
+          totalRating += r.rating;
+          ratingCount++;
+        }
+      });
+
+      db.close();
+      res.json({
+        total,
+        would_take_again: {
+          yes: wouldTakeAgainYes,
+          no: wouldTakeAgainNo,
+          yes_percent: total > 0 ? Math.round((wouldTakeAgainYes / total) * 100) : 0,
+          no_percent: total > 0 ? Math.round((wouldTakeAgainNo / total) * 100) : 0
+        },
+        attainable_4: {
+          yes: attainable4Yes,
+          no: attainable4No,
+          yes_percent: total > 0 ? Math.round((attainable4Yes / total) * 100) : 0,
+          no_percent: total > 0 ? Math.round((attainable4No / total) * 100) : 0
+        },
+        deadline_leniency: {
+          yes: deadlineLenientYes,
+          no: deadlineLenientNo,
+          yes_percent: total > 0 ? Math.round((deadlineLenientYes / total) * 100) : 0,
+          no_percent: total > 0 ? Math.round((deadlineLenientNo / total) * 100) : 0
+        },
+        workload: workloadCounts,
+        average_rating: ratingCount > 0 ? parseFloat((totalRating / ratingCount).toFixed(2)) : 0,
+        rating_count: ratingCount
+      });
+    }
+  );
+});
+
+// =================== INCREMENT REVIEW VIEW COUNT ===================
+app.post('/api/reviews/:id/view', (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const db = getDb(school);
+  const reviewId = req.params.id;
+
+  db.run(
+    "UPDATE prof_reviews SET view_count = COALESCE(view_count, 0) + 1 WHERE id = ?",
+    [reviewId],
+    function(err) {
+      db.close();
+      if (err) return res.status(500).json({ error: 'DB error' });
+      res.json({ ok: true });
     }
   );
 });

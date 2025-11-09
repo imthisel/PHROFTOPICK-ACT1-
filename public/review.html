@@ -300,6 +300,27 @@
       box-shadow: 0 0 0 4px rgba(0,105,62,0.1);
     }
 
+    /* Star Rating */
+    .star-rating {
+      display: flex;
+      gap: 6px;
+      font-size: 32px;
+      cursor: pointer;
+      margin: 8px 0;
+    }
+    .star-rating .star {
+      color: #d1d5db;
+      transition: color 0.2s ease, transform 0.1s ease;
+      user-select: none;
+    }
+    .star-rating .star:hover {
+      transform: scale(1.1);
+    }
+    .star-rating .star.selected,
+    .star-rating .star.hovered {
+      color: #fbbf24;
+    }
+
     /* Submit Button Enhancement */
     .review-submit-btn {
       width: 100%;
@@ -383,43 +404,38 @@
       <h2>Your review</h2>
       <p>Please be honest and avoid personal attacks.</p>
 
-      <div class="review-field">
-        <input id="rev-title" placeholder=" " required>
-        <label>Title *</label>
-      </div>
+  <div class="review-field">
+    <input id="rev-course" placeholder=" " required>
+    <label>Course Code *</label>
+  </div>
 
-      <div class="review-field">
-        <input id="rev-course" placeholder=" " required>
-        <label>Course Code *</label>
-      </div>
+  <div class="review-field">
+    <select id="rev-again">
+      <option>Yes</option><option>No</option>
+    </select>
+    <label>Would take again?</label>
+  </div>
 
-      <div class="review-field">
-        <select id="rev-again">
-          <option>Yes</option><option>No</option>
-        </select>
-        <label>Would take again?</label>
-      </div>
+  <div class="review-field">
+    <select id="rev-4">
+      <option>Yes</option><option>No</option>
+    </select>
+    <label>4.0 attainable?</label>
+  </div>
 
-      <div class="review-field">
-        <select id="rev-4">
-          <option>Yes</option><option>No</option>
-        </select>
-        <label>4.0 attainable?</label>
-      </div>
+  <div class="review-field">
+    <select id="rev-deadline">
+      <option>Yes</option><option>No</option>
+    </select>
+    <label>Deadline leniency</label>
+  </div>
 
-      <div class="review-field">
-        <select id="rev-deadline">
-          <option>Yes</option><option>No</option>
-        </select>
-        <label>Deadline leniency</label>
-      </div>
-
-      <div class="review-field">
-        <select id="rev-workload">
-          <option>Low</option><option>Medium</option><option>High</option>
-        </select>
-        <label>Workload</label>
-      </div>
+  <div class="review-field">
+    <select id="rev-workload">
+      <option>Low</option><option>Medium</option><option>High</option>
+    </select>
+    <label>Workload</label>
+  </div>
 
       <div class="review-field">
         <input id="rev-tags" placeholder=" ">
@@ -427,13 +443,25 @@
       </div>
 
       <div class="review-field">
-        <textarea id="rev-text" placeholder=" " required></textarea>
-        <label>Review *</label>
+        <label style="margin-bottom: 8px; display: block; font-weight: 600; color: #374151;">Rating *</label>
+        <div class="star-rating" id="star-rating">
+          <span data-star="1" class="star">☆</span>
+          <span data-star="2" class="star">☆</span>
+          <span data-star="3" class="star">☆</span>
+          <span data-star="4" class="star">☆</span>
+          <span data-star="5" class="star">☆</span>
+        </div>
+        <input type="hidden" id="rev-rating" value="0" required>
       </div>
 
-      <label style="margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-        <input type="checkbox" id="rev-anon"> Post anonymously
-      </label>
+      <div class="review-field">
+        <textarea id="rev-text" placeholder=" " required></textarea>
+        <label>Notes/Comments *</label>
+      </div>
+
+  <label style="margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+    <input type="checkbox" id="rev-anon"> Post anonymously
+  </label>
 
       <button class="review-submit-btn" type="submit">Submit Review</button>
       <p id="rev-result"></p>
@@ -552,14 +580,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         results.querySelectorAll('.prof-item').forEach(el => {
           el.addEventListener('click', () => {
-            profId = el.dataset.id;
+          profId = el.dataset.id;
             populateProfessor({ 
               name: el.dataset.name, 
               photo_path: el.dataset.photo, 
               subject_code: el.dataset.subjectCode,
               subject_name: el.dataset.subjectName 
             });
-            showForm();
+          showForm();
           });
         });
       } catch(e) {
@@ -589,7 +617,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch(_) {}
   }
 
-  const titleEl = document.getElementById('rev-title');
+  // Star rating functionality
+  const starRating = document.getElementById('star-rating');
+  const ratingInput = document.getElementById('rev-rating');
+  let selectedRating = 0;
+
+  if (starRating) {
+    const stars = starRating.querySelectorAll('.star');
+    stars.forEach(star => {
+      star.addEventListener('mouseover', (e) => {
+        const value = parseInt(e.target.dataset.star);
+        stars.forEach((s, idx) => {
+          if (idx < value) s.classList.add('hovered');
+          else s.classList.remove('hovered');
+        });
+      });
+      star.addEventListener('mouseout', () => {
+        stars.forEach(s => s.classList.remove('hovered'));
+        // Restore selected stars
+        stars.forEach((s, idx) => {
+          if (idx < selectedRating) s.classList.add('selected');
+          else s.classList.remove('selected');
+        });
+      });
+      star.addEventListener('click', (e) => {
+        selectedRating = parseInt(e.target.dataset.star);
+        ratingInput.value = selectedRating;
+        stars.forEach((s, idx) => {
+          if (idx < selectedRating) s.classList.add('selected');
+          else s.classList.remove('selected');
+        });
+      });
+    });
+  }
+
   const courseEl = document.getElementById('rev-course');
   const againEl = document.getElementById('rev-again');
   const attainableEl = document.getElementById('rev-4');
@@ -598,12 +659,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   const tagsEl = document.getElementById('rev-tags');
   const textEl = document.getElementById('rev-text');
   const anonEl = document.getElementById('rev-anon');
+  const ratingEl = document.getElementById('rev-rating');
   const submitBtn = form.querySelector('button[type="submit"]');
 
   function disableForm(state = true) {
     if (submitBtn) submitBtn.disabled = state;
-    [titleEl, courseEl, againEl, attainableEl, deadlineEl, workloadEl, tagsEl, textEl, anonEl]
+    [courseEl, againEl, attainableEl, deadlineEl, workloadEl, tagsEl, textEl, anonEl, ratingEl]
       .forEach(el => { if (el) el.disabled = state; });
+    if (starRating) {
+      starRating.style.pointerEvents = state ? 'none' : 'auto';
+      starRating.style.opacity = state ? '0.6' : '1';
+    }
   }
 
   form.addEventListener('submit', async (e) => {
@@ -612,12 +678,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
     if (!token) return alert('You must be logged in to post a review.');
     if (!profId) return alert('Please select a professor first.');
-    if (!titleEl.value.trim()) return alert('Please enter a title.');
     if (!courseEl.value.trim()) return alert('Please enter a course code.');
-    if (!textEl.value.trim()) return alert('Please write your review.');
+    const ratingValue = parseInt(ratingEl.value) || 0;
+    if (ratingValue === 0) return alert('Please select a rating.');
+    if (!textEl.value.trim()) return alert('Please write your notes/comments.');
 
     const payload = {
-      title: titleEl.value.trim(),
       course_code: courseEl.value.trim(),
       would_take_again: againEl.value,
       attainable_4: attainableEl.value,
@@ -625,7 +691,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       workload_rating: workloadEl.value,
       tags: tagsEl.value.trim(),
       review_text: textEl.value.trim(),
-      anonymous: !!anonEl.checked
+      anonymous: !!anonEl.checked,
+      rating: ratingValue
     };
 
     disableForm(true);
@@ -645,6 +712,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       revResult.textContent = '✅ Review submitted! Redirecting to professor page...';
       form.reset();
+      selectedRating = 0;
+      if (starRating) {
+        starRating.querySelectorAll('.star').forEach(s => s.classList.remove('selected', 'hovered'));
+      }
       setTimeout(() => { window.location.href = `/prof.html?id=${profId}`; }, 900);
     } catch (err) {
       console.error('Network error submitting review', err);

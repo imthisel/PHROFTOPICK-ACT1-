@@ -18,19 +18,14 @@
       up: 'images/up-logo.png',
     };
     const selectedLogo = logoMap[school] || 'images/default-logo.png';
-
-    // Preload it to browser cache
     const img = new Image();
     img.src = selectedLogo;
-
-    // Pre-store it globally for instant use when header loads
     window.__PRELOADED_LOGO = selectedLogo;
   })();
 </script>
 
   <script src="js/theme-loader.js" defer></script>
   <script>
-    // keep theme loading early
     const school = localStorage.getItem("selectedSchool") || "dlsu";
     const link = document.createElement("link");
     link.rel = "stylesheet";
@@ -38,85 +33,245 @@
     document.head.appendChild(link);
   </script>
   <style>
-    .star-rating { display:flex; gap:4px; font-size:28px; cursor:pointer; }
-    .star { color:#ccc; transition: color .18s; }
-    .star.selected, .star.hovered { color: #FFD700; }
     .prof-photo { max-width:120px; border-radius:8px; display:block; margin:8px 0; }
+    
+    /* Summary Section */
+    .summary-section {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      padding: 32px;
+      margin: 24px 0;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    }
+    .summary-section h2 {
+      margin: 0 0 24px;
+      font-size: 24px;
+      font-weight: 700;
+      color: #111827;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .summary-card {
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .summary-card h3 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .summary-card .value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+    .summary-card .label {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    
+    /* Chart Bars */
+    .chart-container {
+      margin-top: 16px;
+    }
+    .chart-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .chart-label {
+      min-width: 120px;
+      font-size: 14px;
+      color: #374151;
+      font-weight: 500;
+    }
+    .chart-fill-wrapper {
+      flex: 1;
+      height: 24px;
+      background: #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+    .chart-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+      border-radius: 12px;
+      transition: width 0.5s ease;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 8px;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .chart-value {
+      min-width: 60px;
+      text-align: right;
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    /* Review Cards */
+    .review-card {
+      background: #fff;
+      border: 2px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .review-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+      border-color: var(--primary);
+    }
+    .review-card.selected {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, rgba(0,105,62,0.02) 0%, rgba(0,0,0,0.01) 100%);
+      box-shadow: 0 8px 16px rgba(0,105,62,0.15);
+    }
+    .review-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .review-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+      border: 3px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+    .review-user-info {
+      flex: 1;
+    }
+    .review-user-name {
+      font-weight: 700;
+      font-size: 16px;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+    .review-meta {
+      font-size: 13px;
+      color: #6b7280;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .review-rating {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      font-size: 16px;
+    }
+    .review-rating .stars {
+      color: #fbbf24;
+    }
+    .review-content {
+      margin: 16px 0;
+      color: #374151;
+      line-height: 1.6;
+    }
+    .review-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .review-tag {
+      background: #f3f4f6;
+      color: #6b7280;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .review-view-count {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #6b7280;
+      font-size: 13px;
+    }
+    .review-view-count svg {
+      width: 18px;
+      height: 18px;
+    }
+    .review-footer {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: #6b7280;
+    }
   </style>
   <link rel="stylesheet" href="css/mobile-override.css">
 </head>
-
 <body>
   <div id="header-placeholder"></div>
 
   <div class="container">
     <div id="prof-details" class="card"></div>
 
-    <form id="rating-form">
-      <div id="star-container" class="star-rating">
-        <span data-star="1" class="star">&#9734;</span>
-        <span data-star="2" class="star">&#9734;</span>
-        <span data-star="3" class="star">&#9734;</span>
-        <span data-star="4" class="star">&#9734;</span>
-        <span data-star="5" class="star">&#9734;</span>
-      </div>
-      <input type="hidden" id="stars" value="0" />
-      <br/>
-      <label for="comment">Comment:</label><br/>
-      <textarea id="comment" rows="3" style="width:100%"></textarea>
-      <br/>
-      <button type="submit">Submit</button>
-    </form>
-
-    <div class="panel">
-      <h3>Comments</h3>
-      <div id="comments"></div>
+    <!-- Summary Section -->
+    <div id="summary-section" class="summary-section">
+      <h2>Review Summary</h2>
+      <div id="summary-content"></div>
     </div>
-    <h3>Student Reviews</h3>
-   <div id="full-reviews"></div>
+
+    <!-- Review Cards -->
+    <div class="panel">
+      <h3>Student Reviews</h3>
+      <div id="full-reviews"></div>
+    </div>
+
+    <!-- Notes -->
     <div class="panel">
       <h3>Notes</h3>
       <div id="notes"></div>
     </div>
   </div>
 
-  <!-- =============== JS SECTION =============== -->
   <script>
-  // All DOM logic runs after DOMContentLoaded to avoid "null" element errors.
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log("✅ DOM ready");
-
+  document.addEventListener('DOMContentLoaded', async () => {
     const profId = new URLSearchParams(window.location.search).get("id");
     if (!profId) {
       document.getElementById('prof-details').innerHTML = '<p style="color:red">Professor ID missing in URL.</p>';
       return;
     }
 
-    const starContainer = document.getElementById('star-container');
-    const hiddenStarsInput = document.getElementById('stars');
-    let selectedStars = 0;
-
-    // Star rating UI
-    if (starContainer) {
-      const stars = starContainer.querySelectorAll('.star');
-      stars.forEach(s => {
-        s.addEventListener('mouseover', e => {
-          const v = parseInt(e.target.dataset.star);
-          stars.forEach(x => x.classList.toggle('hovered', parseInt(x.dataset.star) <= v));
-        });
-        s.addEventListener('mouseout', () => stars.forEach(x => x.classList.remove('hovered')));
-        s.addEventListener('click', e => {
-          selectedStars = parseInt(e.target.dataset.star);
-          hiddenStarsInput.value = selectedStars;
-          stars.forEach(x => x.classList.toggle('selected', parseInt(x.dataset.star) <= selectedStars));
-        });
-      });
-    }
-
-    // Load professor details
     async function loadProfessor() {
       try {
         const school = localStorage.getItem("selectedSchool") || "dlsu";
+        
+        // Load professor details
         const res = await fetch(`/api/profs/${profId}?school=${school}`);
         if (!res.ok) {
           document.getElementById("prof-details").innerHTML = "<p style='color:red'>Failed to load professor details.</p>";
@@ -124,9 +279,9 @@
         }
         const data = await res.json();
         const prof = data.prof || {};
-        const comments = data.comments || [];
         const notes = data.notes || [];
 
+        // Display professor details
         const details = document.getElementById("prof-details");
         details.innerHTML = `
           <h2>${prof.name || "Unknown Professor"}</h2>
@@ -144,34 +299,142 @@
           </p>
         `;
 
-        // Comments
-        const commentsDiv = document.getElementById("comments");
-        commentsDiv.innerHTML = comments.length
-          ? comments.map(c => `
-              <div class="comment-item" style="margin-bottom:10px">
-                <strong>${c.anonymous ? "Anonymous" : (c.display_name || "User")}</strong>
-                <span style="margin-left:8px">${'★'.repeat(c.stars)}${'☆'.repeat(5 - c.stars)}</span>
-                <p style="margin:6px 0;">${c.comment || ""}</p>
-                <small style="color:#666">${c.created_at ? new Date(c.created_at).toLocaleString() : ''}</small>
+        // Load review summary
+        const summaryRes = await fetch(`/api/profs/${profId}/review-summary?school=${school}`);
+        const summaryData = await summaryRes.json();
+        
+        // Display summary with charts
+        const summaryContent = document.getElementById("summary-content");
+        const workloadTotal = (summaryData.workload.Low || 0) + (summaryData.workload.Medium || 0) + (summaryData.workload.High || 0);
+        
+        summaryContent.innerHTML = `
+          <div class="summary-grid">
+            <div class="summary-card">
+              <h3>Total Reviews</h3>
+              <div class="value">${summaryData.total || 0}</div>
+              <div class="label">Reviews submitted</div>
+            </div>
+            <div class="summary-card">
+              <h3>Average Rating</h3>
+              <div class="value">${summaryData.average_rating || '0.00'}</div>
+              <div class="label">${summaryData.rating_count || 0} ratings</div>
+            </div>
+          </div>
+          
+          <div class="chart-container">
+            <div class="chart-bar">
+              <div class="chart-label">Would Take Again</div>
+              <div class="chart-fill-wrapper">
+                <div class="chart-fill" style="width: ${summaryData.would_take_again.yes_percent || 0}%">${summaryData.would_take_again.yes_percent || 0}%</div>
               </div>
-            `).join('')
-          : "<p>No comments yet.</p>";
+              <div class="chart-value">${summaryData.would_take_again.yes || 0} Yes</div>
+            </div>
+            <div class="chart-bar">
+              <div class="chart-label">4.0 Attainable</div>
+              <div class="chart-fill-wrapper">
+                <div class="chart-fill" style="width: ${summaryData.attainable_4.yes_percent || 0}%">${summaryData.attainable_4.yes_percent || 0}%</div>
+              </div>
+              <div class="chart-value">${summaryData.attainable_4.yes || 0} Yes</div>
+            </div>
+            <div class="chart-bar">
+              <div class="chart-label">Deadline Leniency</div>
+              <div class="chart-fill-wrapper">
+                <div class="chart-fill" style="width: ${summaryData.deadline_leniency.yes_percent || 0}%">${summaryData.deadline_leniency.yes_percent || 0}%</div>
+              </div>
+              <div class="chart-value">${summaryData.deadline_leniency.yes || 0} Yes</div>
+            </div>
+            <div class="chart-bar">
+              <div class="chart-label">Workload - Low</div>
+              <div class="chart-fill-wrapper">
+                <div class="chart-fill" style="width: ${workloadTotal > 0 ? Math.round((summaryData.workload.Low / workloadTotal) * 100) : 0}%">${workloadTotal > 0 ? Math.round((summaryData.workload.Low / workloadTotal) * 100) : 0}%</div>
+              </div>
+              <div class="chart-value">${summaryData.workload.Low || 0}</div>
+            </div>
+            <div class="chart-bar">
+              <div class="chart-label">Workload - Medium</div>
+              <div class="chart-fill-wrapper">
+                <div class="chart-fill" style="width: ${workloadTotal > 0 ? Math.round((summaryData.workload.Medium / workloadTotal) * 100) : 0}%">${workloadTotal > 0 ? Math.round((summaryData.workload.Medium / workloadTotal) * 100) : 0}%</div>
+              </div>
+              <div class="chart-value">${summaryData.workload.Medium || 0}</div>
+            </div>
+            <div class="chart-bar">
+              <div class="chart-label">Workload - High</div>
+              <div class="chart-fill-wrapper">
+                <div class="chart-fill" style="width: ${workloadTotal > 0 ? Math.round((summaryData.workload.High / workloadTotal) * 100) : 0}%">${workloadTotal > 0 ? Math.round((summaryData.workload.High / workloadTotal) * 100) : 0}%</div>
+              </div>
+              <div class="chart-value">${summaryData.workload.High || 0}</div>
+            </div>
+          </div>
+        `;
 
-          // Load full reviews
-const revRes = await fetch(`/api/profs/${profId}/reviews?school=${school}`);
-const revData = await revRes.json();
-
-document.getElementById("full-reviews").innerHTML = revData.reviews.length
-? revData.reviews.map(r => `
-  <div class="card">
-    <strong>${r.anonymous ? "Anonymous" : r.display_name}</strong>
-    <p><strong>${r.title}</strong> — ${r.course_code}</p>
-    <p>${r.review_text}</p>
-    <small>${new Date(r.created_at).toLocaleDateString()}</small>
-  </div>
-`).join("")
-: "<p>No reviews yet.</p>";
-
+        // Load reviews
+        const revRes = await fetch(`/api/profs/${profId}/reviews?school=${school}`);
+        const revData = await revRes.json();
+        
+        const reviewsDiv = document.getElementById("full-reviews");
+        if (revData.reviews && revData.reviews.length > 0) {
+          reviewsDiv.innerHTML = revData.reviews.map(r => {
+            const stars = r.rating || 0;
+            const starDisplay = '★'.repeat(stars) + '☆'.repeat(5 - stars);
+            const avatarSrc = r.anonymous ? 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'56\' height=\'56\'%3E%3Crect fill=\'%23f3f4f6\' width=\'56\' height=\'56\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-size=\'24\'%3EA%3C/text%3E%3C/svg%3E' : (r.photo_path || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'56\' height=\'56\'%3E%3Crect fill=\'%23f3f4f6\' width=\'56\' height=\'56\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-size=\'24\'%3E👤%3C/text%3E%3C/svg%3E');
+            const displayName = r.anonymous ? 'Anonymous' : (r.display_name || 'User');
+            const metaInfo = r.anonymous ? '' : [
+              r.college ? `College: ${r.college}` : '',
+              r.batch_id ? `Batch: ${r.batch_id}` : ''
+            ].filter(Boolean).join(' • ');
+            const tags = r.tags ? r.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+            
+            return `
+              <div class="review-card" data-review-id="${r.id}">
+                <div class="review-view-count">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                  <span>${r.view_count || 0}</span>
+                </div>
+                <div class="review-header">
+                  <img src="${avatarSrc}" alt="${displayName}" class="review-avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'56\' height=\'56\'%3E%3Crect fill=\'%23f3f4f6\' width=\'56\' height=\'56\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-size=\'24\'%3E👤%3C/text%3E%3C/svg%3E'">
+                  <div class="review-user-info">
+                    <div class="review-user-name">${displayName}</div>
+                    ${metaInfo ? `<div class="review-meta">${metaInfo}</div>` : ''}
+                    ${stars > 0 ? `<div class="review-rating"><span class="stars">${starDisplay}</span> <span>${stars}/5</span></div>` : ''}
+                  </div>
+                </div>
+                <div class="review-content">
+                  <p><strong>Course:</strong> ${r.course_code || 'N/A'}</p>
+                  <p>${r.review_text || ''}</p>
+                  ${tags.length > 0 ? `<div class="review-tags">${tags.map(t => `<span class="review-tag">${t}</span>`).join('')}</div>` : ''}
+                </div>
+                <div class="review-footer">
+                  <span>${r.would_take_again === 'Yes' ? '✓ Would take again' : r.would_take_again === 'No' ? '✗ Would not take again' : ''} ${r.attainable_4 === 'Yes' ? '• 4.0 Attainable' : ''} ${r.workload_rating ? `• Workload: ${r.workload_rating}` : ''}</span>
+                  <span>${r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</span>
+                </div>
+              </div>
+            `;
+          }).join('');
+          
+          // Make cards clickable
+          reviewsDiv.querySelectorAll('.review-card').forEach(card => {
+            card.addEventListener('click', async () => {
+              // Toggle selected state
+              card.classList.toggle('selected');
+              
+              // Increment view count
+              const reviewId = card.dataset.reviewId;
+              try {
+                await fetch(`/api/reviews/${reviewId}/view?school=${school}`, { method: 'POST' });
+                // Update view count display
+                const viewCountEl = card.querySelector('.review-view-count span');
+                if (viewCountEl) {
+                  const currentCount = parseInt(viewCountEl.textContent) || 0;
+                  viewCountEl.textContent = currentCount + 1;
+                }
+              } catch (e) {
+                console.error('Failed to increment view count:', e);
+              }
+            });
+          });
+        } else {
+          reviewsDiv.innerHTML = "<p>No reviews yet. Be the first to review this professor!</p>";
+        }
 
         // Notes
         const notesDiv = document.getElementById("notes");
@@ -186,84 +449,31 @@ document.getElementById("full-reviews").innerHTML = revData.reviews.length
           : "<p>No notes yet.</p>";
 
       } catch (err) {
+        console.error('Error loading professor:', err);
         document.getElementById("prof-details").innerHTML = "<p style='color:red'>Error loading professor details.</p>";
       }
     }
-
-    // Submit rating
-    const ratingForm = document.getElementById("rating-form");
-    ratingForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const stars = parseInt(document.getElementById("stars").value) || 0;
-      const comment = document.getElementById("comment").value.trim();
-      const anonymous = false;
-
-      if (stars === 0) return alert("Please select a star rating first!");
-
-      const school = localStorage.getItem("selectedSchool") || "dlsu";
-      const res = await fetch(`/api/profs/${profId}/rate?school=${school}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stars, comment, anonymous })
-      });
-
-      const data = await res.json();
-      if (data.ok) {
-        await loadProfessor();
-        ratingForm.reset();
-        document.querySelectorAll('.star').forEach(s => s.classList.remove('selected'));
-        document.getElementById('stars').value = 0;
-        selectedStars = 0;
-      } else {
-        alert(data.error || "Failed to submit rating.");
-      }
-    });
 
     loadProfessor();
   });
   </script>
 
-
-  <!-- Load shared header dynamically -->
- <!-- Load shared header dynamically -->
-<script src="js/app.js"></script>
-<!-- Load shared header dynamically (replace existing fetch block) -->
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const headerContainer = document.getElementById("header-placeholder");
-    // use absolute path to avoid relative-path issues
-    const res = await fetch("/components/header.html");
-    headerContainer.innerHTML = await res.text();
-
-    // small pause to allow browser to parse inserted HTML
-    await new Promise(requestAnimationFrame);
-
-    // call the global functions only if available
-    if (typeof window.updateSchoolLogo === "function") {
-      window.updateSchoolLogo(); // set correct logo src
+  <script src="js/app.js"></script>
+  <script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      const headerContainer = document.getElementById("header-placeholder");
+      const res = await fetch("/components/header.html");
+      headerContainer.innerHTML = await res.text();
+      await new Promise(requestAnimationFrame);
+      if (typeof window.updateSchoolLogo === "function") window.updateSchoolLogo();
+      if (typeof window.initializeHeader === "function") await window.initializeHeader();
+      if (typeof window.updateAuthUI === "function") window.updateAuthUI();
+      console.log("Header injected and initialized (prof).");
+    } catch (err) {
+      console.error("Failed to load header:", err);
     }
-    if (typeof window.initializeHeader === "function") {
-      // initializeHeader is async in your code; await if it returns a promise
-      await window.initializeHeader();
-    }
-    if (typeof window.updateAuthUI === "function") {
-      window.updateAuthUI();
-    }
-
-    console.log("Header injected and initialized (prof/subject).");
-  } catch (err) {
-    console.error("Failed to load header:", err);
-  }
-});
-</script>
-
-
-
-
-
-  <!-- Load global JS (which has the new initializeHeader) -->
-
-  
+  });
+  </script>
 </body>
 </html>
