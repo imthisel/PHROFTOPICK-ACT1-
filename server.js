@@ -405,13 +405,35 @@ app.post('/api/profs/:id/review', (req, res) => {
   const school = req.query.school || 'dlsu';
   const db = getDb(school);
   const profId = req.params.id;
-  const token = req.headers.authorization?.split(" ")[1];
+  
+  // COMPREHENSIVE TOKEN DEBUGGING
+  console.log('📝 Review submission request received');
+  console.log('🔍 Headers:', {
+    authorization: req.headers.authorization,
+    'content-type': req.headers['content-type']
+  });
+  console.log('🔍 Full headers keys:', Object.keys(req.headers));
+  
+  const authHeader = req.headers.authorization;
+  console.log('🔍 Authorization header:', authHeader);
+  
+  const token = authHeader?.split(" ")[1];
+  console.log('🔍 Extracted token:', token ? `${token.substring(0, 20)}... (length: ${token.length})` : 'NULL/UNDEFINED');
 
-  if (!token) return res.status(401).json({ error: 'Login required' });
+  if (!token) {
+    console.error('❌ NO TOKEN - Authorization header:', authHeader);
+    return res.status(401).json({ error: 'Login required' });
+  }
 
   let user;
-  try { user = jwt.verify(token, JWT_SECRET); }
-  catch { return res.status(401).json({ error: 'Invalid token' }); }
+  try { 
+    user = jwt.verify(token, JWT_SECRET);
+    console.log('✅ Token verified successfully, user ID:', user.id);
+  }
+  catch (err) { 
+    console.error('❌ Token verification failed:', err.message);
+    return res.status(401).json({ error: 'Invalid token' }); 
+  }
 
   const {
     course_code, would_take_again, attainable_4, deadline_leniency,
