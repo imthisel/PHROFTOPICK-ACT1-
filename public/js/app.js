@@ -73,8 +73,17 @@ const api = {
 };
 
 
+function tokenSchool(t) {
+  try {
+    const b = (t || '').split('.')[1] || '';
+    const json = atob(b.replace(/-/g, '+').replace(/_/g, '/'));
+    const payload = JSON.parse(json);
+    return payload && payload.school ? payload.school : null;
+  } catch (_) { return null; }
+}
+
 async function initializeHeader() {
-  const school = localStorage.getItem('selectedSchool') || 'dlsu';
+  const storedSchool = localStorage.getItem('selectedSchool') || 'dlsu';
   const avatarImg = document.getElementById('user-avatar');
   const userInitial = document.getElementById('user-initial');
   const drop = document.getElementById('user-dropdown');
@@ -280,15 +289,14 @@ async function initializeHeader() {
   const token = localStorage.getItem('token');
   if (!token) return showLoggedOut();
 
+  const tSchool = tokenSchool(token) || storedSchool;
+
   try {
-    const resp = await fetch(`/api/me?school=${school}`, {
+    const resp = await fetch(`/api/me?school=${tSchool}`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     
     if (resp.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user_display');
-      localStorage.removeItem('user_photo');
       return showLoggedOut();
     }
 
@@ -299,6 +307,7 @@ async function initializeHeader() {
     localStorage.setItem('user_display', user.display_name || 'You');
     const photoUrl = user.photo_path || localStorage.getItem('user_photo') || '';
     if (photoUrl) localStorage.setItem('user_photo', photoUrl);
+    try { if (tSchool) localStorage.setItem('selectedSchool', tSchool); } catch (_) {}
     
     showLoggedIn(user.display_name || 'You', photoUrl);
   } catch (err) {
