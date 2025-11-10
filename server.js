@@ -406,34 +406,18 @@ app.post('/api/profs/:id/review', (req, res) => {
   const db = getDb(school);
   const profId = req.params.id;
   
-  // COMPREHENSIVE TOKEN DEBUGGING
   console.log('📝 Review submission request received');
-  console.log('🔍 Headers:', {
-    authorization: req.headers.authorization,
-    'content-type': req.headers['content-type']
-  });
-  console.log('🔍 Full headers keys:', Object.keys(req.headers));
+  console.log('🔍 Session authenticated:', !!req.user);
+  console.log('🔍 Session user ID:', req.user?.id);
   
-  const authHeader = req.headers.authorization;
-  console.log('🔍 Authorization header:', authHeader);
-  
-  const token = authHeader?.split(" ")[1];
-  console.log('🔍 Extracted token:', token ? `${token.substring(0, 20)}... (length: ${token.length})` : 'NULL/UNDEFINED');
-
-  if (!token) {
-    console.error('❌ NO TOKEN - Authorization header:', authHeader);
+  // Check if user is authenticated via session (primary method)
+  if (!req.user || !req.user.id) {
+    console.error('❌ User not authenticated via session');
     return res.status(401).json({ error: 'Login required' });
   }
-
-  let user;
-  try { 
-    user = jwt.verify(token, JWT_SECRET);
-    console.log('✅ Token verified successfully, user ID:', user.id);
-  }
-  catch (err) { 
-    console.error('❌ Token verification failed:', err.message);
-    return res.status(401).json({ error: 'Invalid token' }); 
-  }
+  
+  const userId = req.user.id;
+  console.log('✅ User authenticated via session, ID:', userId);
 
   const {
     course_code, would_take_again, attainable_4, deadline_leniency,
@@ -441,7 +425,7 @@ app.post('/api/profs/:id/review', (req, res) => {
   } = req.body;
 
   // Fetch user profile data from database (same data used in settings.html)
-  db.get('SELECT display_name, photo_path, college, batch FROM users WHERE id = ?', [user.id], (err, userData) => {
+  db.get('SELECT display_name, photo_path, college, batch FROM users WHERE id = ?', [userId], (err, userData) => {
     if (err) {
       console.error('Failed to fetch user data for review:', err);
       db.close();
@@ -449,7 +433,7 @@ app.post('/api/profs/:id/review', (req, res) => {
     }
 
     if (!userData) {
-      console.warn('User not found in database:', user.id);
+      console.warn('User not found in database:', userId);
       db.close();
       return res.status(404).json({ error: 'User not found' });
     }
@@ -462,7 +446,7 @@ app.post('/api/profs/:id/review', (req, res) => {
     const ratingValue = parseInt(rating) || 0;
 
     console.log('📝 Creating review with user data:', {
-      userId: user.id,
+      userId: userId,
       displayName: displayName || 'Anonymous',
       college: college || 'N/A',
       batch: batchId || 'N/A',
@@ -479,7 +463,7 @@ app.post('/api/profs/:id/review', (req, res) => {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     [
-      profId, user.id, displayName, anonymous ? 1 : 0,
+      profId, userId, displayName, anonymous ? 1 : 0,
       course_code, would_take_again, attainable_4,
       deadline_leniency, workload_rating, tags, review_text,
       ratingValue, college, batchId, photoPath

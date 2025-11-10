@@ -515,21 +515,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.initializeHeader) try { await window.initializeHeader(); } catch(e){}
   } catch (e) { console.warn('Header injection failed', e); }
 
-  // IMMEDIATE TOKEN CHECK ON PAGE LOAD
-  const pageLoadToken = localStorage.getItem('token');
-  console.log('🚀 Page loaded - checking authentication...');
-  console.log('📦 Token in localStorage:', pageLoadToken ? 'EXISTS ✅' : 'MISSING ❌');
-  
-  if (!pageLoadToken || pageLoadToken === 'null' || pageLoadToken === 'undefined') {
-    console.error('⚠️ NO TOKEN FOUND ON PAGE LOAD!');
-    const banner = document.createElement('div');
-    banner.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#fee2e2;border:2px solid #dc2626;padding:16px 24px;border-radius:12px;box-shadow:0 8px 24px rgba(220,38,38,0.3);z-index:9999;max-width:600px;text-align:center;font-weight:600;';
-    banner.innerHTML = '🔒 <strong>Not Logged In!</strong> You must <a href="/home.html" style="color:#dc2626;text-decoration:underline;font-weight:700;">log in with Google</a> before submitting reviews.';
-    document.body.appendChild(banner);
-  } else {
-    console.log('✅ User is authenticated, token length:', pageLoadToken.length);
-  }
-
   const urlParams = new URLSearchParams(window.location.search);
   let profId = urlParams.get('prof');
   const picker = document.getElementById('prof-picker');
@@ -703,38 +688,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     revResult.textContent = '';
-
-    // COMPREHENSIVE TOKEN CHECK
-    const rawToken = localStorage.getItem('token');
-    console.log('🔍 RAW TOKEN from localStorage:', rawToken);
-    console.log('🔍 All localStorage keys:', Object.keys(localStorage));
-    console.log('🔍 localStorage contents:', {
-      token: localStorage.getItem('token'),
-      user_display: localStorage.getItem('user_display'),
-      selectedSchool: localStorage.getItem('selectedSchool'),
-      user_photo: localStorage.getItem('user_photo')
-    });
-
-    // Clean and validate token
-    let token = rawToken || '';
-    
-    // Strip "Bearer " prefix if present
-    if (token.startsWith('Bearer ')) {
-      token = token.substring(7);
-      console.log('✂️ Stripped Bearer prefix, new token:', token);
-    }
-    
-    // Check if token is valid
-    if (!token || token === 'null' || token === 'undefined' || token.trim() === '') {
-      console.error('❌ NO VALID TOKEN FOUND!');
-      revResult.textContent = '❌ Authentication error. Please log in again at home.html';
-      revResult.style.color = '#dc2626';
-      alert('You are not logged in. Please go to home.html and log in with Google first.');
-      return;
-    }
-    
-    console.log('✅ Valid token found, length:', token.length);
-    console.log('📝 Token preview:', token.substring(0, 20) + '...');
+    disableForm(true);
 
     // Build payload
     const payload = {
@@ -752,7 +706,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const res = await fetch(`/api/profs/${profId}/review?school=${(localStorage.getItem('selectedSchool')||'dlsu')}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(payload)
       });
       const j = await res.json().catch(() => ({}));
