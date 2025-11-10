@@ -501,20 +501,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.initializeHeader) try { await window.initializeHeader(); } catch(e){}
   } catch (e) { console.warn('Header injection failed', e); }
 
-  // Immediate token check on page load
-  const immediateToken = localStorage.getItem('token');
-  console.log('🚀 Page loaded - token present:', !!immediateToken);
-  console.log('📦 localStorage.token value:', immediateToken);
-  
-  if (!immediateToken || immediateToken === 'null' || immediateToken === 'undefined') {
-    console.warn('⚠️ No valid token found on page load!');
-    // Show warning banner instead of blocking
-    const warning = document.createElement('div');
-    warning.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#fef3c7;border:2px solid #f59e0b;padding:16px 24px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:9999;max-width:500px;text-align:center;';
-    warning.innerHTML = '⚠️ <strong>Not logged in.</strong> Please <a href="/auth/google?school=' + (localStorage.getItem('selectedSchool') || 'dlsu') + '" style="color:#dc2626;text-decoration:underline;">sign in with Google</a> to submit reviews.';
-    document.body.appendChild(warning);
-  }
-
   const urlParams = new URLSearchParams(window.location.search);
   let profId = urlParams.get('prof');
   const picker = document.getElementById('prof-picker');

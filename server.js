@@ -431,74 +431,49 @@ app.post('/api/profs/:id/review', (req, res) => {
     const batchId = anonymous ? null : (userData?.batch || null);
     const ratingValue = parseInt(rating) || 0;
 
-    // Add missing columns if they don't exist (migration)
-    db.serialize(() => {
-      const columnsToAdd = [
-        { name: 'rating', type: 'INTEGER DEFAULT 0' },
-        { name: 'college', type: 'TEXT' },
-        { name: 'batch_id', type: 'TEXT' },
-        { name: 'photo_path', type: 'TEXT' },
-        { name: 'view_count', type: 'INTEGER DEFAULT 0' }
-      ];
+    // Insert review directly (table already has all columns)
+    db.run(`
+      INSERT INTO prof_reviews (
+        prof_id, user_id, display_name, anonymous,
+        course_code, would_take_again, attainable_4,
+        deadline_leniency, workload_rating, tags, review_text,
+        rating, college, batch_id, photo_path
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    [
+      profId, user.id, displayName, anonymous ? 1 : 0,
+      course_code, would_take_again, attainable_4,
+      deadline_leniency, workload_rating, tags, review_text,
+      ratingValue, college, batchId, photoPath
+    ],
+    function(insertErr) {
+      if (insertErr) {
+        db.close();
+        return res.status(500).json({ error: 'DB error: ' + insertErr.message });
+      }
 
-      let colIndex = 0;
-      const tryAddColumn = (index) => {
-        if (index >= columnsToAdd.length) {
-          // All columns processed, now insert review
-          db.run(`
-            INSERT INTO prof_reviews (
-              prof_id, user_id, display_name, anonymous,
-              course_code, would_take_again, attainable_4,
-              deadline_leniency, workload_rating, tags, review_text,
-              rating, college, batch_id, photo_path
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `,
-          [
-            profId, user.id, displayName, anonymous ? 1 : 0,
-            course_code, would_take_again, attainable_4,
-            deadline_leniency, workload_rating, tags, review_text,
-            ratingValue, college, batchId, photoPath
-          ],
-          function(insertErr) {
-            if (insertErr) {
+      const reviewId = this.lastID;
+
+      // Update professor rating average and count based on review ratings
+      if (ratingValue > 0) {
+        db.get("SELECT AVG(rating) AS avg, COUNT(*) AS count FROM prof_reviews WHERE prof_id = ? AND rating > 0", [profId], (err2, row) => {
+          if (!err2 && row) {
+            const avg = row.avg ? parseFloat(row.avg.toFixed(2)) : 0;
+            const count = row.count || 0;
+            db.run("UPDATE professors SET rating_avg = ?, rating_count = ? WHERE id = ?", [avg, count, profId], (err3) => {
               db.close();
-              return res.status(500).json({ error: 'DB error: ' + insertErr.message });
-            }
-
-            // Update professor rating average and count based on review ratings
-            if (ratingValue > 0) {
-              db.get("SELECT AVG(rating) AS avg, COUNT(*) AS count FROM prof_reviews WHERE prof_id = ? AND rating > 0", [profId], (err2, row) => {
-                if (!err2 && row) {
-                  const avg = row.avg ? parseFloat(row.avg.toFixed(2)) : 0;
-                  const count = row.count || 0;
-                  db.run("UPDATE professors SET rating_avg = ?, rating_count = ? WHERE id = ?", [avg, count, profId], (err3) => {
-                    db.close();
-                    if (err3) console.error('Failed to update professor rating:', err3);
-                    res.json({ ok: true, review_id: this.lastID });
-                  });
-                } else {
-                  db.close();
-                  res.json({ ok: true, review_id: this.lastID });
-                }
-              });
-            } else {
-              db.close();
-              res.json({ ok: true, review_id: this.lastID });
-            }
-          });
-          return;
-        }
-
-        const col = columnsToAdd[index];
-        db.run(`ALTER TABLE prof_reviews ADD COLUMN ${col.name} ${col.type}`, (alterErr) => {
-          if (alterErr && !alterErr.message.includes('duplicate column name') && !alterErr.message.includes('duplicate')) {
-            console.warn(`Could not add column ${col.name}:`, alterErr.message);
+              if (err3) console.error('Failed to update professor rating:', err3);
+              res.json({ ok: true, review_id: reviewId });
+            });
+          } else {
+            db.close();
+            res.json({ ok: true, review_id: reviewId });
           }
-          tryAddColumn(index + 1);
         });
-      };
-
-      tryAddColumn(0);
+      } else {
+        db.close();
+        res.json({ ok: true, review_id: reviewId });
+      }
     });
   });
 });
