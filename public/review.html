@@ -501,6 +501,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.initializeHeader) try { await window.initializeHeader(); } catch(e){}
   } catch (e) { console.warn('Header injection failed', e); }
 
+  // Immediate token check on page load
+  const immediateToken = localStorage.getItem('token');
+  console.log('🚀 Page loaded - token present:', !!immediateToken);
+  console.log('📦 localStorage.token value:', immediateToken);
+  
+  if (!immediateToken || immediateToken === 'null' || immediateToken === 'undefined') {
+    console.warn('⚠️ No valid token found on page load!');
+    // Show warning banner instead of blocking
+    const warning = document.createElement('div');
+    warning.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#fef3c7;border:2px solid #f59e0b;padding:16px 24px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:9999;max-width:500px;text-align:center;';
+    warning.innerHTML = '⚠️ <strong>Not logged in.</strong> Please <a href="/auth/google?school=' + (localStorage.getItem('selectedSchool') || 'dlsu') + '" style="color:#dc2626;text-decoration:underline;">sign in with Google</a> to submit reviews.';
+    document.body.appendChild(warning);
+  }
+
   const urlParams = new URLSearchParams(window.location.search);
   let profId = urlParams.get('prof');
   const picker = document.getElementById('prof-picker');
@@ -678,17 +692,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlToken = new URLSearchParams(window.location.search).get('token') || '';
     let token = localStorage.getItem('token') || urlToken || '';
 
+    // Debug logging
+    console.log('🔍 Token check:', {
+      fromStorage: localStorage.getItem('token'),
+      fromURL: urlToken,
+      final: token
+    });
+
     // Treat literal strings "null"/"undefined" as missing
-    if (token === 'null' || token === 'undefined') token = '';
+    if (token === 'null' || token === 'undefined') {
+      console.warn('⚠️ Token was literal string "null" or "undefined"');
+      token = '';
+    }
 
     // If token was provided in URL, persist it for subsequent pages
     if (urlToken && !localStorage.getItem('token')) {
-      try { localStorage.setItem('token', urlToken); } catch (e) { /* ignore */ }
+      try { 
+        localStorage.setItem('token', urlToken); 
+        console.log('✅ Token from URL saved to localStorage');
+      } catch (e) { 
+        console.error('❌ Failed to save token to localStorage:', e);
+      }
     }
 
     // If stored token has "Bearer " prefix, strip it (avoid "Bearer Bearer ..." when sending)
     if (token && token.startsWith('Bearer ')) {
       token = token.slice(7);
+      console.log('✂️ Stripped "Bearer " prefix from token');
     }
 
     return token;
@@ -698,9 +728,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.preventDefault();
     revResult.textContent = '';
 
+    // Fresh token check right at submission time
     const token = getNormalizedToken();
+    
+    console.log('📝 Submit review - token status:', token ? '✅ Present' : '❌ Missing');
+    
     if (!token) {
-      return alert('You must be logged in to post a review.');
+      console.error('❌ No token found. localStorage contents:', {
+        token: localStorage.getItem('token'),
+        user_display: localStorage.getItem('user_display'),
+        selectedSchool: localStorage.getItem('selectedSchool')
+      });
+      
+      revResult.textContent = '⚠️ Login session not found. Redirecting to login...';
+      revResult.style.color = '#dc2626';
+      
+      // Redirect to OAuth login with return URL
+      setTimeout(() => {
+        const school = localStorage.getItem('selectedSchool') || 'dlsu';
+        window.location.href = `/auth/google?school=${school}`;
+      }, 1500);
+      return;
     }
 
     // Build payload as before...
