@@ -418,18 +418,34 @@ app.post('/api/profs/:id/review', (req, res) => {
     workload_rating, tags, review_text, anonymous, rating
   } = req.body;
 
-  // Fetch user profile data
+  // Fetch user profile data from database (same data used in settings.html)
   db.get('SELECT display_name, photo_path, college, batch FROM users WHERE id = ?', [user.id], (err, userData) => {
     if (err) {
+      console.error('Failed to fetch user data for review:', err);
       db.close();
       return res.status(500).json({ error: 'Failed to fetch user data' });
     }
 
-    const displayName = anonymous ? null : (userData?.display_name || user.display_name || 'User');
-    const photoPath = anonymous ? null : (userData?.photo_path || null);
-    const college = anonymous ? null : (userData?.college || null);
-    const batchId = anonymous ? null : (userData?.batch || null);
+    if (!userData) {
+      console.warn('User not found in database:', user.id);
+      db.close();
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Use profile data from database for review card
+    const displayName = anonymous ? null : (userData.display_name || 'User');
+    const photoPath = anonymous ? null : (userData.photo_path || null);
+    const college = anonymous ? null : (userData.college || null);
+    const batchId = anonymous ? null : (userData.batch || null);
     const ratingValue = parseInt(rating) || 0;
+
+    console.log('📝 Creating review with user data:', {
+      userId: user.id,
+      displayName: displayName || 'Anonymous',
+      college: college || 'N/A',
+      batch: batchId || 'N/A',
+      anonymous
+    });
 
     // Insert review directly (table already has all columns)
     db.run(`

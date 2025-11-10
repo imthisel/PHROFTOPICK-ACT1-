@@ -300,25 +300,44 @@
       box-shadow: 0 0 0 4px rgba(0,105,62,0.1);
     }
 
-    /* Star Rating */
+    /* Professional Star Rating */
     .star-rating {
       display: flex;
-      gap: 6px;
-      font-size: 32px;
+      gap: 8px;
+      font-size: 42px;
       cursor: pointer;
-      margin: 8px 0;
+      margin: 12px 0;
+      padding: 12px;
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      border-radius: 16px;
+      width: fit-content;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border: 2px solid #e5e7eb;
     }
     .star-rating .star {
       color: #d1d5db;
-      transition: color 0.2s ease, transform 0.1s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       user-select: none;
+      position: relative;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
     }
     .star-rating .star:hover {
-      transform: scale(1.1);
+      transform: scale(1.2) rotate(-5deg);
+      filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.4));
     }
-    .star-rating .star.selected,
+    .star-rating .star.selected {
+      color: #f59e0b;
+      animation: starPop 0.3s ease;
+      filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.5));
+    }
     .star-rating .star.hovered {
       color: #fbbf24;
+      transform: scale(1.15);
+    }
+    @keyframes starPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3) rotate(10deg); }
+      100% { transform: scale(1); }
     }
 
     /* Submit Button Enhancement */
@@ -436,11 +455,6 @@
     </select>
     <label>Workload</label>
   </div>
-
-      <div class="review-field">
-        <input id="rev-tags" placeholder=" ">
-        <label>Tags (comma separated)</label>
-      </div>
 
       <div class="review-field">
         <label style="margin-bottom: 8px; display: block; font-weight: 600; color: #374151;">Rating *</label>
@@ -656,7 +670,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const attainableEl = document.getElementById('rev-4');
   const deadlineEl = document.getElementById('rev-deadline');
   const workloadEl = document.getElementById('rev-workload');
-  const tagsEl = document.getElementById('rev-tags');
   const textEl = document.getElementById('rev-text');
   const anonEl = document.getElementById('rev-anon');
   const ratingEl = document.getElementById('rev-rating');
@@ -664,7 +677,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function disableForm(state = true) {
     if (submitBtn) submitBtn.disabled = state;
-    [courseEl, againEl, attainableEl, deadlineEl, workloadEl, tagsEl, textEl, anonEl, ratingEl]
+    [courseEl, againEl, attainableEl, deadlineEl, workloadEl, textEl, anonEl, ratingEl]
       .forEach(el => { if (el) el.disabled = state; });
     if (starRating) {
       starRating.style.pointerEvents = state ? 'none' : 'auto';
@@ -672,79 +685,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // Replace the token retrieval / submit-block with this improved normalization
-  function getNormalizedToken() {
-    // Prefer localStorage, fall back to URL token (OAuth redirect)
-    const urlToken = new URLSearchParams(window.location.search).get('token') || '';
-    let token = localStorage.getItem('token') || urlToken || '';
-
-    // Debug logging
-    console.log('🔍 Token check:', {
-      fromStorage: localStorage.getItem('token'),
-      fromURL: urlToken,
-      final: token
-    });
-
-    // Treat literal strings "null"/"undefined" as missing
-    if (token === 'null' || token === 'undefined') {
-      console.warn('⚠️ Token was literal string "null" or "undefined"');
-      token = '';
-    }
-
-    // If token was provided in URL, persist it for subsequent pages
-    if (urlToken && !localStorage.getItem('token')) {
-      try { 
-        localStorage.setItem('token', urlToken); 
-        console.log('✅ Token from URL saved to localStorage');
-      } catch (e) { 
-        console.error('❌ Failed to save token to localStorage:', e);
-      }
-    }
-
-    // If stored token has "Bearer " prefix, strip it (avoid "Bearer Bearer ..." when sending)
-    if (token && token.startsWith('Bearer ')) {
-      token = token.slice(7);
-      console.log('✂️ Stripped "Bearer " prefix from token');
-    }
-
-    return token;
-  }
-
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     revResult.textContent = '';
 
-    // Fresh token check right at submission time
-    const token = getNormalizedToken();
+    // Get token from localStorage (user is already logged in to access this page)
+    const token = localStorage.getItem('token') || '';
     
-    console.log('📝 Submit review - token status:', token ? '✅ Present' : '❌ Missing');
-    
-    if (!token) {
-      console.error('❌ No token found. localStorage contents:', {
-        token: localStorage.getItem('token'),
-        user_display: localStorage.getItem('user_display'),
-        selectedSchool: localStorage.getItem('selectedSchool')
-      });
-      
-      revResult.textContent = '⚠️ Login session not found. Redirecting to login...';
-      revResult.style.color = '#dc2626';
-      
-      // Redirect to OAuth login with return URL
-      setTimeout(() => {
-        const school = localStorage.getItem('selectedSchool') || 'dlsu';
-        window.location.href = `/auth/google?school=${school}`;
-      }, 1500);
-      return;
-    }
+    console.log('📝 Submitting review with token:', token ? 'Present ✅' : 'Missing ❌');
 
-    // Build payload as before...
+    // Build payload
     const payload = {
       course_code: courseEl.value.trim(),
       would_take_again: againEl.value,
       attainable_4: attainableEl.value,
       deadline_leniency: deadlineEl.value,
       workload_rating: workloadEl.value,
-      tags: tagsEl.value.trim(),
+      tags: '',
       review_text: textEl.value.trim(),
       anonymous: !!anonEl.checked,
       rating: parseInt(ratingEl.value) || 0
