@@ -909,6 +909,188 @@ app.get('/api/admin/users', (req, res) => {
   }
 });
 
+// =================== FILE UPLOAD CONFIGURATION ===================
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('📁 Created uploads directory:', uploadsDir);
+}
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    const name = path.basename(file.originalname, ext);
+    cb(null, name + '-' + uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+  fileFilter: (req, file, cb) => {
+    // Allow all file types for study materials
+    cb(null, true);
+  }
+});
+
+// =================== SUBJECT RESOURCES API ===================
+// Get subject details with resource count
+app.get('/api/subjects/:id', (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const db = getDb(school);
+  const subjectId = req.params.id;
+
+  db.get('SELECT * FROM subjects WHERE id = ?', [subjectId], (err, subject) => {
+    if (err) {
+      db.close();
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (!subject) {
+      db.close();
+      return res.status(404).json({ error: 'Subject not found' });
+    }
+
+    // Get resource and contributor counts
+    db.get(`
+      SELECT 
+        COUNT(*) as resourceCount,
+        COUNT(DISTINCT user_id) as contributorCount
+      FROM subject_resources 
+      WHERE subject_id = ?
+    `, [subjectId], (err2, stats) => {
+      db.close();
+      if (err2) return res.json({ subject, resourceCount: 0, contributorCount: 0 });
+      res.json({
+        subject,
+        resourceCount: stats?.resourceCount || 0,
+        contributorCount: stats?.contributorCount || 0
+      });
+    });
+  });
+});
+
+// Get all resources for a subject
+app.get('/api/subjects/:id/resources', (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const db = getDb(school);
+  const subjectId = req.params.id;
+
+  db.all(`
+    SELECT 
+      sr.*,
+      u.display_name,
+      u.photo_path,
+      u.college,
+      u.batch
+    FROM subject_resources sr
+    LEFT JOIN users u ON sr.user_id = u.id
+    WHERE sr.subject_id = ?
+    ORDER BY sr.created_at DESC
+  `, [subjectId], (err, resources) => {
+    db.close();
+    if (err) {
+      console.error('Failed to fetch resources:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json({ resources: resources || [] });
+  });
+});
+
+// Upload a resource
+app.post('/api/subjects/:id/upload', upload.single('file'), (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const db = getDb(school);
+  const subjectId = req.params.id;
+
+  console.log('📤 File upload request received');
+  console.log('🔍 Session user:', req.user);
+  console.log('🔍 File:', req.file);
+
+  // Check authentication
+  if (!req.user || !req.user.id) {
+    if (req.file) fs.unlinkSync(req.file.path); // Clean up uploaded file
+    db.close();
+    return res.status(401).json({ error: 'Login required' });
+  }
+
+  if (!req.file) {
+    db.close();
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  const userId = req.user.id;
+  const { title, description, anonymous } = req.body;
+  const isAnonymous = anonymous === '1';
+
+  // Get user data
+  db.get('SELECT display_name, photo_path, college, batch FROM users WHERE id = ?', [userId], (err, userData) => {
+    if (err || !userData) {
+      console.error('Failed to fetch user data:', err);
+      if (req.file) fs.unlinkSync(req.file.path);
+      db.close();
+      return res.status(500).json({ error: 'Failed to fetch user data' });
+    }
+
+    const filePath = '/uploads/' + req.file.filename;
+    
+    db.run(`
+      INSERT INTO subject_resources (
+        subject_id, user_id, file_name, file_path, file_size, title,
+        description, anonymous, display_name, photo_path, college, batch
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      subjectId,
+      userId,
+      req.file.originalname,
+      filePath,
+      req.file.size,
+      title || req.file.originalname,
+      description || null,
+      isAnonymous ? 1 : 0,
+      isAnonymous ? null : userData.display_name,
+      isAnonymous ? null : userData.photo_path,
+      isAnonymous ? null : userData.college,
+      isAnonymous ? null : userData.batch
+    ], function(insertErr) {
+      db.close();
+      if (insertErr) {
+        console.error('Failed to insert resource:', insertErr);
+        if (req.file) fs.unlinkSync(req.file.path);
+        return res.status(500).json({ error: 'Failed to save resource' });
+      }
+
+      console.log('✅ Resource uploaded successfully, ID:', this.lastID);
+      res.json({
+        success: true,
+        resourceId: this.lastID,
+        filePath: filePath
+      });
+    });
+  });
+});
+
+// Track download count
+app.post('/api/resources/:id/download', (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const db = getDb(school);
+  const resourceId = req.params.id;
+
+  db.run('UPDATE subject_resources SET download_count = download_count + 1 WHERE id = ?', [resourceId], (err) => {
+    db.close();
+    if (err) {
+      console.error('Failed to update download count:', err);
+      return res.status(500).json({ error: 'Failed to track download' });
+    }
+    res.json({ success: true });
+  });
+});
+
 // =================== DEBUG ROUTE ===================
 app.get('/api/debug/dbinfo', (req, res) => {
   const school = req.query.school || 'dlsu';

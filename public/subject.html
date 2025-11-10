@@ -3,14 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=1100, initial-scale=0.3, user-scalable=yes" />
-  <title>Subject Details</title>
+  <title>Subject Resources</title>
   <link rel="icon" type="image/png" href="images/favicon.png">
-
-
-  <!-- ✅ Base styles -->
   <link rel="stylesheet" href="css/base.css">
+  
   <script>
-  // Preload the correct logo before header loads
   (function preloadLogo() {
     const school = localStorage.getItem('selectedSchool') || 'dlsu';
     const logoMap = {
@@ -20,18 +17,12 @@
       up: 'images/up-logo.png',
     };
     const selectedLogo = logoMap[school] || 'images/default-logo.png';
-
-    // Preload it to browser cache
     const img = new Image();
     img.src = selectedLogo;
-
-    // Pre-store it globally for instant use when header loads
     window.__PRELOADED_LOGO = selectedLogo;
   })();
-</script>
-
-
-  <!-- ✅ Load school theme dynamically AFTER base -->
+  </script>
+  
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       let school = localStorage.getItem("selectedSchool") || "dlsu";
@@ -41,140 +32,306 @@
       document.head.appendChild(themeLink);
     });
   </script>
+  
+  <style>
+    .subject-page { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .subject-header { background: linear-gradient(135deg, #fff 0%, #f9fafb 100%); border: 2px solid #e5e7eb; border-radius: 20px; padding: 32px; margin-bottom: 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
+    .subject-header h1 { margin: 0 0 8px; font-size: 32px; font-weight: 800; color: #111827; }
+    .subject-code { display: inline-block; background: var(--primary); color: white; padding: 6px 16px; border-radius: 8px; font-weight: 700; font-size: 14px; margin-bottom: 16px; }
+    .upload-section { background: #fff; border: 2px solid #e5e7eb; border-radius: 20px; padding: 32px; margin-bottom: 32px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+    .upload-section h2 { margin: 0 0 24px; font-size: 24px; font-weight: 700; color: #111827; }
+    .upload-form { display: flex; flex-direction: column; gap: 20px; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+    .form-group label { font-weight: 600; font-size: 14px; color: #374151; }
+    .file-upload-wrapper { position: relative; overflow: hidden; width: 100%; }
+    .file-upload-input { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .file-upload-button { display: flex; align-items: center; justify-content: center; gap: 12px; background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); border: 2px dashed #d1d5db; border-radius: 12px; padding: 32px; text-align: center; cursor: pointer; transition: all 0.3s ease; min-height: 120px; flex-direction: column; }
+    .file-upload-button:hover { border-color: var(--primary); background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); }
+    .file-upload-button.has-file { border-color: var(--primary); border-style: solid; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); }
+    input[type="text"], textarea { padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; transition: all 0.2s ease; font-family: inherit; }
+    input[type="text"]:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0,105,62,0.1); }
+    textarea { resize: vertical; min-height: 100px; }
+    .checkbox-wrapper { display: flex; align-items: center; gap: 12px; padding: 16px; background: #f9fafb; border-radius: 10px; border: 2px solid #e5e7eb; cursor: pointer; transition: all 0.2s ease; }
+    .checkbox-wrapper:hover { border-color: var(--primary); background: #f0fdf4; }
+    .checkbox-wrapper input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary); }
+    .checkbox-wrapper label { cursor: pointer; font-weight: 600; color: #374151; margin: 0; user-select: none; }
+    .upload-btn { background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white; border: none; padding: 16px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,105,62,0.3); }
+    .upload-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,105,62,0.4); }
+    .upload-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .upload-result { padding: 16px; border-radius: 10px; font-weight: 600; margin-top: 16px; display: none; }
+    .upload-result.success { background: #d1fae5; color: #065f46; border: 2px solid #6ee7b7; display: block; }
+    .upload-result.error { background: #fee2e2; color: #991b1b; border: 2px solid #fca5a5; display: block; }
+    .resources-section { background: #fff; border: 2px solid #e5e7eb; border-radius: 20px; padding: 32px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+    .resources-section h2 { margin: 0 0 24px; font-size: 24px; font-weight: 700; color: #111827; }
+    .resources-grid { display: grid; gap: 20px; }
+    .resource-card { background: linear-gradient(135deg, #fff 0%, #f9fafb 100%); border: 2px solid #e5e7eb; border-radius: 16px; padding: 24px; transition: all 0.3s ease; }
+    .resource-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); border-color: var(--primary); }
+    .resource-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 16px; }
+    .resource-icon { width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .resource-icon.pdf { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); }
+    .resource-icon.doc { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+    .resource-icon.ppt { background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); }
+    .resource-info { flex: 1; }
+    .resource-title { font-weight: 700; font-size: 17px; color: #111827; margin-bottom: 4px; word-break: break-word; }
+    .resource-meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; color: #6b7280; }
+    .resource-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #e5e7eb; margin-top: 16px; }
+    .uploader-info { display: flex; align-items: center; gap: 12px; }
+    .uploader-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); border: 2px solid #e5e7eb; }
+    .uploader-name { font-weight: 700; font-size: 14px; color: #111827; }
+    .uploader-meta { font-size: 12px; color: #6b7280; }
+    .download-btn { background: var(--primary); color: white; padding: 10px 20px; border-radius: 8px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s ease; }
+    .download-btn:hover { background: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,105,62,0.3); }
+    .spinner { width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+  
   <link rel="stylesheet" href="css/mobile-override.css">
 </head>
 
 <body>
-  <!-- ===== HEADER ===== -->
   <div id="header-placeholder"></div>
-  <!-- Load shared header dynamically (replace existing fetch block) -->
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const headerContainer = document.getElementById("header-placeholder");
-    // use absolute path to avoid relative-path issues
-    const res = await fetch("/components/header.html");
-    headerContainer.innerHTML = await res.text();
 
-    // small pause to allow browser to parse inserted HTML
-    await new Promise(requestAnimationFrame);
-
-    // call the global functions only if available
-    if (typeof window.updateSchoolLogo === "function") {
-      window.updateSchoolLogo(); // set correct logo src
-    }
-    if (typeof window.initializeHeader === "function") {
-      // initializeHeader is async in your code; await if it returns a promise
-      await window.initializeHeader();
-    }
-    if (typeof window.updateAuthUI === "function") {
-      window.updateAuthUI();
-    }
-
-    console.log("Header injected and initialized (prof/subject).");
-  } catch (err) {
-    console.error("Failed to load header:", err);
-  }
-});
-</script>
-
-
-  <!-- ===== CONTENT ===== -->
-  <main class="subject-page container fade-in">
-    <!-- 📘 Subject info -->
-    <section id="subject-details" class="subject-card card"></section>
-
-    <div class="subject-content">
-      <!-- ✍️ Upload Section -->
-      <section class="panel upload-panel">
-        <h2>Upload Notes</h2>
-        <form id="upload-subject-form" class="upload-form">
-          <input type="file" id="note-file" required>
-          <input type="text" id="note-desc" placeholder="Short description (optional)">
-          <button type="submit">Upload</button>
-        </form>
-        <div id="upload-result"></div>
-      </section>
-
-      <!-- 📂 Notes Section -->
-      <section class="panel notes-panel">
-        <h2>All Notes</h2>
-        <div id="notes" class="notes-list"></div>
-      </section>
+  <main class="subject-page container">
+    <div id="subject-header" class="subject-header">
+      <div class="spinner"></div>
+      <p style="text-align:center;color:#6b7280;">Loading subject...</p>
     </div>
+
+    <section class="upload-section">
+      <h2>📤 Upload Resource</h2>
+      <form id="upload-form" class="upload-form">
+        <div class="form-group">
+          <label>Choose File</label>
+          <div class="file-upload-wrapper">
+            <input type="file" id="file-input" class="file-upload-input" required>
+            <div class="file-upload-button" id="file-button">
+              <div style="font-size:48px;">📁</div>
+              <div style="font-weight:600;color:#374151;">Click to select file</div>
+              <div id="file-name" style="font-size:14px;color:#6b7280;margin-top:4px;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="title-input">Resource Title</label>
+          <input type="text" id="title-input" placeholder="e.g., Midterm Review Notes" maxlength="100">
+        </div>
+        <div class="form-group">
+          <label for="description-input">Description (Optional)</label>
+          <textarea id="description-input" placeholder="Add any helpful notes about this resource..."></textarea>
+        </div>
+        <div class="form-group">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="anonymous-checkbox">
+            <label for="anonymous-checkbox">🕵️ Post Anonymously (hide your name, photo, college & batch)</label>
+          </div>
+        </div>
+        <button type="submit" class="upload-btn" id="upload-btn">📤 Upload Resource</button>
+        <div id="upload-result" class="upload-result"></div>
+      </form>
+    </section>
+
+    <section class="resources-section">
+      <h2>📚 All Resources</h2>
+      <div id="resources-list" class="resources-grid">
+        <div style="text-align:center;padding:48px;color:#6b7280;">
+          <div class="spinner"></div>
+          <p>Loading resources...</p>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <!-- ===== JS ===== -->
   <script>
     const subjectId = new URLSearchParams(window.location.search).get('id');
-    const token = localStorage.getItem('token');
     const school = localStorage.getItem('selectedSchool') || 'dlsu';
 
-    // ✅ Load subject details and notes
-    async function loadSubject() {
-      const res = await fetch(`/api/subjects/${subjectId}?school=${school}`);
-      const data = await res.json();
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const headerContainer = document.getElementById('header-placeholder');
+        const res = await fetch('/components/header.html');
+        headerContainer.innerHTML = await res.text();
+        await new Promise(r => requestAnimationFrame(r));
+        if (!document.querySelector('script[src="/js/app.js"]')) {
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = '/js/app.js';
+            s.onload = resolve;
+            s.onerror = () => reject(new Error('app.js failed'));
+            document.head.appendChild(s);
+          });
+        }
+        if (window.updateSchoolLogo) window.updateSchoolLogo();
+        if (window.initializeHeader) await window.initializeHeader();
+      } catch (e) { console.error('Header failed', e); }
 
-      const subject = data.subject;
-      document.getElementById('subject-details').innerHTML = `
-        <h2>${subject.code} — ${subject.name}</h2>
-        <p><strong>Average Difficulty:</strong> ${subject.difficulty_avg?.toFixed(2) || 'N/A'}</p>
-      `;
+      await loadSubject();
+      await loadResources();
+    });
 
-      const notesDiv = document.getElementById('notes');
-      if (!data.notes.length) {
-        notesDiv.innerHTML = '<p>No notes uploaded yet.</p>';
+    const fileInput = document.getElementById('file-input');
+    const fileButton = document.getElementById('file-button');
+    const fileNameDisplay = document.getElementById('file-name');
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const size = file.size < 1024*1024 ? (file.size/1024).toFixed(1)+' KB' : (file.size/(1024*1024)).toFixed(1)+' MB';
+        fileNameDisplay.textContent = `📄 ${file.name} (${size})`;
+        fileButton.classList.add('has-file');
       } else {
-        notesDiv.innerHTML = data.notes.map(n => `
-          <div class="note-item">
-            <a href="${n.path}" target="_blank">${n.original_name}</a>
-            <p>${n.description || ''}</p>
-            <small>Uploaded by ${n.display_name || 'Anonymous'} on ${new Date(n.created_at).toLocaleString()}</small>
-          </div>
-        `).join('');
-      }
-    }
-
-    // ✅ Handle file upload
-    document.getElementById('upload-subject-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      if (!token) return alert('You must be logged in to upload notes.');
-
-      const file = document.getElementById('note-file').files[0];
-      if (!file) return alert('Select a file first.');
-
-      const desc = document.getElementById('note-desc').value;
-      const fd = new FormData();
-      fd.append('note', file);
-      fd.append('subject_id', subjectId);
-      fd.append('description', desc);
-
-      const res = await fetch(`/api/upload?school=${school}`, {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token },
-        body: fd
-      });
-
-      const data = await res.json();
-      if (data.error) {
-        document.getElementById('upload-result').textContent = 'Upload failed: ' + data.error;
-      } else {
-        document.getElementById('upload-result').innerHTML = `Uploaded! <a href="${data.path}" target="_blank">View note</a>`;
-        loadSubject();
+        fileNameDisplay.textContent = '';
+        fileButton.classList.remove('has-file');
       }
     });
 
-    loadSubject();
-  </script>
-
-  <!-- ✅ Load global app logic -->
-  <script src="js/app.js"></script>
-
-  <script>
-    function changeSchool() {
-      localStorage.removeItem('selectedSchool');
-      window.location.href = 'school.html';
+    async function loadSubject() {
+      try {
+        const res = await fetch(`/api/subjects/${subjectId}?school=${school}`);
+        const data = await res.json();
+        if (data.error) {
+          document.getElementById('subject-header').innerHTML = `<p style="color:#dc2626;text-align:center;">${data.error}</p>`;
+          return;
+        }
+        const s = data.subject;
+        document.getElementById('subject-header').innerHTML = `
+          <span class="subject-code">${s.code}</span>
+          <h1>${s.name}</h1>
+          <div style="display:flex;gap:24px;margin-top:16px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:8px;font-size:15px;color:#6b7280;">
+              <span>📚</span><span><strong style="color:#111827;font-weight:700;">${data.resourceCount||0}</strong> resources</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:15px;color:#6b7280;">
+              <span>👥</span><span><strong style="color:#111827;font-weight:700;">${data.contributorCount||0}</strong> contributors</span>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        console.error('Failed to load subject:', err);
+        document.getElementById('subject-header').innerHTML = '<p style="color:#dc2626;text-align:center;">Failed to load subject</p>';
+      }
     }
+
+    async function loadResources() {
+      const listDiv = document.getElementById('resources-list');
+      try {
+        const res = await fetch(`/api/subjects/${subjectId}/resources?school=${school}`);
+        const data = await res.json();
+        if (data.error || !data.resources || data.resources.length === 0) {
+          listDiv.innerHTML = '<div style="text-align:center;padding:48px;color:#6b7280;"><div style="font-size:64px;margin-bottom:16px;opacity:0.5;">📭</div><div style="font-size:18px;font-weight:600;color:#374151;">No resources yet</div><p style="margin-top:8px;font-size:14px;">Be the first to upload study materials!</p></div>';
+          return;
+        }
+        listDiv.innerHTML = data.resources.map(r => {
+          const isAnon = r.anonymous === 1;
+          const icon = getFileIcon(r.file_name);
+          const typeClass = getFileTypeClass(r.file_name);
+          const date = new Date(r.created_at).toLocaleDateString('en-PH', { month:'short', day:'numeric', year:'numeric', timeZone:'Asia/Manila' });
+          const size = r.file_size < 1024*1024 ? (r.file_size/1024).toFixed(1)+' KB' : (r.file_size/(1024*1024)).toFixed(1)+' MB';
+          return `
+            <div class="resource-card">
+              <div class="resource-header">
+                <div class="resource-icon ${typeClass}">${icon}</div>
+                <div class="resource-info">
+                  <div class="resource-title">${r.title || r.file_name}</div>
+                  <div class="resource-meta">
+                    <span>📅 ${date}</span>
+                    <span>💾 ${size}</span>
+                    <span>👁️ ${r.download_count||0} downloads</span>
+                  </div>
+                </div>
+              </div>
+              ${r.description ? `<div style="margin:12px 0;color:#374151;line-height:1.6;font-size:14px;">${r.description}</div>` : ''}
+              <div class="resource-footer">
+                <div class="uploader-info">
+                  ${isAnon ? `
+                    <div class="uploader-avatar" style="background:linear-gradient(135deg,#d1d5db 0%,#9ca3af 100%);display:flex;align-items:center;justify-content:center;font-size:18px;">🕵️</div>
+                    <div><div class="uploader-name">Anonymous</div><div class="uploader-meta">Hidden identity</div></div>
+                  ` : `
+                    <img src="${r.photo_path || 'images/default-avatar.png'}" class="uploader-avatar" alt="Avatar">
+                    <div><div class="uploader-name">${r.display_name||'User'}</div><div class="uploader-meta">${r.college||''} ${r.batch?`• Batch ${r.batch}`:''}</div></div>
+                  `}
+                </div>
+                <button class="download-btn" onclick="downloadResource('${r.file_path}', '${r.file_name}', ${r.id})">⬇️ Download</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Failed to load resources:', err);
+        listDiv.innerHTML = '<p style="color:#dc2626;text-align:center;">Failed to load resources</p>';
+      }
+    }
+
+    function getFileIcon(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      const icons = {pdf:'📕',doc:'📘',docx:'📘',ppt:'📙',pptx:'📙',xls:'📗',xlsx:'📗',jpg:'🖼️',jpeg:'🖼️',png:'🖼️',gif:'🖼️',zip:'📦',rar:'📦',txt:'📄',mp4:'🎬',mp3:'🎵'};
+      return icons[ext] || '📄';
+    }
+
+    function getFileTypeClass(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      if (['pdf'].includes(ext)) return 'pdf';
+      if (['doc','docx'].includes(ext)) return 'doc';
+      if (['ppt','pptx'].includes(ext)) return 'ppt';
+      return 'other';
+    }
+
+    async function downloadResource(filePath, fileName, resourceId) {
+      try {
+        await fetch(`/api/resources/${resourceId}/download?school=${school}`, { method:'POST', credentials:'include' });
+        const a = document.createElement('a');
+        a.href = filePath;
+        a.download = fileName;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => loadResources(), 500);
+      } catch (err) { console.error('Download failed:', err); }
+    }
+
+    document.getElementById('upload-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const uploadBtn = document.getElementById('upload-btn');
+      const resultDiv = document.getElementById('upload-result');
+      const file = fileInput.files[0];
+      if (!file) {
+        resultDiv.className = 'upload-result error';
+        resultDiv.textContent = '❌ Please select a file';
+        return;
+      }
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = '⏳ Uploading...';
+      resultDiv.className = 'upload-result';
+      resultDiv.style.display = 'none';
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('subject_id', subjectId);
+        formData.append('title', document.getElementById('title-input').value.trim() || file.name);
+        formData.append('description', document.getElementById('description-input').value.trim());
+        formData.append('anonymous', document.getElementById('anonymous-checkbox').checked ? '1' : '0');
+        const res = await fetch(`/api/subjects/${subjectId}/upload?school=${school}`, { method:'POST', credentials:'include', body:formData });
+        const data = await res.json();
+        if (data.error) {
+          resultDiv.className = 'upload-result error';
+          resultDiv.textContent = '❌ ' + data.error;
+        } else {
+          resultDiv.className = 'upload-result success';
+          resultDiv.textContent = '✅ Resource uploaded successfully!';
+          document.getElementById('upload-form').reset();
+          fileNameDisplay.textContent = '';
+          fileButton.classList.remove('has-file');
+          await loadSubject();
+          await loadResources();
+        }
+      } catch (err) {
+        resultDiv.className = 'upload-result error';
+        resultDiv.textContent = '❌ Upload failed: ' + err.message;
+      } finally {
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = '📤 Upload Resource';
+      }
+    });
   </script>
 </body>
 </html>
