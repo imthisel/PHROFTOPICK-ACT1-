@@ -142,9 +142,7 @@
           // initializeHeader may be async
           await window.initializeHeader();
         }
-        if (typeof window.updateAuthUI === 'function') {
-          try { window.updateAuthUI(); } catch(e){ console.warn('updateAuthUI error',e); }
-        }
+        // updateAuthUI will be called after profile data loads or after we confirm no token
         // optional header search init if those exist in app.js
         if (typeof window.initializeHeaderSearch === 'function') {
           try { window.initializeHeaderSearch(); } catch(e){ console.warn('initializeHeaderSearch error',e); }
@@ -167,43 +165,101 @@ if (!token && urlToken) {
   token = urlToken;
 }
 
-// If no token: send the user to the OAuth sign-in (instead of a blocking alert)
-// If no token, do not redirect immediately (prevents mobile loop);
-// allow header to render and user to re-auth explicitly if needed.
+const school = localStorage.getItem('selectedSchool') || 'dlsu';
+
+// If no token, show login prompt and don't make API calls
 if (!token) {
-  console.warn('No token found for settings — showing page without auto-redirect.');
+  console.warn('No token found — user must sign in to access settings.');
+  // Update auth UI to show logged-out state
+  if (typeof window.updateAuthUI === 'function') {
+    try { window.updateAuthUI(); } catch(e){ console.warn('updateAuthUI error',e); }
+  }
+  // Show a user-friendly message
+  const settingsGrid = document.querySelector('.settings-grid');
+  if (settingsGrid) {
+    settingsGrid.innerHTML = `
+      <div class="settings-card" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+        <h3 style="margin-bottom: 12px; color: #374151;">Sign In Required</h3>
+        <p style="margin-bottom: 20px; color: #6b7280;">You need to be signed in to view and edit your profile settings.</p>
+        <a href="/home.html" class="auth-btn" style="display: inline-block; text-decoration: none;">Go to Sign In</a>
+      </div>
+    `;
+  }
+  return; // Stop execution here
 }
 
-
-      const school = localStorage.getItem('selectedSchool') || 'dlsu';
-      try {
-        const meRes = await fetch(`/api/me?school=${school}`, {
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        if (!meRes.ok) {
-          const txt = await meRes.text().catch(()=>null);
-          throw new Error('Failed to load profile: ' + meRes.status + ' ' + (txt||''));
-        }
-        const data = await meRes.json();
-        const u = data.user || {};
-
-        document.getElementById('fld-display').value = u.display_name || '';
-        document.getElementById('fld-college').value = u.college || '';
-        document.getElementById('fld-course').value = u.course || '';
-        document.getElementById('fld-batch').value = u.batch || '';
-        document.getElementById('fld-username').value = u.username || '';
-        document.getElementById('fld-bio').value = u.bio || '';
-        document.getElementById('fld-photo').value = u.photo_path || '';
-        const avatar = document.getElementById('settings-avatar');
-        if (avatar) {
-          const src = u.photo_path || localStorage.getItem('user_photo') || '';
-          if (src) avatar.src = src;
-        }
-
-      } catch (err) {
-        console.error(err);
-        return alert('Failed to load profile — check console for details.');
+// If we have a token, try to load profile
+try {
+  const meRes = await fetch(`/api/me?school=${school}`, {
+    headers: { 'Authorization': 'Bearer ' + token }
+  });
+  
+  if (!meRes.ok) {
+    // Handle 401 - invalid/expired token
+    if (meRes.status === 401) {
+      console.warn('Token is invalid or expired');
+      // Clear invalid token
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
+      
+      // Update auth UI
+      if (typeof window.updateAuthUI === 'function') {
+        try { window.updateAuthUI(); } catch(e){ console.warn('updateAuthUI error',e); }
       }
+      
+      // Show user-friendly message
+      const settingsGrid = document.querySelector('.settings-grid');
+      if (settingsGrid) {
+        settingsGrid.innerHTML = `
+          <div class="settings-card" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+            <h3 style="margin-bottom: 12px; color: #374151;">Session Expired</h3>
+            <p style="margin-bottom: 20px; color: #6b7280;">Your session has expired. Please sign in again to continue.</p>
+            <a href="/home.html" class="auth-btn" style="display: inline-block; text-decoration: none;">Sign In Again</a>
+          </div>
+        `;
+      }
+      return;
+    }
+    
+    // Handle other errors
+    const txt = await meRes.text().catch(()=>null);
+    throw new Error('Failed to load profile: ' + meRes.status + ' ' + (txt||''));
+  }
+  
+  const data = await meRes.json();
+  const u = data.user || {};
+
+  // Populate form fields
+  document.getElementById('fld-display').value = u.display_name || '';
+  document.getElementById('fld-college').value = u.college || '';
+  document.getElementById('fld-course').value = u.course || '';
+  document.getElementById('fld-batch').value = u.batch || '';
+  document.getElementById('fld-username').value = u.username || '';
+  document.getElementById('fld-bio').value = u.bio || '';
+  document.getElementById('fld-photo').value = u.photo_path || '';
+  
+  // Update avatar
+  const avatar = document.getElementById('settings-avatar');
+  if (avatar) {
+    const src = u.photo_path || localStorage.getItem('user_photo') || '';
+    if (src) {
+      avatar.src = src;
+    } else {
+      // Use a default avatar placeholder if no photo
+      avatar.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"%3E%3Crect fill="%23e5e7eb" width="120" height="120"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999" font-size="48" font-family="sans-serif"%3E?%3C/text%3E%3C/svg%3E';
+    }
+  }
+  
+  // NOW update auth UI after successful profile load
+  if (typeof window.updateAuthUI === 'function') {
+    try { window.updateAuthUI(); } catch(e){ console.warn('updateAuthUI error',e); }
+  }
+
+} catch (err) {
+  console.error('Error loading profile:', err);
+  alert('Failed to load profile. Please try refreshing the page or contact support if the issue persists.');
+  return;
+}
 
       // Save handler
       document.getElementById('profile-form').addEventListener('submit', async (e) => {
