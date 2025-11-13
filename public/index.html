@@ -8,10 +8,26 @@
       const hasSchool = !!localStorage.getItem('selectedSchool');
       const hasToken = !!localStorage.getItem('token');
       const visitedApp = localStorage.getItem('visitedApp') === '1';
+      const isLogout = sessionStorage.getItem('justLoggedOut') === '1';
 
-      if (fromSchool || hasSchool || hasToken || visitedApp) {
+      if (isLogout) {
+        // Clear logout flag and show home page
+        sessionStorage.removeItem('justLoggedOut');
+        window.location.replace('home.html');
+      } else if (fromSchool || hasSchool || hasToken || visitedApp) {
         sessionStorage.removeItem('skipLanding');
         localStorage.setItem('visitedApp', '1');
+        
+        // For logged-in users, check if they have a last visited page
+        if (hasToken) {
+          const lastPage = localStorage.getItem('lastVisitedPage');
+          if (lastPage && !lastPage.includes('home.html') && !lastPage.includes('school.html')) {
+            // Redirect to last visited page, but remove the tracking to avoid loops
+            localStorage.removeItem('lastVisitedPage');
+            window.location.replace(lastPage);
+            return;
+          }
+        }
         // Stay on this page; no redirect
       } else {
         // First-time visitors without context → show landing

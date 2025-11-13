@@ -565,6 +565,11 @@
   </div>
 
   <script>
+    // Clear any logout flags when landing page is accessed
+    try {
+      sessionStorage.removeItem('justLoggedOut');
+    } catch (e) {}
+
     function openAuthModal() {
       document.getElementById('authModal').classList.add('active');
     }

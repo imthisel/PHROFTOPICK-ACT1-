@@ -10,6 +10,44 @@ function currentSchool() {
   return localStorage.getItem('selectedSchool') || 'dlsu';
 }
 
+// ========== Last Page Tracking for Logged-in Users ==========
+function trackLastPage() {
+  // Only track pages for logged-in users
+  if (!localStorage.getItem('token')) return;
+  
+  // Don't track certain pages
+  const currentPage = window.location.pathname;
+  const excludedPages = ['/home.html', '/school.html', '/login.html', '/oauth-success.html'];
+  
+  if (!excludedPages.some(page => currentPage.includes(page))) {
+    try {
+      localStorage.setItem('lastVisitedPage', currentPage + window.location.search);
+    } catch (e) {
+      console.warn('Could not track last page:', e);
+    }
+  }
+}
+
+function getLastVisitedPage() {
+  try {
+    return localStorage.getItem('lastVisitedPage') || 'index.html';
+  } catch (e) {
+    return 'index.html';
+  }
+}
+
+function clearLastPageTracking() {
+  try {
+    localStorage.removeItem('lastVisitedPage');
+  } catch (e) {}
+}
+
+// Track current page when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  // Small delay to ensure page is fully loaded
+  setTimeout(trackLastPage, 100);
+});
+
 // ========== Global: Change School (used by header button) ==========
 // Makes the header's onclick="changeSchool()" work on all pages
 window.changeSchool = function() {
@@ -107,7 +145,9 @@ async function initializeHeader() {
     localStorage.removeItem('user_display');
     localStorage.removeItem('user_photo');
     localStorage.removeItem('visitedApp');
+    clearLastPageTracking(); // Clear last page tracking on logout
     try { sessionStorage.removeItem('skipLanding'); } catch (_) {}
+    try { sessionStorage.setItem('justLoggedOut', '1'); } catch (_) {} // Set logout flag
     showLoggedOut();
     if (typeof updateAuthUI === 'function') updateAuthUI();
     if (drop) drop.style.display = 'none';

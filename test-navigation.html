@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Navigation Test</title>
+</head>
+<body>
+    <h1>Navigation System Test</h1>
+    <div id="test-results"></div>
+    
+    <h2>Test Scenarios:</h2>
+    <button onclick="testFirstTimeVisitor()">Test First Time Visitor</button>
+    <button onclick="testLoggedInUser()">Test Logged In User</button>
+    <button onclick="testLogout()">Test Logout</button>
+    <button onclick="simulateLastPage()">Simulate Last Page Visit</button>
+    
+    <script>
+        function log(message) {
+            const results = document.getElementById('test-results');
+            results.innerHTML += '<p>' + new Date().toLocaleTimeString() + ': ' + message + '</p>';
+        }
+        
+        function testFirstTimeVisitor() {
+            log('=== Testing First Time Visitor ===');
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            const hasToken = !!localStorage.getItem('token');
+            const hasSchool = !!localStorage.getItem('selectedSchool');
+            const visitedApp = localStorage.getItem('visitedApp') === '1';
+            const isLogout = sessionStorage.getItem('justLoggedOut') === '1';
+            
+            log('Token: ' + hasToken);
+            log('School: ' + hasSchool);
+            log('Visited App: ' + visitedApp);
+            log('Just Logged Out: ' + isLogout);
+            
+            if (isLogout) {
+                log('RESULT: Should redirect to home.html (after logout)');
+            } else if (hasSchool || hasToken || visitedApp) {
+                log('RESULT: Should stay on index.html');
+            } else {
+                log('RESULT: Should redirect to home.html (first time visitor)');
+            }
+        }
+        
+        function testLoggedInUser() {
+            log('=== Testing Logged In User ===');
+            localStorage.setItem('token', 'fake-token');
+            localStorage.setItem('selectedSchool', 'dlsu');
+            localStorage.setItem('visitedApp', '1');
+            sessionStorage.removeItem('justLoggedOut');
+            
+            const hasToken = !!localStorage.getItem('token');
+            const lastPage = localStorage.getItem('lastVisitedPage');
+            
+            log('Token: ' + hasToken);
+            log('Last Page: ' + (lastPage || 'none'));
+            
+            if (hasToken && lastPage && !lastPage.includes('home.html') && !lastPage.includes('school.html')) {
+                log('RESULT: Should redirect to last visited page: ' + lastPage);
+            } else {
+                log('RESULT: Should stay on index.html');
+            }
+        }
+        
+        function testLogout() {
+            log('=== Testing Logout ===');
+            localStorage.setItem('token', 'fake-token');
+            sessionStorage.setItem('justLoggedOut', '1');
+            
+            const isLogout = sessionStorage.getItem('justLoggedOut') === '1';
+            log('Just Logged Out: ' + isLogout);
+            
+            if (isLogout) {
+                log('RESULT: Should redirect to home.html (after logout)');
+            }
+        }
+        
+        function simulateLastPage() {
+            log('=== Simulating Last Page Visit ===');
+            localStorage.setItem('token', 'fake-token');
+            localStorage.setItem('lastVisitedPage', '/prof.html?id=123');
+            localStorage.setItem('visitedApp', '1');
+            sessionStorage.removeItem('justLoggedOut');
+            
+            const lastPage = localStorage.getItem('lastVisitedPage');
+            log('Last Page Set: ' + lastPage);
+            log('Next visit to index.html should redirect to: ' + lastPage);
+        }
+        
+        // Test the tracking functions
+        log('=== Testing Tracking Functions ===');
+        
+        // Test trackLastPage function
+        window.location = { pathname: '/prof.html', search: '?id=123' };
+        localStorage.setItem('token', 'fake-token');
+        
+        if (typeof trackLastPage === 'function') {
+            trackLastPage();
+            log('Track function executed');
+            log('Stored page: ' + localStorage.getItem('lastVisitedPage'));
+        } else {
+            log('ERROR: trackLastPage function not found - need to include app.js');
+        }
+        
+        // Test clearLastPageTracking function
+        if (typeof clearLastPageTracking === 'function') {
+            clearLastPageTracking();
+            log('Clear function executed');
+            log('Stored page after clear: ' + localStorage.getItem('lastVisitedPage'));
+        } else {
+            log('ERROR: clearLastPageTracking function not found - need to include app.js');
+        }
+    </script>
+    
+    <!-- Include app.js to test the functions -->
+    <script src="public/js/app.js"></script>
+</body>
+</html>
