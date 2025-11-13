@@ -724,7 +724,7 @@
                 <small style="color:#666">Uploaded by ${n.anonymous ? "Anonymous" : (n.display_name || "User")} on ${n.created_at ? new Date(n.created_at).toLocaleString() : ''}</small>
               </div>
             `).join('')
-          : "<p>No notes yet.</p>";
+          : "";
 
       } catch (err) {
         console.error('Error loading professor:', err);
