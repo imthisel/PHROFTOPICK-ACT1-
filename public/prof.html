@@ -371,25 +371,30 @@
       margin-top: 12px;
     }
     .workload-item {
-      display: flex;
+      display: grid;
+      grid-template-columns: 120px 1fr;
       align-items: center;
       gap: 12px;
     }
     .workload-label {
-      min-width: 70px;
+      min-width: 120px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       color: #374151;
     }
-    .workload-count {
-      min-width: 40px;
-      text-align: right;
-      font-size: 14px;
-      font-weight: 600;
-      color: #111827;
-    }
     .chart-fill-wrapper.small {
-      height: 20px;
+      height: 24px;
+      position: relative;
+    }
+    .workload-count-inside {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.25);
     }
     
     /* Zoom Effect */
@@ -455,11 +460,7 @@
       <div id="full-reviews"></div>
     </div>
 
-    <!-- Notes -->
-    <div class="panel">
-      <h3>Notes</h3>
-      <div id="notes"></div>
-    </div>
+>
   </div>
 
   <script>
@@ -482,7 +483,7 @@
         }
         const data = await res.json();
         const prof = data.prof || {};
-        const notes = data.notes || [];
+
 
         // Display professor details (minimal - just name and photo)
         const details = document.getElementById("prof-details");
@@ -572,8 +573,8 @@
                     <div class="chart-fill low-workload" style="width: ${workloadTotal > 0 ? Math.round((summaryData.workload.Low / workloadTotal) * 100) : 0}%">
                       ${workloadTotal > 0 ? Math.round((summaryData.workload.Low / workloadTotal) * 100) : 0}%
                     </div>
+                    <span class="workload-count-inside">${summaryData.workload.Low || 0}</span>
                   </div>
-                  <span class="workload-count">${summaryData.workload.Low || 0}</span>
                 </div>
                 <div class="workload-item">
                   <span class="workload-label">Medium</span>
@@ -581,8 +582,8 @@
                     <div class="chart-fill med-workload" style="width: ${workloadTotal > 0 ? Math.round((summaryData.workload.Medium / workloadTotal) * 100) : 0}%">
                       ${workloadTotal > 0 ? Math.round((summaryData.workload.Medium / workloadTotal) * 100) : 0}%
                     </div>
+                    <span class="workload-count-inside">${summaryData.workload.Medium || 0}</span>
                   </div>
-                  <span class="workload-count">${summaryData.workload.Medium || 0}</span>
                 </div>
                 <div class="workload-item">
                   <span class="workload-label">High</span>
@@ -590,8 +591,8 @@
                     <div class="chart-fill high-workload" style="width: ${workloadTotal > 0 ? Math.round((summaryData.workload.High / workloadTotal) * 100) : 0}%">
                       ${workloadTotal > 0 ? Math.round((summaryData.workload.High / workloadTotal) * 100) : 0}%
                     </div>
+                    <span class="workload-count-inside">${summaryData.workload.High || 0}</span>
                   </div>
-                  <span class="workload-count">${summaryData.workload.High || 0}</span>
                 </div>
               </div>
             </div>
@@ -614,6 +615,7 @@
               r.batch_id ? `Batch: ${r.batch_id}` : ''
             ].filter(Boolean).join(' • ');
             const tags = r.tags ? r.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+            const courseDisplay = (r.course_code || '').toString().toUpperCase().slice(0,7);
             
             // Format date/time for Philippines timezone
             const phDate = r.created_at ? new Date(r.created_at).toLocaleString('en-PH', { 
@@ -649,7 +651,7 @@
                   </div>
                 </div>
                 <div class="review-content">
-                  <p><strong>Course:</strong> ${r.course_code || 'N/A'}</p>
+                  <p><strong>Course:</strong> ${courseDisplay || 'N/A'}</p>
                   <p>${r.review_text || ''}</p>
                   ${tags.length > 0 ? `<div class="review-tags">${tags.map(t => `<span class="review-tag">${t}</span>`).join('')}</div>` : ''}
                 </div>
@@ -714,17 +716,7 @@
           reviewsDiv.innerHTML = "<p>No reviews yet. Be the first to review this professor!</p>";
         }
 
-        // Notes
-        const notesDiv = document.getElementById("notes");
-        notesDiv.innerHTML = notes.length
-          ? notes.map(n => `
-              <div class="note-item" style="margin-bottom:10px">
-                <a href="${n.path}" target="_blank">${n.original_name}</a>
-                <p style="margin:6px 0">${n.description || ""}</p>
-                <small style="color:#666">Uploaded by ${n.anonymous ? "Anonymous" : (n.display_name || "User")} on ${n.created_at ? new Date(n.created_at).toLocaleString() : ''}</small>
-              </div>
-            `).join('')
-          : "";
+
 
       } catch (err) {
         console.error('Error loading professor:', err);
