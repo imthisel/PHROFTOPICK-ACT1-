@@ -13,6 +13,14 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 require('dotenv').config();
 
+// Auto-backup databases on server start
+console.log('🔄 Creating database backups before starting...');
+try {
+  require('./backup-databases.js');
+} catch (e) {
+  console.warn('⚠️ Backup failed:', e.message);
+}
+
 
 const app = express();
 const PORT = 3000;
@@ -46,7 +54,24 @@ function getDb(school) {
   console.log(`📂 Opening SQLite DB for school="${school}" -> ${dbPath}`);
   try {
     // Use OPEN_READWRITE | OPEN_CREATE to create if doesn't exist
-    return new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE);
+    const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE);
+    
+    // Configure SQLite for better durability and performance
+    db.serialize(() => {
+      // Use WAL mode for better concurrent access and crash recovery
+      db.run("PRAGMA journal_mode = WAL");
+      // Autocheckpoint WAL to avoid losing recent writes if wal files are cleaned
+      db.run("PRAGMA wal_autocheckpoint = 100");
+      // Ensure data is written to disk immediately
+      db.run("PRAGMA synchronous = FULL");
+      // Enable foreign key constraints
+      db.run("PRAGMA foreign_keys = ON");
+      // Optimize for better performance
+      db.run("PRAGMA cache_size = 10000");
+      db.run("PRAGMA temp_store = MEMORY");
+    });
+    
+    return db;
   } catch (e) {
     console.error(`❌ Failed to open DB at ${dbPath}:`, e.message);
     throw e;
@@ -56,23 +81,38 @@ function getDb(school) {
 
 // =================== MIDDLEWARE ===================
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
-
 
 app.use(session({
   store: new SQLiteStore({ db: 'sessions.sqlite', dir: './databases' }),
   secret: process.env.SESSION_SECRET || 'sessionsecret',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // Set true if you later use HTTPS
+  cookie: { 
+    secure: false,
+    maxAge: 30 * 24 * 60 * 60 * 1000
+  },
+  rolling: true
 }));
-
-
-
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Serve landing page at root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'home.html'));
+});
+
+// Protect index.html behind login
+app.get('/index.html', (req, res, next) => {
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    return res.redirect('/home.html');
+  }
+  next();
+});
+
+// Static files
+app.use(express.static(path.join(__dirname, 'public')));
 
 
 // =================== DATABASE INIT ===================
@@ -185,6 +225,34 @@ for (const school of schools) {
   });
 }
 
+// Ensure subject_resources table exists for all schools
+const subjectResourcesSQL = `
+CREATE TABLE IF NOT EXISTS subject_resources (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  subject_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  file_name TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  file_size INTEGER,
+  title TEXT,
+  description TEXT,
+  anonymous INTEGER DEFAULT 0,
+  display_name TEXT,
+  photo_path TEXT,
+  college TEXT,
+  batch TEXT,
+  download_count INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (subject_id) REFERENCES subjects(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+)`;
+for (const school of schools) {
+  const db = getDb(school);
+  db.run(subjectResourcesSQL, err => {
+    if (err) console.error(`subject_resources ensure failed for ${school}:`, err.message);
+    db.close();
+  });
+}
 
 // =================== PASSPORT ===================
 passport.serializeUser((user, done) => done(null, { id: user.id, school: user.school }));
