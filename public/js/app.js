@@ -1037,11 +1037,7 @@ document.addEventListener('click', function(e) {
   const homeLink = e.target.closest('.home-link');
   if (homeLink) {
     e.preventDefault();
-    if (window.location.pathname.includes('index.html')) {
-      window.location.reload();
-    } else {
-      window.location.href = 'index.html';
-    }
+    window.location.href = 'index.html';
   }
 });
 

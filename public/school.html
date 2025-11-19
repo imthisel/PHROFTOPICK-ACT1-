@@ -116,9 +116,8 @@
   <script>
     function chooseSchool(school) {
       localStorage.setItem("selectedSchool", school);
-      localStorage.removeItem('token'); // optional: clear session on switch
       try { sessionStorage.setItem('skipLanding', '1'); } catch (e) {}
-      window.location.href = "index.html"; // go directly to the app page
+      window.location.href = "index.html";
     }
   </script>
 </body>
