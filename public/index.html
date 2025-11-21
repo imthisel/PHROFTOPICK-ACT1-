@@ -5,6 +5,7 @@
     try {
       const hasToken = !!localStorage.getItem('token');
       const isLogout = sessionStorage.getItem('justLoggedOut') === '1';
+      const skipLanding = sessionStorage.getItem('skipLanding') === '1';
 
       if (isLogout || !hasToken) {
         sessionStorage.removeItem('justLoggedOut');
@@ -12,9 +13,12 @@
       } else {
         localStorage.setItem('visitedApp', '1');
         const lastPage = localStorage.getItem('lastVisitedPage');
-        if (lastPage && !lastPage.includes('home.html') && !lastPage.includes('school.html')) {
+        if (!skipLanding && lastPage && !lastPage.includes('home.html') && !lastPage.includes('school.html')) {
           localStorage.removeItem('lastVisitedPage');
           window.location.replace(lastPage);
+        }
+        if (skipLanding) {
+          sessionStorage.removeItem('skipLanding');
         }
       }
     } catch (e) {
