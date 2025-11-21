@@ -1037,7 +1037,7 @@ document.addEventListener('click', function(e) {
   const homeLink = e.target.closest('.home-link');
   if (homeLink) {
     e.preventDefault();
-    window.location.href = 'index.html';
+    window.location.href = '/index.html';
   }
 });
 
