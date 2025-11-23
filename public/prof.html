@@ -490,8 +490,15 @@
         // Display professor details (minimal - just name and photo)
         const details = document.getElementById("prof-details");
         details.innerHTML = `
-          <h2>${prof.name || "Unknown Professor"}</h2>
-          ${prof.photo_path ? `<img src="${prof.photo_path}" class="prof-photo">` : ''}
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:240px;">
+              <h2 style="margin-bottom:8px;">${prof.name || "Unknown Professor"}</h2>
+              ${prof.photo_path ? `<img src="${prof.photo_path}" class="prof-photo">` : ''}
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <a class="auth-btn" href="/review.html?prof=${profId}">+ Add Review</a>
+            </div>
+          </div>
         `;
 
         // Load review summary
