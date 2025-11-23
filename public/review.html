@@ -220,7 +220,7 @@
       max-width: 1100px; 
       margin: 24px auto 50px; 
       display: grid; 
-      grid-template-columns: 1fr 0.65fr; 
+      grid-template-columns: 1fr 0.6fr; 
       gap: 24px;
     }
     .form-card { 
@@ -300,45 +300,20 @@
       box-shadow: 0 0 0 4px rgba(0,105,62,0.1);
     }
 
-    /* Professional Star Rating */
-    .star-rating {
-      display: flex;
-      gap: 8px;
-      font-size: 42px;
-      cursor: pointer;
-      margin: 12px 0;
-      padding: 12px;
-      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
-      border-radius: 16px;
-      width: fit-content;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      border: 2px solid #e5e7eb;
-    }
-    .star-rating .star {
-      color: #d1d5db;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      user-select: none;
-      position: relative;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-    }
-    .star-rating .star:hover {
-      transform: scale(1.2) rotate(-5deg);
-      filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.4));
-    }
-    .star-rating .star.selected {
-      color: #f59e0b;
-      animation: starPop 0.3s ease;
-      filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.5));
-    }
-    .star-rating .star.hovered {
-      color: #fbbf24;
-      transform: scale(1.15);
-    }
-    @keyframes starPop {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.3) rotate(10deg); }
-      100% { transform: scale(1); }
-    }
+    .star-rating { display:flex; gap:10px; font-size:48px; cursor:pointer; margin:16px 0; padding:16px; background:#fff; border-radius:16px; border:2px solid #e5e7eb; box-shadow:0 4px 12px rgba(0,0,0,0.06); }
+    .star-rating .star { color:#d1d5db; transition: all .25s ease; user-select:none; position:relative; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); }
+    .star-rating .star:hover { transform: scale(1.08); color:#fbbf24; }
+    .star-rating .star.selected { color:#f59e0b; filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.35)); }
+    .star-rating .star.hovered { color:#fbbf24; transform: scale(1.06); }
+    .rating-legend { display:flex; align-items:center; gap:10px; font-weight:600; color:#374151; }
+    .rating-legend .badge { display:inline-block; padding:6px 10px; border-radius:9999px; background:#fff7ed; border:1px solid #fde68a; color:#b45309; font-size:12px; }
+    .option-group { margin:18px 0; }
+    .option-group .label { display:block; margin-bottom:8px; font-weight:600; color:#374151; }
+    .segmented { display:inline-flex; gap:8px; background:#fff; border:2px solid #e5e7eb; border-radius:12px; padding:6px; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+    .segment { padding:10px 14px; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer; color:#374151; transition: all .15s ease; }
+    .segment:hover { background:#f3f4f6; }
+    .segment.active { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); color:#065f46; border:1px solid #6ee7b7; }
+    .visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
 
     /* Submit Button Enhancement */
     .review-submit-btn {
@@ -421,43 +396,10 @@
   <section class="form-shell container" id="review-sections" style="display:none;">
     <form id="review-form" class="form-card">
       <h2>Your review</h2>
-      <p>Please be honest and avoid personal attacks.</p>
-
-  <div class="review-field">
-    <input id="rev-course" placeholder=" " required>
-    <label>Course Code *</label>
-  </div>
-
-  <div class="review-field">
-    <select id="rev-again">
-      <option>Yes</option><option>No</option>
-    </select>
-    <label>Would take again?</label>
-  </div>
-
-  <div class="review-field">
-    <select id="rev-4">
-      <option>Yes</option><option>No</option>
-    </select>
-    <label>4.0 attainable?</label>
-  </div>
-
-  <div class="review-field">
-    <select id="rev-deadline">
-      <option>Yes</option><option>No</option>
-    </select>
-    <label>Deadline leniency</label>
-  </div>
-
-  <div class="review-field">
-    <select id="rev-workload">
-      <option>Low</option><option>Medium</option><option>High</option>
-    </select>
-    <label>Workload</label>
-  </div>
+      <p>Choose rating and options below.</p>
 
       <div class="review-field">
-        <label style="margin-bottom: 8px; display: block; font-weight: 600; color: #374151;">Rating *</label>
+        <div class="rating-legend"><span>Rating *</span><span class="badge">Tap a star</span></div>
         <div class="star-rating" id="star-rating">
           <span data-star="1" class="star">☆</span>
           <span data-star="2" class="star">☆</span>
@@ -469,13 +411,55 @@
       </div>
 
       <div class="review-field">
+        <input id="rev-course" placeholder=" " required>
+        <label>Course Code *</label>
+      </div>
+
+      <div class="option-group">
+        <span class="label">Would take again?</span>
+        <div class="segmented" data-target="rev-again">
+          <div class="segment" data-value="Yes">Yes</div>
+          <div class="segment" data-value="No">No</div>
+        </div>
+        <select id="rev-again" class="visually-hidden"><option>Yes</option><option>No</option></select>
+      </div>
+
+      <div class="option-group">
+        <span class="label">4.0 attainable?</span>
+        <div class="segmented" data-target="rev-4">
+          <div class="segment" data-value="Yes">Yes</div>
+          <div class="segment" data-value="No">No</div>
+        </div>
+        <select id="rev-4" class="visually-hidden"><option>Yes</option><option>No</option></select>
+      </div>
+
+      <div class="option-group">
+        <span class="label">Deadline leniency</span>
+        <div class="segmented" data-target="rev-deadline">
+          <div class="segment" data-value="Yes">Yes</div>
+          <div class="segment" data-value="No">No</div>
+        </div>
+        <select id="rev-deadline" class="visually-hidden"><option>Yes</option><option>No</option></select>
+      </div>
+
+      <div class="option-group">
+        <span class="label">Workload</span>
+        <div class="segmented" data-target="rev-workload">
+          <div class="segment" data-value="Low">Low</div>
+          <div class="segment" data-value="Medium">Medium</div>
+          <div class="segment" data-value="High">High</div>
+        </div>
+        <select id="rev-workload" class="visually-hidden"><option>Low</option><option>Medium</option><option>High</option></select>
+      </div>
+
+      <div class="review-field">
         <textarea id="rev-text" placeholder=" " required></textarea>
         <label>Notes/Comments *</label>
       </div>
 
-  <label style="margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-    <input type="checkbox" id="rev-anon"> Post anonymously
-  </label>
+      <label style="margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+        <input type="checkbox" id="rev-anon"> Post anonymously
+      </label>
 
       <button class="review-submit-btn" type="submit">Submit Review</button>
       <p id="rev-result"></p>
@@ -665,6 +649,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     });
   }
+
+  const segmentedGroups = document.querySelectorAll('.segmented');
+  segmentedGroups.forEach(group => {
+    const targetId = group.getAttribute('data-target');
+    const selectEl = document.getElementById(targetId);
+    const segments = Array.from(group.querySelectorAll('.segment'));
+    const applyActive = (val) => {
+      segments.forEach(s => s.classList.toggle('active', s.getAttribute('data-value') === val));
+    };
+    const initial = selectEl && selectEl.value ? selectEl.value : (segments[0] ? segments[0].getAttribute('data-value') : '');
+    if (selectEl && initial) selectEl.value = initial;
+    if (initial) applyActive(initial);
+    segments.forEach(seg => {
+      seg.addEventListener('click', () => {
+        const val = seg.getAttribute('data-value');
+        if (selectEl) selectEl.value = val;
+        applyActive(val);
+      });
+    });
+  });
 
   const courseEl = document.getElementById('rev-course');
   const againEl = document.getElementById('rev-again');
