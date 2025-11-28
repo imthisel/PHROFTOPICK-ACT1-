@@ -24,7 +24,8 @@ try {
 
 const app = express();
 const PORT = 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey'; // unified secret
+const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
+const DB_DIR = process.env.DB_DIR || path.join(__dirname, 'databases');
 
 
 // 🧭 Debug Middleware — Log active school for every request
@@ -37,15 +38,13 @@ app.use((req, res, next) => {
 
 // =================== MULTI-DATABASE HANDLER ===================
 function resolveDbPath(school) {
-  const dbPathRelative = {
-    dlsu: path.join('databases', 'dlsu.db'),
-    ateneo: path.join('databases', 'ateneo.db'),
-    up: path.join('databases', 'up.db'),
-    benilde: path.join('databases', 'benilde.db')
-  }[school] || path.join('databases', 'dlsu.db');
-
-
-  return path.resolve(__dirname, dbPathRelative);
+  const fileName = {
+    dlsu: 'dlsu.db',
+    ateneo: 'ateneo.db',
+    up: 'up.db',
+    benilde: 'benilde.db'
+  }[school] || 'dlsu.db';
+  return path.resolve(DB_DIR, fileName);
 }
 
 
@@ -84,7 +83,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
-  store: new SQLiteStore({ db: 'sessions.sqlite', dir: './databases' }),
+  store: new SQLiteStore({ db: 'sessions.sqlite', dir: DB_DIR }),
   secret: process.env.SESSION_SECRET || 'sessionsecret',
   resave: false,
   saveUninitialized: false,
@@ -113,6 +112,8 @@ app.get('/index.html', (req, res, next) => {
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
+// Serve uploaded files even if UPLOADS_DIR is outside /public
+app.use('/uploads', express.static(uploadsDir));
 
 
 // =================== DATABASE INIT ===================
@@ -205,8 +206,7 @@ CREATE TABLE IF NOT EXISTS notes (
 
 
 const schools = ['dlsu', 'ateneo', 'up', 'benilde'];
-const dbDir = path.join(__dirname, 'databases');
-if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
+if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
 
 
 // Create DB only if missing
@@ -978,8 +978,8 @@ app.get('/api/admin/users', (req, res) => {
 });
 
 // =================== FILE UPLOAD CONFIGURATION ===================
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, 'public', 'uploads');
+// Ensure uploads directory exists (configurable for persistent disks)
+const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, 'public', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
   console.log('📁 Created uploads directory:', uploadsDir);

@@ -2,27 +2,27 @@ const fs = require('fs');
 const path = require('path');
 
 // Backup databases to prevent data loss
-const dbDir = path.join(__dirname, 'databases');
-const backupDir = path.join(__dirname, 'backups');
+const DB_DIR = process.env.DB_DIR || path.join(__dirname, 'databases');
+const BACKUP_DIR = process.env.BACKUP_DIR || path.join(DB_DIR, 'backups');
 
 // Create backup directory if it doesn't exist
-if (!fs.existsSync(backupDir)) {
-  fs.mkdirSync(backupDir, { recursive: true });
-  console.log('📁 Created backup directory:', backupDir);
+if (!fs.existsSync(BACKUP_DIR)) {
+  fs.mkdirSync(BACKUP_DIR, { recursive: true });
+  console.log('📁 Created backup directory:', BACKUP_DIR);
 }
 
 // Backup function
 function backupDatabase(dbName) {
-  const sourcePath = path.join(dbDir, dbName);
+  const sourcePath = path.join(DB_DIR, dbName);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const backupPath = path.join(backupDir, `${dbName}-${timestamp}.backup`);
+  const backupPath = path.join(BACKUP_DIR, `${dbName}-${timestamp}.backup`);
   
   if (fs.existsSync(sourcePath)) {
     fs.copyFileSync(sourcePath, backupPath);
     console.log(`✅ Backed up ${dbName} to ${backupPath}`);
     
     // Keep only last 10 backups per database
-    const backups = fs.readdirSync(backupDir)
+    const backups = fs.readdirSync(BACKUP_DIR)
       .filter(file => file.startsWith(dbName) && file.endsWith('.backup'))
       .sort()
       .reverse();
@@ -30,7 +30,7 @@ function backupDatabase(dbName) {
     if (backups.length > 10) {
       const toDelete = backups.slice(10);
       toDelete.forEach(file => {
-        fs.unlinkSync(path.join(backupDir, file));
+        fs.unlinkSync(path.join(BACKUP_DIR, file));
         console.log(`🗑️ Deleted old backup: ${file}`);
       });
     }
@@ -43,20 +43,20 @@ databases.forEach(backupDatabase);
 
 // Also snapshot uploaded files
 function backupUploads() {
-  const uploadsDir = path.join(__dirname, 'public', 'uploads');
+  const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, 'public', 'uploads');
   if (!fs.existsSync(uploadsDir)) return;
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const destDir = path.join(backupDir, `uploads-${timestamp}`);
+  const destDir = path.join(BACKUP_DIR, `uploads-${timestamp}`);
   fs.mkdirSync(destDir, { recursive: true });
   fs.cpSync(uploadsDir, destDir, { recursive: true });
   // Keep only last 5 upload snapshots
-  const uploadBackups = fs.readdirSync(backupDir)
+  const uploadBackups = fs.readdirSync(BACKUP_DIR)
     .filter(f => f.startsWith('uploads-'))
     .sort()
     .reverse();
   if (uploadBackups.length > 5) {
     uploadBackups.slice(5).forEach(f => {
-      fs.rmSync(path.join(backupDir, f), { recursive: true, force: true });
+      fs.rmSync(path.join(BACKUP_DIR, f), { recursive: true, force: true });
       console.log(`🗑️ Deleted old uploads backup: ${f}`);
     });
   }
