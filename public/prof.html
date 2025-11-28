@@ -137,6 +137,10 @@
       transition: all 0.2s ease;
       position: relative;
     }
+
+    .reviews-header { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    .reviews-header h3 { margin:0; font-size:22px; font-weight:800; color:#111827; letter-spacing:-0.3px; }
+    .reviews-sub { margin:0; color:#6b7280; font-size:13px; }
     .review-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 12px 24px rgba(0,0,0,0.1);
@@ -458,11 +462,16 @@
 
     <!-- Review Cards -->
     <div class="panel">
-      <h3>Student Reviews</h3>
+      <div class="reviews-header">
+        <div>
+          <h3>Student Reviews</h3>
+          <p class="reviews-sub">What students say about this professor</p>
+        </div>
+        <a id="add-review-btn" class="auth-btn" style="display:none" href="#">+ Add Review</a>
+      </div>
       <div id="full-reviews"></div>
-    </div>
+</div>
 
->
   </div>
 
   <script>
@@ -490,15 +499,8 @@
         // Display professor details (minimal - just name and photo)
         const details = document.getElementById("prof-details");
         details.innerHTML = `
-          <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
-            <div style="flex:1; min-width:240px;">
-              <h2 style="margin-bottom:8px;">${prof.name || "Unknown Professor"}</h2>
-              ${prof.photo_path ? `<img src="${prof.photo_path}" class="prof-photo">` : ''}
-            </div>
-            <div style="display:flex; align-items:center; gap:10px;">
-              <a class="auth-btn" href="/review.html?prof=${profId}">+ Add Review</a>
-            </div>
-          </div>
+          <h2>${prof.name || "Unknown Professor"}</h2>
+          ${prof.photo_path ? `<img src="${prof.photo_path}" class="prof-photo">` : ''}
         `;
 
         // Load review summary
@@ -733,6 +735,11 @@
       }
     }
 
+    const addBtn = document.getElementById('add-review-btn');
+    if (addBtn && profId) {
+      addBtn.href = `/review.html?prof=${profId}`;
+      addBtn.style.display = 'inline-block';
+    }
     loadProfessor();
   });
   </script>
