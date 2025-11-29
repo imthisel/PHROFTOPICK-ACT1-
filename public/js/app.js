@@ -1037,6 +1037,10 @@ document.addEventListener('click', function(e) {
   const homeLink = e.target.closest('.home-link');
   if (homeLink) {
     e.preventDefault();
+    try {
+      sessionStorage.setItem('skipLanding', '1');
+      localStorage.removeItem('lastVisitedPage');
+    } catch (_) {}
     window.location.href = '/index.html';
   }
 });
