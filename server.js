@@ -113,7 +113,7 @@ app.get('/index.html', (req, res, next) => {
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
 // Serve uploaded files even if UPLOADS_DIR is outside /public
-app.use('/uploads', express.static(uploadsDir));
+// uploadsDir is initialized later; serving is configured after initialization
 
 
 // =================== DATABASE INIT ===================
@@ -984,6 +984,9 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
   console.log('📁 Created uploads directory:', uploadsDir);
 }
+
+// Serve uploaded files even if UPLOADS_DIR is outside /public
+app.use('/uploads', express.static(uploadsDir));
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
