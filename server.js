@@ -23,7 +23,7 @@ try {
 
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 const DB_DIR = process.env.DB_DIR || path.join(__dirname, 'databases');
 

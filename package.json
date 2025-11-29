@@ -8,7 +8,8 @@
     "start": "node server.js",
     "backup": "node backup-databases.js",
     "build": "npm rebuild sqlite3 --build-from-source",
-    "seed": "echo '⚠️ WARNING: This will delete all data! Are you sure?' && node seed.js"
+    "seed": "echo '⚠️ WARNING: This will delete all data! Are you sure?' && node seed.js",
+    "postinstall": "npm rebuild sqlite3 --build-from-source || echo sqlite3 rebuild skipped"
   },
   "keywords": [],
   "author": "",
