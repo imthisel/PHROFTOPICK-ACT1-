@@ -744,7 +744,6 @@
   });
   </script>
 
-  <script src="js/app.js"></script>
   <script>
   document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -752,6 +751,15 @@
       const res = await fetch("/components/header.html");
       headerContainer.innerHTML = await res.text();
       await new Promise(requestAnimationFrame);
+      if (!document.querySelector('script[src="/js/app.js"]')) {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = '/js/app.js';
+          s.onload = resolve;
+          s.onerror = () => reject(new Error('app.js load failed'));
+          document.head.appendChild(s);
+        });
+      }
       if (typeof window.updateSchoolLogo === "function") window.updateSchoolLogo();
       if (typeof window.initializeHeader === "function") await window.initializeHeader();
       if (typeof window.updateAuthUI === "function") window.updateAuthUI();
