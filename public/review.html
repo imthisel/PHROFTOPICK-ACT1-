@@ -498,6 +498,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.updateSchoolLogo) try { window.updateSchoolLogo(); } catch(e){}
     if (window.initializeHeader) try { await window.initializeHeader(); } catch(e){}
     if (window.updateAuthUI) try { window.updateAuthUI(); } catch(e){}
+    if (window.initializeHeaderSearch) try { window.initializeHeaderSearch(); } catch(e){}
+    if (window.enableAutocomplete) try { window.enableAutocomplete('prof-search', 'header-suggestions'); } catch(e){}
   } catch (e) { console.warn('Header injection failed', e); }
 
   const urlParams = new URLSearchParams(window.location.search);

@@ -162,6 +162,11 @@
         }
         if (window.updateSchoolLogo) window.updateSchoolLogo();
         if (window.initializeHeader) await window.initializeHeader();
+        if (window.updateAuthUI) window.updateAuthUI();
+        if (window.initializeHeaderSearch) window.initializeHeaderSearch();
+        if (window.enableAutocomplete) {
+          window.enableAutocomplete('prof-search', 'header-suggestions');
+        }
       } catch (e) { console.error('Header failed', e); }
 
       await loadSubject();

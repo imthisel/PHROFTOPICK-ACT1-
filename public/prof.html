@@ -760,9 +760,13 @@
           document.head.appendChild(s);
         });
       }
-      if (typeof window.updateSchoolLogo === "function") window.updateSchoolLogo();
-      if (typeof window.initializeHeader === "function") await window.initializeHeader();
-      if (typeof window.updateAuthUI === "function") window.updateAuthUI();
+      if (typeof window.updateSchoolLogo === 'function') window.updateSchoolLogo();
+      if (typeof window.initializeHeader === 'function') await window.initializeHeader();
+      if (typeof window.updateAuthUI === 'function') window.updateAuthUI();
+      if (typeof window.initializeHeaderSearch === 'function') window.initializeHeaderSearch();
+      if (typeof window.enableAutocomplete === 'function') {
+        window.enableAutocomplete('prof-search', 'header-suggestions');
+      }
       console.log("Header injected and initialized (prof).");
     } catch (err) {
       console.error("Failed to load header:", err);

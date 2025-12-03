@@ -139,13 +139,18 @@
           try { window.updateSchoolLogo(); } catch(e){ console.warn('updateSchoolLogo error',e); }
         }
         if (typeof window.initializeHeader === 'function') {
-          // initializeHeader may be async
           await window.initializeHeader();
+        }
+        if (typeof window.updateAuthUI === 'function') {
+          try { window.updateAuthUI(); } catch(e){ console.warn('updateAuthUI error',e); }
         }
         // updateAuthUI will be called after profile data loads or after we confirm no token
         // optional header search init if those exist in app.js
         if (typeof window.initializeHeaderSearch === 'function') {
           try { window.initializeHeaderSearch(); } catch(e){ console.warn('initializeHeaderSearch error',e); }
+        }
+        if (typeof window.enableAutocomplete === 'function') {
+          try { window.enableAutocomplete('prof-search', 'header-suggestions'); } catch(e){ console.warn('enableAutocomplete error',e); }
         }
 
         console.log('Header injected and initialized (settings).');
