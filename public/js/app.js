@@ -459,12 +459,13 @@ async function renderProfList(list, container) {
     const card = document.createElement('div');
     card.classList.add('card');
     const viewId = `btn-view-prof-${p.id}`;
+    const reviewLinkId = `btn-create-review-link-${p.id}`;
     card.innerHTML = `
       ${p.photo_path ? `<img src="${p.photo_path}" class="prof-photo" alt="${p.name}">` : ''}
       <h3>${p.name}</h3>
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;">
         <button id="${viewId}">View Professor</button>
-        <a href="/review.html?prof=${p.id}"><button class="auth-btn">Create Review</button></a>
+        <a id="${reviewLinkId}" href="/review.html?prof=${p.id}"><button class="auth-btn">Create Review</button></a>
       </div>
     `;
     container.appendChild(card);
@@ -473,6 +474,16 @@ async function renderProfList(list, container) {
     if (viewBtn) {
       viewBtn.addEventListener('click', () => {
         window.location.href = `/prof.html?id=${p.id}`;
+      });
+    }
+
+    const reviewLink = document.getElementById(reviewLinkId);
+    if (reviewLink) {
+      reviewLink.addEventListener('click', () => {
+        try {
+          sessionStorage.setItem('review_prof_id', String(p.id));
+          sessionStorage.setItem('review_prof_name', p.name || '');
+        } catch (_) {}
       });
     }
   }
@@ -1120,4 +1131,3 @@ window.updateAuthUI = updateAuthUI;
 
 
 });
-

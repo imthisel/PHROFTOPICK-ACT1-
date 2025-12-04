@@ -504,6 +504,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const urlParams = new URLSearchParams(window.location.search);
   let profId = urlParams.get('prof');
+  if (!profId) {
+    try {
+      const stored = sessionStorage.getItem('review_prof_id');
+      if (stored) profId = stored;
+    } catch (_) {}
+  }
   const picker = document.getElementById('prof-picker');
   const results = document.getElementById('prof-results');
   const searchInput = document.getElementById('prof-search-input');
@@ -581,14 +587,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         results.querySelectorAll('.prof-item').forEach(el => {
           el.addEventListener('click', () => {
-          profId = el.dataset.id;
+            profId = el.dataset.id;
             populateProfessor({ 
               name: el.dataset.name, 
               photo_path: el.dataset.photo, 
               subject_code: el.dataset.subjectCode,
               subject_name: el.dataset.subjectName 
             });
-          showForm();
+            showForm();
+            try {
+              sessionStorage.setItem('review_prof_id', String(profId));
+              sessionStorage.setItem('review_prof_name', el.dataset.name || '');
+            } catch (_) {}
           });
         });
       } catch(e) {
@@ -611,11 +621,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   } else {
     showForm();
     try {
-      const res = await fetch(`/api/prof?id=${profId}&school=${(localStorage.getItem('selectedSchool')||'dlsu')}`);
+      const res = await fetch(`/api/profs/${profId}?school=${(localStorage.getItem('selectedSchool')||'dlsu')}`);
+      if (!res.ok) throw new Error('Failed to load professor');
       const j = await res.json();
-      const p = (j && j.professor) || {};
+      const p = (j && j.prof) || {};
+      if (!p || !p.id) throw new Error('Professor not found');
       populateProfessor(p);
-    } catch(_) {}
+      try {
+        sessionStorage.setItem('review_prof_id', String(p.id));
+        sessionStorage.setItem('review_prof_name', p.name || '');
+      } catch (_) {}
+    } catch(e) {
+      console.warn('Could not resolve professor for review:', e);
+      try {
+        sessionStorage.removeItem('review_prof_id');
+        sessionStorage.removeItem('review_prof_name');
+      } catch (_) {}
+      showPicker();
+    }
   }
 
   // Star rating functionality
@@ -696,6 +719,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.preventDefault();
     revResult.textContent = '';
     disableForm(true);
+
+    if (!profId) {
+      revResult.textContent = 'No professor selected. Please choose a professor.';
+      disableForm(false);
+      showPicker();
+      return;
+    }
 
     // Build payload
     const payload = {

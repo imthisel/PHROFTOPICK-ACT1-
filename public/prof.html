@@ -739,6 +739,14 @@
     if (addBtn && profId) {
       addBtn.href = `/review.html?prof=${profId}`;
       addBtn.style.display = 'inline-block';
+      addBtn.addEventListener('click', () => {
+        try {
+          const nameEl = document.querySelector('#prof-details h2');
+          const profName = nameEl ? nameEl.textContent : '';
+          sessionStorage.setItem('review_prof_id', String(profId));
+          sessionStorage.setItem('review_prof_name', profName || '');
+        } catch (_) {}
+      });
     }
     loadProfessor();
   });
