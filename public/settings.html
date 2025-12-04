@@ -36,9 +36,9 @@
     <section class="settings-grid container">
       <aside class="settings-card settings-left">
         <img id="settings-avatar" src="" alt="Profile">
-        <div style="margin-top:10px;">
-          <label for="fld-photo" class="auth-btn" style="cursor:pointer; display:inline-block;">Update Photo</label>
-          <input id="fld-photo" name="photo_path" type="text" placeholder="Photo URL" style="display:block; width:100%; margin-top:8px;">
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px; align-items:center;">
+          <input id="fld-photo-file" type="file" accept="image/*" style="display:none;">
+          <button id="btn-upload-photo" type="button" class="auth-btn">Upload Photo</button>
         </div>
       </aside>
 
@@ -96,9 +96,9 @@
       </section>
     </section>
 
-    <section id="contact" class="settings-card container" style="max-width:980px;">
+  <section id="contact" class="settings-card container" style="max-width:980px;">
       <h3>Contact Us</h3>
-      <p style="color:#555;">For inquiries, issues, or feedback, please reach out via your preferred channel.</p>
+      <p style="color:#555;">For inquiries, issues, or feedback, contact us at <a href="mailto:phroftopick@gmail.com">phroftopick@gmail.com</a>.</p>
     </section>
   </main>
 
@@ -234,14 +234,12 @@ try {
   const data = await meRes.json();
   const u = data.user || {};
 
-  // Populate form fields
   document.getElementById('fld-display').value = u.display_name || '';
   document.getElementById('fld-college').value = u.college || '';
   document.getElementById('fld-course').value = u.course || '';
   document.getElementById('fld-batch').value = u.batch || '';
   document.getElementById('fld-username').value = u.username || '';
   document.getElementById('fld-bio').value = u.bio || '';
-  document.getElementById('fld-photo').value = u.photo_path || '';
   
   // Update avatar
   const avatar = document.getElementById('settings-avatar');
@@ -266,6 +264,51 @@ try {
   return;
 }
 
+      // Photo upload
+      const photoBtn = document.getElementById('btn-upload-photo');
+      const photoInput = document.getElementById('fld-photo-file');
+      if (photoBtn && photoInput) {
+        photoBtn.addEventListener('click', () => photoInput.click());
+        photoInput.addEventListener('change', async () => {
+          const file = photoInput.files && photoInput.files[0];
+          if (!file) return;
+          const original = photoBtn.textContent;
+          photoBtn.disabled = true;
+          photoBtn.textContent = 'Uploading...';
+          try {
+            const formData = new FormData();
+            formData.append('photo', file);
+            const up = await fetch(`/api/me/photo?school=${school}`, {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + token },
+              body: formData
+            });
+            const j = await up.json().catch(()=>({}));
+            if (!up.ok) {
+              alert('Upload failed: ' + (j.error || up.status));
+            } else {
+              const path = j.photo_path || '';
+              if (path) {
+                const avatar = document.getElementById('settings-avatar');
+                if (avatar) avatar.src = path;
+                try { localStorage.setItem('user_photo', path); } catch (_) {}
+                if (typeof window.updateAuthUI === 'function') {
+                  try { window.updateAuthUI(); } catch(_){}
+                }
+                if (typeof window.initializeHeader === 'function') {
+                  try { await window.initializeHeader(); } catch(_){}
+                }
+              }
+            }
+          } catch (err) {
+            alert('Upload failed');
+          } finally {
+            photoBtn.disabled = false;
+            photoBtn.textContent = original;
+          }
+        });
+      }
+
       // Save handler
       document.getElementById('profile-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -276,7 +319,6 @@ try {
           batch: document.getElementById('fld-batch').value.trim(),
           username: document.getElementById('fld-username').value.trim(),
           bio: document.getElementById('fld-bio').value.trim(),
-          photo_path: document.getElementById('fld-photo').value.trim() || null,
           notifications_enabled: document.getElementById('notif-toggle').checked ? 1 : 0
         };
         try {

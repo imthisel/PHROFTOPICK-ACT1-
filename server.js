@@ -1146,6 +1146,22 @@ app.post('/api/subjects/:id/upload', upload.single('file'), (req, res) => {
   });
 });
 
+// Upload user profile photo
+app.post('/api/me/photo', authenticateJWT, upload.single('photo'), (req, res) => {
+  const school = req.query.school || 'dlsu';
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  const db = getDb(school);
+  const filePath = '/uploads/' + req.file.filename;
+  db.run('UPDATE users SET photo_path = ? WHERE id = ?', [filePath, req.userId], err => {
+    db.close();
+    if (err) {
+      try { fs.unlinkSync(req.file.path); } catch (_) {}
+      return res.status(500).json({ error: 'Update failed' });
+    }
+    res.json({ ok: true, photo_path: filePath });
+  });
+});
+
 // Track download count
 app.post('/api/resources/:id/download', (req, res) => {
   const school = req.query.school || 'dlsu';
