@@ -504,6 +504,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const urlParams = new URLSearchParams(window.location.search);
   let profId = urlParams.get('prof');
+  const forceSelect = urlParams.get('select') === '1';
+  if (!profId && !forceSelect) {
+    try {
+      const stored = sessionStorage.getItem('review_prof_id');
+      if (stored) profId = stored;
+    } catch (_) {}
+  }
   if (!profId) {
     try {
       const stored = sessionStorage.getItem('review_prof_id');

@@ -127,6 +127,18 @@ async function initializeHeader() {
   const drop = document.getElementById('user-dropdown');
   const dropDisplay = document.getElementById('drop-display');
   const darkToggle = document.getElementById('dark-toggle');
+  const headerAddReview = document.getElementById('btn-create-review');
+
+  if (headerAddReview) {
+    headerAddReview.onclick = (e) => {
+      e.preventDefault();
+      try {
+        sessionStorage.removeItem('review_prof_id');
+        sessionStorage.removeItem('review_prof_name');
+      } catch (_) {}
+      window.location.href = '/review.html?select=1';
+    };
+  }
 
   // Header no longer shows a Login button; login happens via dedicated pages
 
