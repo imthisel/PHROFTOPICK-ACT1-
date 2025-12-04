@@ -458,84 +458,21 @@ async function renderProfList(list, container) {
   for (let p of list) {
     const card = document.createElement('div');
     card.classList.add('card');
+    const viewId = `btn-view-prof-${p.id}`;
     card.innerHTML = `
       ${p.photo_path ? `<img src="${p.photo_path}" class="prof-photo" alt="${p.name}">` : ''}
       <h3>${p.name}</h3>
-      <p><strong>Department:</strong> N/A</p>
-      <p><strong>Courses:</strong> ${p.subject_code ? p.subject_code + ' - ' + p.subject_name : 'N/A'}</p>
-      <a href="/prof.html?id=${p.id}"><button>Open profile</button></a>
-      <div class="panel" id="comments-panel-${p.id}">
-        <h4>Comments</h4>
-        <form id="comment-form-${p.id}">
-          <input type="text" placeholder="Write a comment..." required />
-          <label style="font-size:13px;">
-            <input type="checkbox" /> Comment anonymously
-          </label>
-          <button type="submit">Post</button>
-        </form>
-        <div id="comments-list-${p.id}"></div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;">
+        <button id="${viewId}">View Professor</button>
+        <a href="/review.html?prof=${p.id}"><button class="auth-btn">Create Review</button></a>
       </div>
     `;
     container.appendChild(card);
 
-
-    loadComments(p.id);
-
-
-    const form = document.getElementById(`comment-form-${p.id}`);
-    if (form) {
-      form.addEventListener('submit', async (ev) => {
-        ev.preventDefault();
-        const textInput = form.querySelector('input[type="text"]');
-        const anonCheckbox = form.querySelector('input[type="checkbox"]');
-        const content = textInput ? textInput.value.trim() : '';
-        const anonymous = !!(anonCheckbox && anonCheckbox.checked);
-
-        if (!content) {
-          alert('Please enter a comment before submitting.');
-          return;
-        }
-
-        // Read token and normalize it
-        let token = localStorage.getItem('token');
-        if (!token || token === 'null' || token === 'undefined') {
-          // not logged in on client side
-          alert('You must be logged in to post a comment.');
-          // optional: redirect to login page
-          // window.location.href = 'login.html';
-          return;
-        }
-
-        try {
-          const res = await api.postComment(p.id, content, token, anonymous);
-
-          // Handle 401 from API
-          if (res && res.status === 401) {
-            // Clear invalid token and update UI
-            localStorage.removeItem('token');
-            if (typeof updateAuthUI === 'function') updateAuthUI();
-            alert('Session expired. Please log in again to post a comment.');
-            // optional: redirect to login
-            // window.location.href = 'login.html';
-            return;
-          }
-
-          // success: clear input, reload comments, give visual feedback
-          if (res && !res.error) {
-            if (textInput) textInput.value = '';
-            if (anonCheckbox) anonCheckbox.checked = false;
-            await loadComments(p.id);
-            // small success cue
-            // prefer non-blocking UI; using alert here as minimal fallback
-            alert('Comment posted.');
-          } else {
-            console.warn('Unexpected response posting comment', res);
-            alert('Could not post comment. Please try again.');
-          }
-        } catch (err) {
-          console.error('Failed to post comment', err);
-          alert('Failed to post comment. Please try again later.');
-        }
+    const viewBtn = document.getElementById(viewId);
+    if (viewBtn) {
+      viewBtn.addEventListener('click', () => {
+        window.location.href = `/prof.html?id=${p.id}`;
       });
     }
   }
@@ -1183,5 +1120,4 @@ window.updateAuthUI = updateAuthUI;
 
 
 });
-
 
