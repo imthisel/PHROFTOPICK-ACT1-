@@ -106,6 +106,47 @@ body {
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
+/* Add Review header link */
+#btn-add-review {
+  background: #ffffff;
+  color: var(--primary);
+  border: 2px solid #ffffff;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+#btn-add-review:hover {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Add Content dropdown modern styles */
+#add-content-menu {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.12);
+  padding: 10px;
+  min-width: 220px;
+}
+#add-content-menu a {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #111827;
+  text-decoration: none;
+  font-weight: 600;
+}
+#add-content-menu a:hover {
+  background: #f3f4f6;
+}
+
 
 .site-header nav button:hover {
   background: var(--accent);

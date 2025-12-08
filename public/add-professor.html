@@ -15,17 +15,17 @@
     <h1 style="margin-bottom:10px;">Add Professor</h1>
     <p style="color:#6b7280;">Provide the professor’s name and the course codes they teach.</p>
 
-    <section class="card" style="padding:20px;">
+    <section class="card" style="padding:24px;">
       <form id="prof-form">
         <div class="review-field">
-          <input id="prof-name" placeholder=" " required />
-          <label>Professor Name (Last name, First name)</label>
+          <input id="prof-name" placeholder="e.g., Dela Cruz, Juan" required />
+          <label>Professor Name</label>
         </div>
-        <div id="name-error" style="color:#dc2626; font-weight:600; display:none;">Format must be: Last name, First name</div>
+        <div id="name-error" style="color:#dc2626; font-weight:600; display:none;">Use: Last name, First name (e.g., Dela Cruz, Juan)</div>
 
         <div class="review-field" style="margin-top:14px;">
-          <input id="prof-courses" placeholder=" " required />
-          <label>Course Codes (comma-separated, e.g., GEMATMW,GELA•••)</label>
+          <input id="prof-courses" placeholder="e.g., GEMATMW,GESOCSC" required />
+          <label>Course Codes (comma-separated)</label>
         </div>
         <div id="course-error" style="color:#dc2626; font-weight:600; display:none;">Each code must be exactly 7 uppercase characters.</div>
 

@@ -18,14 +18,14 @@
     <section class="card" style="padding:20px;">
       <form id="course-form">
         <div class="review-field">
-          <input id="course-code" placeholder=" " maxlength="7" required />
-          <label>Course Code (7 uppercase characters)</label>
+          <input id="course-code" placeholder="e.g., GEMATMW" maxlength="7" required />
+          <label>Course Code</label>
         </div>
         <div id="code-error" style="color:#dc2626; font-weight:600; display:none;">Code must be exactly 7 uppercase letters.</div>
 
         <div class="review-field" style="margin-top:14px;">
-          <input id="course-name" placeholder=" " required />
-          <label>Course Name (CODE - Full Course Name)</label>
+          <input id="course-name" placeholder="e.g., GEMATMW - Mathematics in The Modern World" required />
+          <label>Course Name</label>
         </div>
         <div id="name-error" style="color:#dc2626; font-weight:600; display:none;">Format must be: CODE - Full Course Name</div>
 
@@ -64,7 +64,7 @@
       const resultEl = document.getElementById('course-result');
 
       const codeRe = /^[A-Z]{7}$/;
-      const nameRe = /^[A-Z]{7}\s-\s.+$/;
+      const nameRe = /^[A-Z]{7}\s-\s.{3,}$/;
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();

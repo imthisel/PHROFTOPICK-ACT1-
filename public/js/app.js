@@ -127,12 +127,13 @@ async function initializeHeader() {
   const drop = document.getElementById('user-dropdown');
   const dropDisplay = document.getElementById('drop-display');
   const darkToggle = document.getElementById('dark-toggle');
-  const headerAddReview = document.getElementById('btn-create-review');
+  const headerAddContent = document.getElementById('btn-create-review');
+  const headerAddReview = document.getElementById('btn-add-review');
   const addContentMenu = document.getElementById('add-content-menu');
   const addContentWrapper = document.getElementById('add-content');
 
-  if (headerAddReview && addContentMenu && addContentWrapper) {
-    headerAddReview.onclick = (e) => {
+  if (headerAddContent && addContentMenu && addContentWrapper) {
+    headerAddContent.onclick = (e) => {
       e.preventDefault();
       try {
         sessionStorage.removeItem('review_prof_id');
@@ -145,6 +146,17 @@ async function initializeHeader() {
         addContentMenu.style.display = 'none';
       }
     });
+  }
+
+  if (headerAddReview) {
+    headerAddReview.onclick = (e) => {
+      e.preventDefault();
+      try {
+        sessionStorage.removeItem('review_prof_id');
+        sessionStorage.removeItem('review_prof_name');
+      } catch (_) {}
+      window.location.href = '/review.html?select=1';
+    };
   }
 
   // Header no longer shows a Login button; login happens via dedicated pages
