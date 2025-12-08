@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1100, initial-scale=0.3, user-scalable=yes" />
+  <title>Add Professor</title>
+  <link rel="stylesheet" href="css/base.css">
+  <script src="js/theme-loader.js" defer></script>
+  <link rel="stylesheet" href="css/mobile-override.css">
+</head>
+<body>
+  <div id="header-placeholder"></div>
+
+  <main class="container" style="max-width:900px; margin-top:24px;">
+    <h1 style="margin-bottom:10px;">Add Professor</h1>
+    <p style="color:#6b7280;">Provide the professor’s name and the course codes they teach.</p>
+
+    <section class="card" style="padding:20px;">
+      <form id="prof-form">
+        <div class="review-field">
+          <input id="prof-name" placeholder=" " required />
+          <label>Professor Name (Last name, First name)</label>
+        </div>
+        <div id="name-error" style="color:#dc2626; font-weight:600; display:none;">Format must be: Last name, First name</div>
+
+        <div class="review-field" style="margin-top:14px;">
+          <input id="prof-courses" placeholder=" " required />
+          <label>Course Codes (comma-separated, e.g., GEMATMW,GELA•••)</label>
+        </div>
+        <div id="course-error" style="color:#dc2626; font-weight:600; display:none;">Each code must be exactly 7 uppercase characters.</div>
+
+        <button class="auth-btn" type="submit" style="margin-top:12px;">Submit</button>
+        <p id="prof-result" style="margin-top:10px; font-weight:600;"></p>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const headerContainer = document.getElementById('header-placeholder');
+        const res = await fetch('/components/header.html');
+        headerContainer.innerHTML = await res.text();
+        await new Promise(requestAnimationFrame);
+        if (!document.querySelector('script[src="/js/app.js"]')) {
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = '/js/app.js';
+            s.onload = resolve;
+            s.onerror = () => reject(new Error('app.js load failed'));
+            document.head.appendChild(s);
+          });
+        }
+        if (window.updateSchoolLogo) window.updateSchoolLogo();
+        if (window.initializeHeader) await window.initializeHeader();
+        if (window.updateAuthUI) window.updateAuthUI();
+      } catch (e) { console.warn('Header init failed', e); }
+
+      const form = document.getElementById('prof-form');
+      const nameInput = document.getElementById('prof-name');
+      const coursesInput = document.getElementById('prof-courses');
+      const nameErr = document.getElementById('name-error');
+      const courseErr = document.getElementById('course-error');
+      const resultEl = document.getElementById('prof-result');
+
+      const nameRe = /^[A-Za-z'\-\s]+,\s[A-Za-z'\-\s]+$/;
+      const codeRe = /^[A-Z]{7}$/;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        nameErr.style.display = 'none';
+        courseErr.style.display = 'none';
+        resultEl.textContent = '';
+
+        const name = (nameInput.value || '').trim();
+        if (!nameRe.test(name)) {
+          nameErr.style.display = 'block';
+          return;
+        }
+
+        const codes = (coursesInput.value || '').split(',').map(c => c.trim()).filter(Boolean);
+        if (!codes.length || !codes.every(c => codeRe.test(c))) {
+          courseErr.style.display = 'block';
+          return;
+        }
+
+        try {
+          const school = localStorage.getItem('selectedSchool') || 'dlsu';
+          const r = await fetch(`/api/professors?school=${school}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, courses: codes })
+          });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) {
+            resultEl.style.color = '#dc2626';
+            resultEl.textContent = j.error || 'Submission failed';
+            return;
+          }
+          resultEl.style.color = '#065f46';
+          resultEl.textContent = 'Professor created successfully';
+        } catch (err) {
+          resultEl.style.color = '#dc2626';
+          resultEl.textContent = 'Network error. Please try again.';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

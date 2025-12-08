@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1100, initial-scale=0.3, user-scalable=yes" />
+  <title>Add Course</title>
+  <link rel="stylesheet" href="css/base.css">
+  <script src="js/theme-loader.js" defer></script>
+  <link rel="stylesheet" href="css/mobile-override.css">
+</head>
+<body>
+  <div id="header-placeholder"></div>
+
+  <main class="container" style="max-width:900px; margin-top:24px;">
+    <h1 style="margin-bottom:10px;">Add Course</h1>
+    <p style="color:#6b7280;">Submit a new course. It becomes searchable but is hidden from index listing.</p>
+
+    <section class="card" style="padding:20px;">
+      <form id="course-form">
+        <div class="review-field">
+          <input id="course-code" placeholder=" " maxlength="7" required />
+          <label>Course Code (7 uppercase characters)</label>
+        </div>
+        <div id="code-error" style="color:#dc2626; font-weight:600; display:none;">Code must be exactly 7 uppercase letters.</div>
+
+        <div class="review-field" style="margin-top:14px;">
+          <input id="course-name" placeholder=" " required />
+          <label>Course Name (CODE - Full Course Name)</label>
+        </div>
+        <div id="name-error" style="color:#dc2626; font-weight:600; display:none;">Format must be: CODE - Full Course Name</div>
+
+        <button class="auth-btn" type="submit" style="margin-top:12px;">Submit</button>
+        <p id="course-result" style="margin-top:10px; font-weight:600;"></p>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const headerContainer = document.getElementById('header-placeholder');
+        const res = await fetch('/components/header.html');
+        headerContainer.innerHTML = await res.text();
+        await new Promise(requestAnimationFrame);
+        if (!document.querySelector('script[src="/js/app.js"]')) {
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = '/js/app.js';
+            s.onload = resolve;
+            s.onerror = () => reject(new Error('app.js load failed'));
+            document.head.appendChild(s);
+          });
+        }
+        if (window.updateSchoolLogo) window.updateSchoolLogo();
+        if (window.initializeHeader) await window.initializeHeader();
+        if (window.updateAuthUI) window.updateAuthUI();
+      } catch (e) { console.warn('Header init failed', e); }
+
+      const form = document.getElementById('course-form');
+      const codeInput = document.getElementById('course-code');
+      const nameInput = document.getElementById('course-name');
+      const codeErr = document.getElementById('code-error');
+      const nameErr = document.getElementById('name-error');
+      const resultEl = document.getElementById('course-result');
+
+      const codeRe = /^[A-Z]{7}$/;
+      const nameRe = /^[A-Z]{7}\s-\s.+$/;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        codeErr.style.display = 'none';
+        nameErr.style.display = 'none';
+        resultEl.textContent = '';
+
+        const code = (codeInput.value || '').trim();
+        const name = (nameInput.value || '').trim();
+        if (!codeRe.test(code)) { codeErr.style.display = 'block'; return; }
+        if (!nameRe.test(name)) { nameErr.style.display = 'block'; return; }
+
+        try {
+          const school = localStorage.getItem('selectedSchool') || 'dlsu';
+          const r = await fetch(`/api/subjects/create?school=${school}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, name })
+          });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) {
+            resultEl.style.color = '#dc2626';
+            resultEl.textContent = j.error || 'Submission failed';
+            return;
+          }
+          resultEl.style.color = '#065f46';
+          resultEl.innerHTML = `Course created. <a href="/subject.html?id=${j.id}">Open page</a>`;
+        } catch (err) {
+          resultEl.style.color = '#dc2626';
+          resultEl.textContent = 'Network error. Please try again.';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

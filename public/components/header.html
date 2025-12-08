@@ -18,7 +18,13 @@
 </div>
 
   <nav class="nav-right">
-    <a id="btn-create-review" href="/review.html">+ Add Review</a>
+    <div id="add-content" style="position:relative;">
+      <a id="btn-create-review" href="#">+ Add Content</a>
+      <div id="add-content-menu" class="dropdown-menu" style="display:none; position:absolute; right:0; top:110%; background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:10px; box-shadow:0 14px 40px rgba(0,0,0,0.12); padding:10px; min-width:200px; z-index:1000;">
+        <a id="menu-add-prof" href="/add-professor.html" style="display:block; padding:8px 10px; border-radius:8px;">Add Professor</a>
+        <a id="menu-add-course" href="/add-course.html" style="display:block; padding:8px 10px; border-radius:8px;">Add Course</a>
+      </div>
+    </div>
     <div id="user-area">
   <img id="user-avatar" src=""
     style="display:none; width:36px; height:36px; border-radius:50%; vertical-align:middle; cursor:pointer;">
@@ -47,6 +53,5 @@
   </div>
   </nav>
 </header>
-
 
 

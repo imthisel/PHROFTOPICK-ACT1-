@@ -140,7 +140,8 @@ CREATE TABLE IF NOT EXISTS subjects (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   code TEXT,
   name TEXT,
-  difficulty_avg REAL DEFAULT 0
+  difficulty_avg REAL DEFAULT 0,
+  user_generated INTEGER DEFAULT 0
 );
 
 
@@ -201,6 +202,14 @@ CREATE TABLE IF NOT EXISTS notes (
   description TEXT,
   anonymous INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS prof_subjects (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  prof_id INTEGER NOT NULL,
+  subject_id INTEGER NOT NULL,
+  FOREIGN KEY (prof_id) REFERENCES professors(id),
+  FOREIGN KEY (subject_id) REFERENCES subjects(id)
 );
 `;
 
@@ -332,7 +341,7 @@ app.get('/api/subjects', (req, res) => {
   const q = (req.query.q || '').trim().toLowerCase();
   const sql = q
     ? `SELECT id, code, name, difficulty_avg FROM subjects WHERE LOWER(code) LIKE ? OR LOWER(name) LIKE ? ORDER BY code ASC`
-    : `SELECT id, code, name, difficulty_avg FROM subjects ORDER BY code ASC`;
+    : `SELECT id, code, name, difficulty_avg FROM subjects WHERE user_generated = 0 ORDER BY code ASC`;
   const params = q ? [`%${q}%`, `%${q}%`] : [];
 
 
@@ -340,6 +349,28 @@ app.get('/api/subjects', (req, res) => {
     db.close();
     if (err) return res.status(500).json({ error: 'DB error' });
 res.json({ subjects: rows }); // ✅ Match frontend expectation
+  });
+});
+
+// Create user-generated subject
+app.post('/api/subjects/create', (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const db = getDb(school);
+  const code = (req.body?.code || '').trim();
+  const name = (req.body?.name || '').trim();
+  const codeRe = /^[A-Z]{7}$/;
+  const nameRe = /^[A-Z]{7}\s-\s.+$/;
+  if (!codeRe.test(code)) { db.close(); return res.status(400).json({ error: 'Invalid course code' }); }
+  if (!nameRe.test(name)) { db.close(); return res.status(400).json({ error: 'Invalid course name format' }); }
+
+  db.get('SELECT id FROM subjects WHERE code = ?', [code], (err, row) => {
+    if (err) { db.close(); return res.status(500).json({ error: 'DB error' }); }
+    if (row) { db.close(); return res.status(409).json({ error: 'Course code already exists' }); }
+    db.run('INSERT INTO subjects (code, name, user_generated) VALUES (?, ?, 1)', [code, name], function (err2) {
+      db.close();
+      if (err2) return res.status(500).json({ error: 'Insert failed' });
+      res.json({ ok: true, id: this.lastID });
+    });
   });
 });
 
@@ -385,7 +416,7 @@ app.get('/api/profs/search', (req, res) => {
     return;
   }
 
-  // If query exists, search
+  // If query exists, search (include user-generated subjects)
   const sql = `
     SELECT p.id, p.name, p.photo_path,
            s.id AS subject_id, s.code AS subject_code, s.name AS subject_name,
@@ -406,6 +437,46 @@ app.get('/api/profs/search', (req, res) => {
   });
 });
 
+
+// Create professor for one or more existing courses
+app.post('/api/professors', (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const db = getDb(school);
+  const name = (req.body?.name || '').trim();
+  const courses = Array.isArray(req.body?.courses) ? req.body.courses : [];
+
+  const nameRe = /^[A-Za-z'\-\s]+,\s[A-Za-z'\-\s]+$/;
+  const codeRe = /^[A-Z]{7}$/;
+  if (!nameRe.test(name)) { db.close(); return res.status(400).json({ error: 'Invalid name format' }); }
+  if (!courses.length || !courses.every(c => codeRe.test(String(c)))) {
+    db.close();
+    return res.status(400).json({ error: 'Invalid course codes' });
+  }
+
+  db.serialize(() => {
+    const placeholders = courses.map(() => '?').join(',');
+    db.all(`SELECT id, code FROM subjects WHERE code IN (${placeholders})`, courses, (err, rows) => {
+      if (err) { db.close(); return res.status(500).json({ error: 'DB error' }); }
+      const foundCodes = new Set(rows.map(r => r.code));
+      const missing = courses.filter(c => !foundCodes.has(c));
+      if (missing.length) { db.close(); return res.status(400).json({ error: `Unknown course codes: ${missing.join(', ')}` }); }
+
+      const created = [];
+      const stmt = db.prepare(`INSERT INTO professors (subject_id, name) VALUES (?, ?)`);
+      for (const row of rows) {
+        stmt.run([row.id, name], function (e) {
+          if (e) console.error('Insert prof failed', e);
+          else created.push({ id: this.lastID, subject_id: row.id });
+        });
+      }
+      stmt.finalize(err2 => {
+        if (err2) { db.close(); return res.status(500).json({ error: 'Insert failed' }); }
+        db.close();
+        return res.json({ ok: true, created });
+      });
+    });
+  });
+});
 
 // =================== PROFESSOR DETAILS ===================
 app.get('/api/profs/:id', (req, res) => {

@@ -128,16 +128,23 @@ async function initializeHeader() {
   const dropDisplay = document.getElementById('drop-display');
   const darkToggle = document.getElementById('dark-toggle');
   const headerAddReview = document.getElementById('btn-create-review');
+  const addContentMenu = document.getElementById('add-content-menu');
+  const addContentWrapper = document.getElementById('add-content');
 
-  if (headerAddReview) {
+  if (headerAddReview && addContentMenu && addContentWrapper) {
     headerAddReview.onclick = (e) => {
       e.preventDefault();
       try {
         sessionStorage.removeItem('review_prof_id');
         sessionStorage.removeItem('review_prof_name');
       } catch (_) {}
-      window.location.href = '/review.html?select=1';
+      addContentMenu.style.display = addContentMenu.style.display === 'block' ? 'none' : 'block';
     };
+    document.addEventListener('click', (e) => {
+      if (!addContentWrapper.contains(e.target)) {
+        addContentMenu.style.display = 'none';
+      }
+    });
   }
 
   // Header no longer shows a Login button; login happens via dedicated pages
