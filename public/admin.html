@@ -176,7 +176,8 @@
 <body>
   <div class="admin-container">
     <div class="admin-header">
-      <h1>🔐 Admin Panel - Registered Users</h1>
+      <h1>🔐 Admin Panel</h1>
+      <p style="opacity:.9; margin-top:6px;">Monitor users, activity, and content across schools.</p>
     </div>
 
     <!-- Login Form (shown initially) -->
@@ -195,6 +196,26 @@
           <div class="value" id="total-users">0</div>
         </div>
         <div class="stat-card">
+          <h3>Subjects</h3>
+          <div class="value" id="total-subjects">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Professors</h3>
+          <div class="value" id="total-professors">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Comments</h3>
+          <div class="value" id="total-comments">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Reviews</h3>
+          <div class="value" id="total-reviews">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Resources</h3>
+          <div class="value" id="total-resources">0</div>
+        </div>
+        <div class="stat-card">
           <h3>Users with Emails</h3>
           <div class="value" id="users-with-emails">0</div>
         </div>
@@ -204,22 +225,64 @@
         </div>
       </div>
 
-      <div class="school-filter">
-        <button onclick="loadUsers('dlsu')" class="active" data-school="dlsu">DLSU</button>
+  <div class="school-filter">
+    <button onclick="loadUsers('dlsu')" class="active" data-school="dlsu">DLSU</button>
         <button onclick="loadUsers('ateneo')" data-school="ateneo">Ateneo</button>
         <button onclick="loadUsers('up')" data-school="up">UP</button>
         <button onclick="loadUsers('benilde')" data-school="benilde">Benilde</button>
         <button onclick="loadUsers('all')" data-school="all">All Schools</button>
-        <button class="export-btn" onclick="exportEmails()">📥 Export CSV</button>
-      </div>
+    <button class="export-btn" onclick="exportEmails()">📥 Export CSV</button>
+    <button class="export-btn" onclick="exportJSON()">🧾 Export JSON</button>
+    <button class="export-btn" onclick="exportPDF()">🖨️ Export PDF</button>
+  </div>
 
       <div class="users-table">
         <div class="table-header">
           <h2>Registered Users</h2>
           <div id="table-count">0 users</div>
         </div>
+        <div style="padding: 12px 16px; border-bottom: 1px solid #e5e7eb; display:flex; gap:12px; flex-wrap:wrap;">
+          <input id="filter-text" placeholder="Search name/email" style="flex:1; min-width:220px; padding:8px; border:1px solid #ddd; border-radius:8px;">
+          <select id="filter-type" style="padding:8px; border:1px solid #ddd; border-radius:8px;">
+            <option value="all">All Types</option>
+            <option value="oauth">OAuth Users</option>
+            <option value="email">Email Users</option>
+          </select>
+          <select id="filter-activity" style="padding:8px; border:1px solid #ddd; border-radius:8px;">
+            <option value="all">All Activity</option>
+            <option value="active">Active (>=1 comment)</option>
+            <option value="inactive">Inactive (0 comments)</option>
+          </select>
+          <button class="export-btn" onclick="applyFilters()">Apply Filters</button>
+        </div>
         <div id="loading" class="loading">Loading users...</div>
         <div id="users-list"></div>
+      </div>
+      <div class="users-table" style="margin-top:24px;">
+        <div class="table-header">
+          <h2>Recent Activity</h2>
+        </div>
+        <div id="activity" style="padding: 12px 16px;">
+          <div id="recent-comments"></div>
+          <div id="recent-reviews" style="margin-top:14px;"></div>
+          <div id="recent-resources" style="margin-top:14px;"></div>
+        </div>
+      </div>
+
+      <div class="users-table" style="margin-top:24px;">
+        <div class="table-header">
+          <h2>Comment Trends (last 14 days)</h2>
+        </div>
+        <div style="padding: 12px 16px;">
+          <canvas id="trendCanvas" width="1000" height="260"></canvas>
+        </div>
+      </div>
+
+      <div class="users-table" style="margin-top:24px;">
+        <div class="table-header">
+          <h2>Live Activity</h2>
+        </div>
+        <div id="live-feed" style="padding:12px 16px; font-size:13px; color:#374151;"></div>
       </div>
     </div>
   </div>
@@ -238,25 +301,19 @@
         return;
       }
 
-      // Test the password by making a test API call
       try {
-        const testResponse = await fetch(`/api/admin/users?school=dlsu&password=${encodeURIComponent(password)}`);
-        if (testResponse.ok) {
-          // Password is correct - store it and show admin panel
-          localStorage.setItem('admin_token', password);
-          document.getElementById('login-section').style.display = 'none';
-          document.getElementById('admin-content').style.display = 'block';
-          loadUsers('dlsu');
-        } else {
-          const errorData = await testResponse.json();
-          errorDiv.textContent = errorData.error || 'Incorrect password. Please try again.';
-          errorDiv.style.display = 'block';
-          document.getElementById('admin-password').value = '';
-        }
+        const resp = await fetch('/api/admin/login', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ password }) });
+        const j = await resp.json();
+        if (!resp.ok) { throw new Error(j.error || 'Login failed'); }
+        localStorage.setItem('admin_token', j.token);
+        localStorage.setItem('admin_role', j.role);
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('admin-content').style.display = 'block';
+        loadUsers('dlsu');
+        initLiveFeed();
       } catch (error) {
-        errorDiv.textContent = 'Error connecting to server. Please try again.';
+        errorDiv.textContent = error.message || 'Error connecting to server. Please try again.';
         errorDiv.style.display = 'block';
-        console.error('Login error:', error);
       }
     }
 
@@ -282,14 +339,18 @@
       document.getElementById('users-list').innerHTML = '';
 
       try {
-        const password = localStorage.getItem('admin_token');
-        if (!password) {
+        const token = localStorage.getItem('admin_token');
+        if (!token) {
           alert('Session expired. Please refresh and login again.');
           location.reload();
           return;
         }
         
-        const response = await fetch(`/api/admin/users?school=${school}&password=${encodeURIComponent(password)}`);
+        const sumRes = await fetch(`/api/admin/summary?school=${school}`, { headers:{ 'Authorization':'Bearer ' + token } });
+        const summary = await sumRes.json();
+        updateSummary(summary);
+
+        const response = await fetch(`/api/admin/users-extended?school=${school}`, { headers:{ 'Authorization':'Bearer ' + token } });
         const data = await response.json();
 
         if (!response.ok) {
@@ -305,6 +366,12 @@
         allUsersData = data.users || [];
         displayUsers(allUsersData);
         updateStats(allUsersData);
+
+        const actRes = await fetch(`/api/admin/activity?school=${school}&limit=10`, { headers:{ 'Authorization':'Bearer ' + token } });
+        const act = await actRes.json();
+        updateActivity(act);
+
+        await loadTrends();
       } catch (error) {
         const errorMsg = error.message || 'Unknown error occurred';
         document.getElementById('users-list').innerHTML = `
@@ -345,6 +412,9 @@
               <th>Course</th>
               <th>Batch</th>
               <th>Username</th>
+              <th>Comments</th>
+              <th>Reviews</th>
+              <th>Resources</th>
             </tr>
           </thead>
           <tbody>
@@ -363,6 +433,9 @@
             <td>${user.course || '<span style="color:#999;">N/A</span>'}</td>
             <td>${user.batch || '<span style="color:#999;">N/A</span>'}</td>
             <td>${user.username || '<span style="color:#999;">N/A</span>'}</td>
+            <td>${Number(user.comments_count || 0)}</td>
+            <td>${Number(user.reviews_count || 0)}</td>
+            <td>${Number(user.notes_count || 0)}</td>
           </tr>
         `;
       });
@@ -375,14 +448,136 @@
       container.innerHTML = html;
     }
 
+    function updateSummary(summary) {
+      const totals = summary.totals ? summary.totals : summary;
+      document.getElementById('total-users').textContent = totals.users || 0;
+      document.getElementById('total-subjects').textContent = totals.subjects || 0;
+      document.getElementById('total-professors').textContent = totals.professors || 0;
+      document.getElementById('total-comments').textContent = totals.comments || 0;
+      document.getElementById('total-reviews').textContent = totals.reviews || 0;
+      document.getElementById('total-resources').textContent = totals.resources || 0;
+    }
+
+    function updateActivity(act) {
+      const comments = act.activity ? act.activity.flatMap(a => a.comments.map(x => ({...x, school:a.school}))) : (act.comments || []);
+      const reviews = act.activity ? act.activity.flatMap(a => a.reviews.map(x => ({...x, school:a.school}))) : (act.reviews || []);
+      const resources = act.activity ? act.activity.flatMap(a => a.resources.map(x => ({...x, school:a.school}))) : (act.resources || []);
+      const cEl = document.getElementById('recent-comments');
+      const rEl = document.getElementById('recent-reviews');
+      const nEl = document.getElementById('recent-resources');
+      const canModerate = (localStorage.getItem('admin_role') === 'moderator' || localStorage.getItem('admin_role') === 'admin');
+      cEl.innerHTML = `<h3 style="margin-bottom:8px;">Recent Comments</h3>` + (comments.slice(0,10).map(c => {
+        const actions = canModerate ? `<span style="float:right;">
+          <a href="#" onclick="flagComment(${c.id})" style="margin-right:8px;">Flag</a>
+          <a href="#" onclick="editComment(${c.id}, '${String(c.comment||'').replace(/'/g, "\'")}')" style="margin-right:8px;">Edit</a>
+          ${localStorage.getItem('admin_role')==='admin' ? `<a href="#" onclick="deleteComment(${c.id})" style="color:#dc2626;">Delete</a>` : ''}
+        </span>` : '';
+        return `<div style="font-size:13px; color:#374151; padding:6px 0; border-bottom:1px solid #eee;">${c.display_name || 'Anonymous'} on prof ${c.prof_id} • ${c.school ? c.school.toUpperCase() : ''} <span style="color:#6b7280;">${c.created_at || ''}</span>${actions}</div>`;
+      }).join(''));
+      rEl.innerHTML = `<h3 style="margin-bottom:8px;">Recent Reviews</h3>` + (reviews.slice(0,10).map(v => `<div style="font-size:13px; color:#374151; padding:6px 0; border-bottom:1px solid #eee;">${v.display_name || 'User'} reviewed prof ${v.prof_id} • ${v.school ? v.school.toUpperCase() : ''} <span style="color:#6b7280;">${v.created_at || ''}</span></div>`).join(''));
+      nEl.innerHTML = `<h3 style="margin-bottom:8px;">Recent Resources</h3>` + (resources.slice(0,10).map(n => `<div style="font-size:13px; color:#374151; padding:6px 0; border-bottom:1px solid #eee;">${n.display_name || 'User'} uploaded ${n.file_name} to subject ${n.subject_id} • ${n.school ? n.school.toUpperCase() : ''} <span style="color:#6b7280;">${n.created_at || ''}</span></div>`).join(''));
+    }
+
     function updateStats(users) {
-      const total = users.length;
       const withEmails = users.filter(u => u.email).length;
       const oauthUsers = users.filter(u => u.oauth_provider).length;
-
-      document.getElementById('total-users').textContent = total;
       document.getElementById('users-with-emails').textContent = withEmails;
       document.getElementById('oauth-users').textContent = oauthUsers;
+    }
+
+    function applyFilters() {
+      const txt = (document.getElementById('filter-text').value || '').toLowerCase();
+      const type = document.getElementById('filter-type').value;
+      const activity = document.getElementById('filter-activity').value;
+      let filtered = allUsersData.slice();
+      if (txt) filtered = filtered.filter(u => String(u.display_name||'').toLowerCase().includes(txt) || String(u.email||'').toLowerCase().includes(txt));
+      if (type==='oauth') filtered = filtered.filter(u => !!u.oauth_provider);
+      if (type==='email') filtered = filtered.filter(u => !!u.email);
+      if (activity==='active') filtered = filtered.filter(u => Number(u.comments_count||0) >= 1);
+      if (activity==='inactive') filtered = filtered.filter(u => Number(u.comments_count||0) === 0);
+      displayUsers(filtered);
+    }
+
+    async function loadTrends() {
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`/api/admin/comment-trends?school=${currentSchool}`, { headers:{ 'Authorization': 'Bearer ' + token } });
+      const j = await res.json();
+      const data = j.series || [];
+      const canvas = document.getElementById('trendCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.strokeStyle = '#00693e';
+      ctx.lineWidth = 2;
+      const max = Math.max(1, ...data.map(d => d.count));
+      const pad = 30;
+      const w = canvas.width - pad*2;
+      const h = canvas.height - pad*2;
+      ctx.beginPath();
+      data.forEach((d, i) => {
+        const x = pad + (i/(data.length-1||1))*w;
+        const y = pad + h - (d.count/max)*h;
+        if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+      ctx.fillStyle = '#374151';
+      ctx.font = '12px system-ui';
+      data.forEach((d, i) => {
+        const x = pad + (i/(data.length-1||1))*w;
+        const y = pad + h - (d.count/max)*h;
+        ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
+      });
+    }
+
+    function initLiveFeed() {
+      const token = localStorage.getItem('admin_token');
+      const ev = new EventSource(`/api/admin/activity/stream?school=${currentSchool}&token=${encodeURIComponent(token)}`);
+      const feed = document.getElementById('live-feed');
+      ev.onmessage = (e) => {
+        try {
+          const j = JSON.parse(e.data);
+          const items = [];
+          j.comments.forEach(c => items.push(`Comment by ${c.display_name||'Anonymous'} on prof ${c.prof_id}`));
+          j.reviews.forEach(r => items.push(`Review by ${r.display_name||'User'} on prof ${r.prof_id}`));
+          j.resources.forEach(n => items.push(`Resource by ${n.display_name||'User'}: ${n.file_name||''}`));
+          feed.innerHTML = items.slice(0,10).map(s => `<div style="padding:4px 0; border-bottom:1px solid #eee;">${s}</div>`).join('');
+        } catch(_) {}
+      };
+    }
+
+    async function flagComment(id) {
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`/api/admin/comments/${id}/flag?school=${currentSchool}`, { method:'POST', headers:{ 'Authorization':'Bearer ' + token } });
+      if (res.ok) loadUsers(currentSchool);
+    }
+    async function editComment(id, current) {
+      const text = prompt('Edit comment text:', current || '');
+      if (text==null) return;
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`/api/admin/comments/${id}/edit?school=${currentSchool}`, { method:'POST', headers:{ 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' }, body: JSON.stringify({ comment:text }) });
+      if (res.ok) loadUsers(currentSchool);
+    }
+    async function deleteComment(id) {
+      if (!confirm('Delete this comment?')) return;
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`/api/admin/comments/${id}?school=${currentSchool}`, { method:'DELETE', headers:{ 'Authorization':'Bearer ' + token } });
+      if (res.ok) loadUsers(currentSchool);
+    }
+
+    function exportJSON() {
+      const blob = new Blob([JSON.stringify(allUsersData)], { type:'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `users_${currentSchool}.json`;
+      link.click();
+    }
+    function exportPDF() {
+      const w = window.open('', '_blank');
+      const showSchool = currentSchool === 'all';
+      const rows = allUsersData.map(u => `<tr>${showSchool?`<td>${u.school||''}</td>`:''}<td>${u.id}</td><td>${u.email||''}</td><td>${u.display_name||''}</td><td>${u.school_id_or_email||''}</td><td>${u.oauth_provider||''}</td><td>${u.college||''}</td><td>${u.course||''}</td><td>${u.batch||''}</td><td>${u.username||''}</td></tr>`).join('');
+      w.document.write(`<html><head><title>Users PDF</title></head><body><h2>Users - ${currentSchool.toUpperCase()}</h2><table border="1" cellspacing="0" cellpadding="6"><thead><tr>${showSchool?'<th>School</th>':''}<th>ID</th><th>Email</th><th>Display Name</th><th>School/Email ID</th><th>OAuth</th><th>College</th><th>Course</th><th>Batch</th><th>Username</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
+      w.document.close();
+      w.focus();
+      w.print();
     }
 
     function exportEmails() {

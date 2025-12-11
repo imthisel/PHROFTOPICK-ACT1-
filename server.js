@@ -27,6 +27,29 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 const DB_DIR = process.env.DB_DIR || path.join(__dirname, 'databases');
 
+// Admin roles and helpers
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin-secret';
+const ADMIN_PASSWORD_VIEWER = process.env.ADMIN_PASSWORD_VIEWER || 'admin-view';
+const ADMIN_PASSWORD_MOD = process.env.ADMIN_PASSWORD_MOD || 'admin-mod';
+const ADMIN_PASSWORD_ADMIN = process.env.ADMIN_PASSWORD_ADMIN || ADMIN_PASSWORD;
+
+function issueAdminToken(role) {
+  return jwt.sign({ role, iat: Math.floor(Date.now()/1000) }, JWT_SECRET, { expiresIn: '2h' });
+}
+
+function authenticateAdmin(req, res, next) {
+  const hdr = req.headers['authorization'] || req.headers['x-admin-token'] || req.query.token;
+  if (!hdr) return res.status(401).json({ error: 'Missing admin token' });
+  const token = String(hdr).startsWith('Bearer ') ? String(hdr).slice(7) : String(hdr);
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.adminRole = payload.role || 'viewer';
+    next();
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid admin token' });
+  }
+}
+
 
 // 🧭 Debug Middleware — Log active school for every request
 app.use((req, res, next) => {
@@ -81,6 +104,17 @@ function getDb(school) {
 // =================== MIDDLEWARE ===================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use((err, req, res, next) => {
+  console.error('Request error:', err && err.stack ? err.stack : err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+process.on('uncaughtException', (e) => {
+  console.error('Uncaught exception:', e && e.stack ? e.stack : e);
+});
+process.on('unhandledRejection', (e) => {
+  console.error('Unhandled rejection:', e);
+});
 
 app.use(session({
   store: new SQLiteStore({ db: 'sessions.sqlite', dir: DB_DIR }),
@@ -132,7 +166,8 @@ CREATE TABLE IF NOT EXISTS users (
   course TEXT,
   batch TEXT,
   username TEXT,
-  bio TEXT
+  bio TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -210,6 +245,15 @@ CREATE TABLE IF NOT EXISTS prof_subjects (
   subject_id INTEGER NOT NULL,
   FOREIGN KEY (prof_id) REFERENCES professors(id),
   FOREIGN KEY (subject_id) REFERENCES subjects(id)
+);
+
+CREATE TABLE IF NOT EXISTS admin_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  action TEXT,
+  details TEXT,
+  admin_role TEXT,
+  school TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 `;
 
@@ -351,6 +395,25 @@ app.get('/api/subjects', (req, res) => {
 res.json({ subjects: rows }); // ✅ Match frontend expectation
   });
 });
+
+// =================== ADMIN AUTH ===================
+app.post('/api/admin/login', (req, res) => {
+  const password = (req.body && req.body.password) || req.query.password || '';
+  let role = null;
+  if (password === ADMIN_PASSWORD_ADMIN) role = 'admin';
+  else if (password === ADMIN_PASSWORD_MOD) role = 'moderator';
+  else if (password === ADMIN_PASSWORD_VIEWER) role = 'viewer';
+  if (!role) return res.status(401).json({ error: 'Invalid password' });
+  const token = issueAdminToken(role);
+  res.json({ token, role });
+});
+
+function logAdminAction(adminRole, action, details, school) {
+  try {
+    const db = getDb(school || 'dlsu');
+    db.run('INSERT INTO admin_logs (action, details, admin_role, school) VALUES (?,?,?,?)', [action, details, adminRole, school || 'dlsu'], () => db.close());
+  } catch (_) {}
+}
 
 // Create user-generated subject
 app.post('/api/subjects/create', (req, res) => {
@@ -877,17 +940,18 @@ app.post('/api/me', authenticateJWT, (req, res) => {
 
 
 // =================== ADMIN ROUTES ===================
-// Simple password-based admin authentication
-// Set ADMIN_PASSWORD environment variable or change the default below
-// To change password: Update the value after || or set ADMIN_PASSWORD in .env file
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'niggerstoplooking'; // ⚠️ CHANGE THIS PASSWORD!
+// Backward-compatible users endpoint (supports token or password)
 
 app.get('/api/admin/users', (req, res) => {
-  const password = req.query.password || req.headers['x-admin-password'] || '';
-  
-  // Simple password check (you can make this more secure)
-  if (!password || password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ error: 'Unauthorized. Invalid admin password.' });
+  const hdr = req.headers['authorization'] || req.headers['x-admin-token'];
+  let authorized = false;
+  if (hdr) {
+    try { jwt.verify(hdr.startsWith('Bearer ') ? hdr.slice(7) : hdr, JWT_SECRET); authorized = true; } catch (_) {}
+  }
+  if (!authorized) {
+    const password = req.query.password || req.headers['x-admin-password'] || '';
+    const ok = [ADMIN_PASSWORD_ADMIN, ADMIN_PASSWORD_MOD, ADMIN_PASSWORD_VIEWER].includes(password);
+    if (!ok) return res.status(401).json({ error: 'Unauthorized.' });
   }
 
   const school = req.query.school || 'dlsu';
@@ -1046,6 +1110,205 @@ app.get('/api/admin/users', (req, res) => {
     console.error(`Error opening database for ${school}:`, error);
     res.status(500).json({ error: 'Failed to open database: ' + error.message });
   }
+});
+
+// Admin: extended users with activity counts
+app.get('/api/admin/users-extended', authenticateAdmin, (req, res) => {
+
+  const school = req.query.school || 'dlsu';
+
+  const buildUsersForSchool = (s) => new Promise((resolve) => {
+    const db = getDb(s);
+    const sql = `
+      SELECT u.id, u.email, u.display_name, u.school_id_or_email, u.oauth_provider,
+             u.college, u.course, u.batch, u.username,
+             (SELECT COUNT(1) FROM comments c WHERE c.display_name = u.display_name) AS comments_count,
+             (SELECT COUNT(1) FROM prof_reviews r WHERE r.user_id = u.id) AS reviews_count,
+             (SELECT COUNT(1) FROM subject_resources sr WHERE sr.user_id = u.id) AS notes_count
+      FROM users u
+      ORDER BY u.id DESC`;
+    db.all(sql, [], (err, rows) => {
+      db.close();
+      if (err) return resolve({ school: s, users: [], error: err.message });
+      resolve({ school: s, users: rows });
+    });
+  });
+
+  if (school === 'all') {
+    const schools = ['dlsu', 'ateneo', 'up', 'benilde'];
+    Promise.all(schools.map(buildUsersForSchool)).then(results => {
+      const merged = [];
+      results.forEach(r => {
+        (r.users || []).forEach(u => merged.push({ ...u, school: r.school.toUpperCase() }));
+      });
+      res.json({ users: merged });
+    }).catch(e => res.status(500).json({ error: e.message }));
+    return;
+  }
+
+  buildUsersForSchool(school).then(r => res.json({ users: r.users || [] }))
+    .catch(e => res.status(500).json({ error: e.message }));
+});
+
+// Admin: summary stats
+app.get('/api/admin/summary', authenticateAdmin, (req, res) => {
+  const school = req.query.school || 'dlsu';
+
+  const summaryForSchool = (s) => new Promise((resolve) => {
+    const db = getDb(s);
+    const result = { school: s };
+    db.serialize(() => {
+      db.get('SELECT COUNT(1) AS c FROM users', [], (e1, r1) => {
+        result.users = r1?.c || 0;
+        db.get('SELECT COUNT(1) AS c FROM subjects', [], (e2, r2) => {
+          result.subjects = r2?.c || 0;
+          db.get('SELECT COUNT(1) AS c FROM professors', [], (e3, r3) => {
+            result.professors = r3?.c || 0;
+            db.get('SELECT COUNT(1) AS c FROM comments', [], (e4, r4) => {
+              result.comments = r4?.c || 0;
+              db.get('SELECT COUNT(1) AS c FROM prof_reviews', [], (e5, r5) => {
+                result.reviews = r5?.c || 0;
+                db.get('SELECT COUNT(1) AS c FROM subject_resources', [], (e6, r6) => {
+                  result.resources = r6?.c || 0;
+                  db.close();
+                  resolve(result);
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  if (school === 'all') {
+    const schools = ['dlsu', 'ateneo', 'up', 'benilde'];
+    Promise.all(schools.map(summaryForSchool)).then(list => {
+      const total = list.reduce((acc, s) => ({
+        users: acc.users + s.users,
+        subjects: acc.subjects + s.subjects,
+        professors: acc.professors + s.professors,
+        comments: acc.comments + s.comments,
+        reviews: acc.reviews + s.reviews,
+        resources: acc.resources + s.resources
+      }), { users:0, subjects:0, professors:0, comments:0, reviews:0, resources:0 });
+      res.json({ totals: total, per_school: list });
+    }).catch(e => res.status(500).json({ error: e.message }));
+    return;
+  }
+
+  summaryForSchool(school).then(s => res.json(s)).catch(e => res.status(500).json({ error: e.message }));
+});
+
+// Admin: recent activity
+app.get('/api/admin/activity', authenticateAdmin, (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const limit = Math.min(parseInt(req.query.limit || '20', 10) || 20, 100);
+
+  const activityForSchool = (s) => new Promise((resolve) => {
+    const db = getDb(s);
+    const out = { school: s, comments: [], reviews: [], resources: [] };
+    db.all('SELECT * FROM comments ORDER BY created_at DESC LIMIT ?', [limit], (e1, c) => {
+      out.comments = c || [];
+      db.all('SELECT * FROM prof_reviews ORDER BY created_at DESC LIMIT ?', [limit], (e2, r) => {
+        out.reviews = r || [];
+        db.all('SELECT * FROM subject_resources ORDER BY created_at DESC LIMIT ?', [limit], (e3, n) => {
+          out.resources = n || [];
+          db.close();
+          resolve(out);
+        });
+      });
+    });
+  });
+
+  if (school === 'all') {
+    const schools = ['dlsu', 'ateneo', 'up', 'benilde'];
+    Promise.all(schools.map(activityForSchool)).then(results => res.json({ activity: results }))
+      .catch(e => res.status(500).json({ error: e.message }));
+    return;
+  }
+  activityForSchool(school).then(a => res.json(a)).catch(e => res.status(500).json({ error: e.message }));
+});
+
+// Admin moderation endpoints
+app.post('/api/admin/comments/:id/flag', authenticateAdmin, (req, res) => {
+  if (!['moderator','admin'].includes(req.adminRole)) return res.status(403).json({ error: 'Forbidden' });
+  const school = req.query.school || 'dlsu';
+  const id = req.params.id;
+  const db = getDb(school);
+  db.run('UPDATE comments SET comment = comment || "\n[FLAGGED]" WHERE id = ?', [id], function (err) {
+    db.close();
+    if (err) return res.status(500).json({ error: 'DB error' });
+    logAdminAction(req.adminRole, 'flag_comment', `id=${id}`, school);
+    res.json({ ok: true });
+  });
+});
+
+app.post('/api/admin/comments/:id/edit', authenticateAdmin, (req, res) => {
+  if (!['moderator','admin'].includes(req.adminRole)) return res.status(403).json({ error: 'Forbidden' });
+  const school = req.query.school || 'dlsu';
+  const id = req.params.id;
+  const text = (req.body && req.body.comment) || '';
+  if (!text.trim()) return res.status(400).json({ error: 'Comment text required' });
+  const db = getDb(school);
+  db.run('UPDATE comments SET comment = ? WHERE id = ?', [text, id], function (err) {
+    db.close();
+    if (err) return res.status(500).json({ error: 'DB error' });
+    logAdminAction(req.adminRole, 'edit_comment', `id=${id}`, school);
+    res.json({ ok: true });
+  });
+});
+
+app.delete('/api/admin/comments/:id', authenticateAdmin, (req, res) => {
+  if (req.adminRole !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+  const school = req.query.school || 'dlsu';
+  const id = req.params.id;
+  const db = getDb(school);
+  db.run('DELETE FROM comments WHERE id = ?', [id], function (err) {
+    db.close();
+    if (err) return res.status(500).json({ error: 'DB error' });
+    logAdminAction(req.adminRole, 'delete_comment', `id=${id}`, school);
+    res.json({ ok: true });
+  });
+});
+
+// Comment trends
+app.get('/api/admin/comment-trends', authenticateAdmin, (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const days = Math.min(parseInt(req.query.days || '14', 10) || 14, 60);
+  const db = getDb(school);
+  const sql = `
+    SELECT DATE(created_at) AS day, COUNT(1) AS count
+    FROM comments
+    WHERE created_at >= DATE('now', ?)
+    GROUP BY DATE(created_at)
+    ORDER BY DATE(created_at) ASC
+  `;
+  db.all(sql, [`-${days} days`], (err, rows) => {
+    db.close();
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json({ days, series: rows });
+  });
+});
+
+// Activity SSE
+app.get('/api/admin/activity/stream', authenticateAdmin, (req, res) => {
+  const school = req.query.school || 'dlsu';
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  let timer = setInterval(async () => {
+    try {
+      const db = getDb(school);
+      const out = { comments: [], reviews: [], resources: [] };
+      await new Promise(r => db.all('SELECT * FROM comments ORDER BY created_at DESC LIMIT 5', [], (e, rows)=>{ out.comments = rows||[]; r(); }));
+      await new Promise(r => db.all('SELECT * FROM prof_reviews ORDER BY created_at DESC LIMIT 5', [], (e, rows)=>{ out.reviews = rows||[]; r(); }));
+      await new Promise(r => db.all('SELECT * FROM subject_resources ORDER BY created_at DESC LIMIT 5', [], (e, rows)=>{ out.resources = rows||[]; r(); }));
+      db.close();
+      res.write(`data: ${JSON.stringify(out)}\n\n`);
+    } catch (_) {}
+  }, 5000);
+  req.on('close', () => { clearInterval(timer); });
 });
 
 // =================== FILE UPLOAD CONFIGURATION ===================
@@ -1261,3 +1524,37 @@ app.get('/api/debug/dbinfo', (req, res) => {
 
 // =================== START SERVER ===================
 app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
+// Performance: safe migrations + indexes
+for (const s of ['dlsu','ateneo','up','benilde']) {
+  try {
+    const db = getDb(s);
+    db.serialize(() => {
+      const addColumnIfMissing = (table, column, decl) => {
+        db.all(`PRAGMA table_info(${table})`, [], (e, rows) => {
+          if (e) { console.warn(`[${s}] pragma ${table} failed:`, e.message); return; }
+          const has = (rows || []).some(r => String(r.name).toLowerCase() === column.toLowerCase());
+          if (!has) {
+            db.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${decl}`, (err) => {
+              if (err) console.warn(`[${s}] add ${table}.${column} failed:`, err.message);
+            });
+          }
+        });
+      };
+
+      addColumnIfMissing('comments','created_at','TEXT');
+      addColumnIfMissing('prof_reviews','created_at','TEXT');
+      addColumnIfMissing('users','created_at','TEXT');
+      addColumnIfMissing('subject_resources','created_at','TEXT');
+
+      // Create indexes guarded with callbacks (avoid crashing on missing columns)
+      db.run('CREATE INDEX IF NOT EXISTS idx_comments_prof ON comments(prof_id)', (e)=>{ if(e) console.warn(`[${s}] idx_comments_prof`, e.message); });
+      db.run('CREATE INDEX IF NOT EXISTS idx_comments_created ON comments(created_at)', (e)=>{ if(e) console.warn(`[${s}] idx_comments_created`, e.message); });
+      db.run('CREATE INDEX IF NOT EXISTS idx_reviews_user ON prof_reviews(user_id)', (e)=>{ if(e) console.warn(`[${s}] idx_reviews_user`, e.message); });
+      db.run('CREATE INDEX IF NOT EXISTS idx_reviews_created ON prof_reviews(created_at)', (e)=>{ if(e) console.warn(`[${s}] idx_reviews_created`, e.message); });
+      db.run('CREATE INDEX IF NOT EXISTS idx_resources_user ON subject_resources(user_id)', (e)=>{ if(e) console.warn(`[${s}] idx_resources_user`, e.message); });
+      db.run('CREATE INDEX IF NOT EXISTS idx_users_created ON users(created_at)', (e)=>{ if(e) console.warn(`[${s}] idx_users_created`, e.message); });
+    });
+  } catch (e) {
+    console.warn(`[${s}] index/migration failed`, e.message);
+  }
+}
