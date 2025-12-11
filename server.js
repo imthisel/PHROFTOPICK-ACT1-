@@ -25,7 +25,15 @@ try {
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
-const DB_DIR = process.env.DB_DIR || path.join(__dirname, 'databases');
+const ENV = process.env.NODE_ENV || 'development';
+const DB_DIR = (() => {
+  const renderDisk = process.env.RENDER_DISK_PATH || process.env.DATA_DIR;
+  if (ENV === 'production') {
+    return renderDisk || path.join('/var', 'data', 'databases');
+  }
+  const base = process.env.DB_DIR || path.join(__dirname, 'databases');
+  try { return path.join(base, ENV); } catch (_) { return base; }
+})();
 
 // Admin roles and helpers
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin-secret';
@@ -99,6 +107,22 @@ function getDb(school) {
     throw e;
   }
 }
+
+// =================== PERSISTENCE SAFETY CHECKS ===================
+(function persistenceChecks(){
+  try {
+    const dirStat = fs.existsSync(DB_DIR) ? 'exists' : 'missing';
+    console.log(`🗄️ DB_DIR: ${DB_DIR} (${dirStat}), ENV=${ENV}`);
+    if (ENV === 'production') {
+      const isRepoPath = DB_DIR.startsWith(__dirname);
+      if (isRepoPath) {
+        console.warn('⚠️ DB_DIR points inside repo in production. Configure persistent disk via RENDER_DISK_PATH or DATA_DIR.');
+      }
+    }
+  } catch (e) {
+    console.warn('Persistence checks failed:', e.message);
+  }
+})();
 
 
 // =================== MIDDLEWARE ===================
@@ -1271,6 +1295,7 @@ app.delete('/api/admin/comments/:id', authenticateAdmin, (req, res) => {
   const school = req.query.school || 'dlsu';
   const id = req.params.id;
   const db = getDb(school);
+  console.warn(`🗑️ Admin delete comment id=${id} by role=${req.adminRole} school=${school}`);
   db.run('DELETE FROM comments WHERE id = ?', [id], function (err) {
     db.close();
     if (err) return res.status(500).json({ error: 'DB error' });

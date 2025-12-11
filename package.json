@@ -4,11 +4,12 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run test:persistence",
     "start": "node server.js",
     "backup": "node backup-databases.js",
     "build": "npm rebuild sqlite3 --build-from-source",
     "seed": "echo '⚠️ WARNING: This will delete all data! Are you sure?' && node seed.js",
+    "test:persistence": "node scripts/persistence.test.js",
     "postinstall": "npm rebuild sqlite3 --build-from-source || echo sqlite3 rebuild skipped"
   },
   "keywords": [],

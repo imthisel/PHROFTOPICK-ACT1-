@@ -1,5 +1,12 @@
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./database.db');
+const path = require('path');
+const ENV = process.env.NODE_ENV || 'development';
+if (ENV === 'production' || process.env.ALLOW_SEED !== 'true') {
+  console.error('❌ Seeding disabled. Set ALLOW_SEED=true and NODE_ENV!=production to proceed.');
+  process.exit(1);
+}
+const DB_DIR = process.env.DB_DIR || path.join(__dirname, 'databases', ENV);
+const db = new sqlite3.Database(path.join(DB_DIR, 'dlsu.db'));
 
 db.serialize(() => {
   db.run("DROP TABLE IF EXISTS subjects");
