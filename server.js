@@ -29,7 +29,8 @@ const ENV = process.env.NODE_ENV || 'development';
 const DB_DIR = (() => {
   const renderDisk = process.env.RENDER_DISK_PATH || process.env.DATA_DIR;
   if (ENV === 'production') {
-    return renderDisk || path.join('/var', 'data', 'databases');
+    // Use Render persistent disk when provided, otherwise fall back to repo path
+    return renderDisk || path.join(__dirname, 'databases');
   }
   const base = process.env.DB_DIR || path.join(__dirname, 'databases');
   try { return path.join(base, ENV); } catch (_) { return base; }
@@ -283,7 +284,11 @@ CREATE TABLE IF NOT EXISTS admin_logs (
 
 
 const schools = ['dlsu', 'ateneo', 'up', 'benilde'];
-if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+} catch (e) {
+  console.warn(`⚠️ Failed to ensure DB_DIR at ${DB_DIR}: ${e.message}`);
+}
 
 
 // Create DB only if missing
