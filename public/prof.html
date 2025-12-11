@@ -551,14 +551,37 @@
             <div class="chart-bar">
               <div class="chart-label">
                 <span class="chart-icon">🎯</span>
-                4.0 Attainable
+                Attainability (Easy/Fair/Hard)
               </div>
-              <div class="chart-fill-wrapper">
-                <div class="chart-fill blue" style="width: ${summaryData.attainable_4.yes_percent || 0}%">
-                  <span class="chart-percent">${Math.round(summaryData.attainable_4.yes_percent || 0)}%</span>
+              <div class="workload-bars">
+                <div class="workload-item">
+                  <span class="workload-label">Easy</span>
+                  <div class="chart-fill-wrapper small">
+                    <div class="chart-fill blue" style="width: ${summaryData.attainability.Easy_percent || 0}%">
+                      ${summaryData.attainability.Easy_percent || 0}%
+                    </div>
+                    <span class="workload-count-inside">${summaryData.attainability.Easy || 0}</span>
+                  </div>
+                </div>
+                <div class="workload-item">
+                  <span class="workload-label">Fair</span>
+                  <div class="chart-fill-wrapper small">
+                    <div class="chart-fill blue" style="width: ${summaryData.attainability.Fair_percent || 0}%">
+                      ${summaryData.attainability.Fair_percent || 0}%
+                    </div>
+                    <span class="workload-count-inside">${summaryData.attainability.Fair || 0}</span>
+                  </div>
+                </div>
+                <div class="workload-item">
+                  <span class="workload-label">Hard</span>
+                  <div class="chart-fill-wrapper small">
+                    <div class="chart-fill blue" style="width: ${summaryData.attainability.Hard_percent || 0}%">
+                      ${summaryData.attainability.Hard_percent || 0}%
+                    </div>
+                    <span class="workload-count-inside">${summaryData.attainability.Hard || 0}</span>
+                  </div>
                 </div>
               </div>
-              <div class="chart-value"><strong>${summaryData.attainable_4.yes || 0}</strong> Yes / <span>${summaryData.attainable_4.no || 0} No</span></div>
             </div>
             <div class="chart-bar">
               <div class="chart-label">
@@ -643,7 +666,7 @@
             const footerItems = [];
             if (r.would_take_again === 'Yes') footerItems.push('<span class="badge badge-success">✓ Would take again</span>');
             if (r.would_take_again === 'No') footerItems.push('<span class="badge badge-danger">✗ Would not take again</span>');
-            if (r.attainable_4 === 'Yes') footerItems.push('<span class="badge badge-info">🎯 4.0 Attainable</span>');
+            if (r.attainable_4) footerItems.push(`<span class="badge badge-info">🎯 Attainability: ${r.attainable_4}</span>`);
             if (r.workload_rating) footerItems.push(`<span class="badge badge-workload badge-${r.workload_rating.toLowerCase()}">📚 Workload: ${r.workload_rating}</span>`);
             if (r.deadline_leniency) footerItems.push(`<span class="badge badge-deadline">📅 Deadlines: ${r.deadline_leniency}</span>`);
             

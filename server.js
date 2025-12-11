@@ -741,8 +741,7 @@ app.get('/api/profs/:id/review-summary', (req, res) => {
       const total = rows.length;
       let wouldTakeAgainYes = 0;
       let wouldTakeAgainNo = 0;
-      let attainable4Yes = 0;
-      let attainable4No = 0;
+      const attainabilityCounts = { Easy: 0, Fair: 0, Hard: 0 };
       let deadlineLenientYes = 0;
       let deadlineLenientNo = 0;
       const workloadCounts = { Low: 0, Medium: 0, High: 0 };
@@ -752,8 +751,9 @@ app.get('/api/profs/:id/review-summary', (req, res) => {
       rows.forEach(r => {
         if (r.would_take_again === 'Yes') wouldTakeAgainYes++;
         if (r.would_take_again === 'No') wouldTakeAgainNo++;
-        if (r.attainable_4 === 'Yes') attainable4Yes++;
-        if (r.attainable_4 === 'No') attainable4No++;
+        if (r.attainable_4 && attainabilityCounts.hasOwnProperty(r.attainable_4)) {
+          attainabilityCounts[r.attainable_4] = (attainabilityCounts[r.attainable_4] || 0) + 1;
+        }
         if (r.deadline_leniency === 'Yes') deadlineLenientYes++;
         if (r.deadline_leniency === 'No') deadlineLenientNo++;
         if (r.workload_rating) workloadCounts[r.workload_rating] = (workloadCounts[r.workload_rating] || 0) + 1;
@@ -772,11 +772,13 @@ app.get('/api/profs/:id/review-summary', (req, res) => {
           yes_percent: total > 0 ? Math.round((wouldTakeAgainYes / total) * 100) : 0,
           no_percent: total > 0 ? Math.round((wouldTakeAgainNo / total) * 100) : 0
         },
-        attainable_4: {
-          yes: attainable4Yes,
-          no: attainable4No,
-          yes_percent: total > 0 ? Math.round((attainable4Yes / total) * 100) : 0,
-          no_percent: total > 0 ? Math.round((attainable4No / total) * 100) : 0
+        attainability: {
+          Easy: attainabilityCounts.Easy,
+          Fair: attainabilityCounts.Fair,
+          Hard: attainabilityCounts.Hard,
+          Easy_percent: total > 0 ? Math.round((attainabilityCounts.Easy / total) * 100) : 0,
+          Fair_percent: total > 0 ? Math.round((attainabilityCounts.Fair / total) * 100) : 0,
+          Hard_percent: total > 0 ? Math.round((attainabilityCounts.Hard / total) * 100) : 0
         },
         deadline_leniency: {
           yes: deadlineLenientYes,
