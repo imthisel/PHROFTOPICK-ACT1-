@@ -445,6 +445,7 @@ function updateAuthUI() {
 function renderSubjects(list) {
   const subjectsList = document.getElementById('subjects-list') || null;
   if (!subjectsList) return;
+  console.log('renderSubjects called with', Array.isArray(list) ? list.length : 0, 'items');
   if (!list || list.length === 0) {
     subjectsList.innerHTML = '<div class="card">No subjects found</div>';
     return;

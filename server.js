@@ -390,9 +390,13 @@ app.get('/api/subjects', (req, res) => {
 
 
   db.all(sql, params, (err, rows) => {
-    db.close();
-    if (err) return res.status(500).json({ error: 'DB error' });
+    if (err) {
+      console.error('Subjects query error:', err && err.message ? err.message : err);
+      db.close();
+      return res.status(500).json({ error: 'DB error' });
+    }
     try { console.log(`[subjects] school=${school} count=${rows.length}`); } catch (_) {}
+    db.close();
     res.json({ subjects: rows });
   });
 });
@@ -1546,6 +1550,7 @@ for (const s of ['dlsu','ateneo','up','benilde']) {
       addColumnIfMissing('prof_reviews','created_at','TEXT');
       addColumnIfMissing('users','created_at','TEXT');
       addColumnIfMissing('subject_resources','created_at','TEXT');
+      addColumnIfMissing('subjects','user_generated','INTEGER DEFAULT 0');
 
       // Create indexes guarded with callbacks (avoid crashing on missing columns)
       db.run('CREATE INDEX IF NOT EXISTS idx_comments_prof ON comments(prof_id)', (e)=>{ if(e) console.warn(`[${s}] idx_comments_prof`, e.message); });
