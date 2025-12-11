@@ -392,7 +392,8 @@ app.get('/api/subjects', (req, res) => {
   db.all(sql, params, (err, rows) => {
     db.close();
     if (err) return res.status(500).json({ error: 'DB error' });
-res.json({ subjects: rows }); // ✅ Match frontend expectation
+    try { console.log(`[subjects] school=${school} count=${rows.length}`); } catch (_) {}
+    res.json({ subjects: rows });
   });
 });
 

@@ -903,8 +903,16 @@ if (logoImg) {
     });
     btnSearch.onclick = async () => {
       const q = subjectSearch.value.trim();
-      const data = await api.searchSubjects(q);
-      renderSubjects(data.subjects || []);
+      if (subjectsList) subjectsList.innerHTML = '<div class="card">Loading...</div>';
+      try {
+        const data = await api.searchSubjects(q);
+        const list = Array.isArray(data) ? data : (data.subjects || []);
+        console.log('Search subjects returned', list.length);
+        renderSubjects(list);
+      } catch (err) {
+        console.error('Subjects search error', err);
+        if (subjectsList) subjectsList.innerHTML = '<div class="card">Error fetching subjects</div>';
+      }
     };
   }
 
@@ -930,9 +938,17 @@ if (logoImg) {
       }
 
 
-      // show
-      const data = await api.listSubjects();
-      renderSubjects(data.subjects || []);
+      subjectsContainer.innerHTML = '<div class="card">Loading subjects...</div>';
+      try {
+        const data = await api.listSubjects();
+        const list = Array.isArray(data) ? data : (data.subjects || []);
+        console.log('List subjects returned', list.length);
+        renderSubjects(list);
+      } catch (err) {
+        console.error('List subjects error', err);
+        subjectsContainer.innerHTML = '<div class="card">Failed to load subjects</div>';
+        return;
+      }
       subjectsContainer.style.opacity = '0';
       // force reflow
       subjectsContainer.offsetHeight;
@@ -1029,12 +1045,15 @@ document.addEventListener('click', function(e) {
 
   // --- Load subjects initially (if container exists) ---
 if (subjectsList) {
+  subjectsList.innerHTML = '<div class="card">Loading subjects...</div>';
   try {
     const d = await api.listSubjects();
-    console.log("✅ API returned:", d);
-    renderSubjects(d.subjects || []);
+    const list = Array.isArray(d) ? d : (d.subjects || []);
+    console.log('Initial subjects returned', list.length);
+    renderSubjects(list);
   } catch (err) {
     console.error('Failed to list subjects', err);
+    subjectsList.innerHTML = '<div class="card">Failed to load subjects</div>';
   }
 }
 
