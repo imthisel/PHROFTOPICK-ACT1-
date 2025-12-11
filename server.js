@@ -291,18 +291,18 @@ try {
 }
 
 
-// Create DB only if missing
 for (const school of schools) {
   const dbPath = resolveDbPath(school);
-  if (fs.existsSync(dbPath)) {
-    console.log(`ℹ️ DB for ${school} already exists at ${dbPath} — skipping schema.`);
-    continue;
+  const exists = fs.existsSync(dbPath);
+  if (exists) {
+    console.log(`ℹ️ Ensuring schema for existing ${school} DB at ${dbPath}`);
+  } else {
+    console.log(`✨ Creating ${school} DB at ${dbPath}`);
   }
-  console.log(`✨ Creating DB for ${school} at ${dbPath}`);
   const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE);
   db.exec(schema, err => {
-    if (err) console.error(`❌ Error creating schema for ${school}:`, err);
-    else console.log(`✅ Database ready for ${school}`);
+    if (err) console.error(`❌ Schema ensure failed for ${school}:`, err);
+    else console.log(`✅ Schema ready for ${school}`);
     db.close();
   });
 }
@@ -1457,6 +1457,25 @@ app.get('/api/resources/recent', (req, res) => {
     ORDER BY sr.created_at DESC
     LIMIT ?`;
   db.all(sql, [limit], (err, rows) => {
+    db.close();
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json({ resources: rows || [] });
+  });
+});
+
+// List all resources (notes) with optional pagination
+app.get('/api/resources', (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const db = getDb(school);
+  const limit = Math.min(parseInt(req.query.limit || '50', 10) || 50, 200);
+  const offset = Math.max(parseInt(req.query.offset || '0', 10) || 0, 0);
+  const sql = `
+    SELECT sr.id, sr.subject_id, sr.user_id, sr.file_name, sr.file_path, sr.file_size, sr.title, sr.description, sr.anonymous,
+           sr.display_name, sr.photo_path, sr.college, sr.batch, sr.download_count, sr.created_at
+    FROM subject_resources sr
+    ORDER BY sr.created_at DESC
+    LIMIT ? OFFSET ?`;
+  db.all(sql, [limit, offset], (err, rows) => {
     db.close();
     if (err) return res.status(500).json({ error: 'DB error' });
     res.json({ resources: rows || [] });

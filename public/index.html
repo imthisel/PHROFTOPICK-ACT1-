@@ -59,6 +59,11 @@
 <body>
   <!-- ===== HEADER PLACEHOLDER ===== -->
   <div id="header-placeholder"></div>
+  <div id="spa-nav" style="position:sticky; top:0; background:#fff; z-index:50; padding:14px; border-bottom:1px solid #e5e7eb; display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+    <button id="nav-subjects" class="auth-btn" aria-controls="spa-container" aria-label="Show subjects" style="font-weight:800; padding:12px 18px;">Subjects</button>
+    <button id="nav-notes" class="auth-btn" aria-controls="spa-container" aria-label="Show notes" style="font-weight:800; padding:12px 18px;">Notes</button>
+    <button id="nav-reviews" class="auth-btn" aria-controls="spa-container" aria-label="Show reviews" style="font-weight:800; padding:12px 18px;">Reviews</button>
+  </div>
 
   <!-- ===== MODAL (single copy) ===== -->
   <div id="modal" class="modal hidden">
@@ -69,7 +74,7 @@
   <!-- ===== CONTENT ===== -->
   <main class="container fade-in">
     <!-- Search -->
-    <div class="search-panel" style="position: relative;">
+    <div class="search-panel" id="subjects-search-panel" style="position: relative; display:none;">
       <input
         id="subject-search"
         type="text"
@@ -82,19 +87,14 @@
 
     </div>
 
-    <div id="spa-nav" style="position:sticky; top:0; background:#fff; z-index:50; padding:10px 0; border-bottom:1px solid #e5e7eb; display:flex; gap:10px; flex-wrap:wrap;">
-      <button id="nav-subjects" class="auth-btn" aria-controls="spa-container" aria-label="Show subjects">Subjects</button>
-      <button id="nav-notes" class="auth-btn" aria-controls="spa-container" aria-label="Show recent notes">Notes</button>
-      <button id="nav-reviews" class="auth-btn" aria-controls="spa-container" aria-label="Show recent reviews">Reviews</button>
-    </div>
 
     <div id="spa-container" style="padding:16px 0; min-height:240px; transition:opacity .25s ease;">
     </div>
 
     <!-- Cards appear here -->
-    <div id="prof-list"></div>
-    <div id="subjects-list" class="results"></div>
-    <div id="review-prof-list" class="results"></div>
+    <div id="prof-list" style="display:none"></div>
+    <div id="subjects-list" class="results" style="display:none"></div>
+    <div id="review-prof-list" class="results" style="display:none"></div>
 
   </main>
 
@@ -125,6 +125,8 @@
       const btnNotes = document.getElementById('nav-notes');
       const btnReviews = document.getElementById('nav-reviews');
       const school = localStorage.getItem('selectedSchool') || 'dlsu';
+      const subjectsSearchPanel = document.getElementById('subjects-search-panel');
+      const subjectsListEl = document.getElementById('subjects-list');
 
       function setActive(btn){
         [btnSubjects, btnNotes, btnReviews].forEach(b=>{ if(!b)return; b.classList.toggle('active', b===btn); });
@@ -132,55 +134,66 @@
       function showLoading(){ container.style.opacity='0.5'; container.innerHTML='<div class="card">Loading...</div>'; }
       function showError(){ container.style.opacity='1'; container.innerHTML='<div class="card">Failed to load</div>'; }
 
+      function hideAll(){
+        subjectsSearchPanel.style.display = 'none';
+        subjectsListEl.style.display = 'none';
+        container.style.display = 'block';
+        container.innerHTML = '';
+      }
+
       async function loadSubjects(){
-        showLoading();
+        btnSubjects && setActive(btnSubjects);
+        subjectsSearchPanel.style.display = 'block';
+        subjectsListEl.style.display = 'block';
+        container.style.display = 'none';
         try{
           const r = await fetch(`/api/subjects?school=${school}`);
           const j = await r.json();
-          const list = Array.isArray(j)? j : (j.subjects||[]);
-          console.log('SPA subjects', list.length);
-          if(!list.length){ container.innerHTML='<div class="card">No subjects found</div>'; container.style.opacity='1'; return; }
-          const html = `<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px;">` +
-            list.map(s=>`
-              <div class="card" style="padding:14px;">
-                <div style="font-size:12px; color:#6b7280;">${s.code||''}</div>
-                <h3 style="margin:6px 0;">${s.name||''}</h3>
-                <p style="color:#374151; font-size:13px;">${(s.name||'').split(' ').slice(0,8).join(' ')}...</p>
-                <a href="/subject.html?id=${s.id}"><button>Open Subject Page</button></a>
-              </div>
-            `).join('') + `</div>`;
-          container.innerHTML = html; container.style.opacity='1';
-        }catch(e){ console.error('SPA subjects error', e); showError(); }
+          let list = Array.isArray(j)? j : (j.subjects||[]);
+          const seen = new Set();
+          list = list.filter(s => { if (seen.has(s.id)) return false; seen.add(s.id); return true; });
+          console.log('Subjects view', list.length);
+          if (window.renderSubjects) window.renderSubjects(list);
+          else subjectsListEl.innerHTML = '<div class="card">Failed to render subjects</div>';
+        }catch(e){ console.error('Subjects load error', e); subjectsListEl.innerHTML = '<div class="card">Failed to load subjects</div>'; }
       }
 
       async function loadNotes(){
+        hideAll();
         showLoading();
         try{
-          const r = await fetch(`/api/resources/recent?school=${school}&limit=5`);
+          const r = await fetch(`/api/resources?school=${school}&limit=50`);
           const j = await r.json();
           const list = j.resources||[];
           console.log('SPA notes', list.length);
-          if(!list.length){ container.innerHTML='<div class="card">No recent notes</div>'; container.style.opacity='1'; return; }
+          if(!list.length){ container.innerHTML='<div class="card">No notes available</div>'; container.style.opacity='1'; return; }
           const html = `<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px;">` +
             list.map(n=>`
               <div class="card" style="padding:14px;">
-                <div style="font-size:12px; color:#6b7280;">${n.subject_code||''} ${n.subject_name||''}</div>
                 <h3 style="margin:6px 0;">${n.title||n.file_name||'Note'}</h3>
                 <p style="color:#374151; font-size:13px;">${n.description||''}</p>
                 <div style="display:flex; gap:12px; color:#6b7280; font-size:12px;">
                   <span>${(n.created_at||'').toString().slice(0,16)}</span>
                   <span>${(n.file_name||'').split('.').pop().toUpperCase()}</span>
                 </div>
+                ${n.file_path ? `<a href="${n.file_path}" target="_blank" rel="noopener" class="auth-btn" data-resid="${n.id}">View/Download</a>` : ''}
               </div>
             `).join('') + `</div>`;
           container.innerHTML = html; container.style.opacity='1';
+          container.querySelectorAll('a[data-resid]').forEach(a => {
+            a.addEventListener('click', async () => {
+              const id = a.getAttribute('data-resid');
+              try { await fetch(`/api/resources/${id}/download?school=${school}`, { method: 'POST' }); } catch (_) {}
+            });
+          });
         }catch(e){ console.error('SPA notes error', e); showError(); }
       }
 
       async function loadReviews(){
+        hideAll();
         showLoading();
         try{
-          const r = await fetch(`/api/reviews/recent?school=${school}&limit=5`);
+          const r = await fetch(`/api/reviews/recent?school=${school}&limit=20`);
           const j = await r.json();
           const list = j.reviews||[];
           console.log('SPA reviews', list.length);
@@ -191,10 +204,9 @@
               const starDisplay = '★'.repeat(stars) + '☆'.repeat(5-stars);
               return `
               <div class="card" style="padding:14px;">
-                <div style="font-size:12px; color:#6b7280;">${v.subject_code||''} ${v.subject_name||''}</div>
                 <h3 style="margin:6px 0;">${v.professor_name||'Professor'}</h3>
                 <div style="color:#111827; font-size:13px; margin-bottom:6px;">${starDisplay}</div>
-                <p style="color:#374151; font-size:13px;">${String(v.review_text||'').slice(0,160)}...</p>
+                <p style="color:#374151; font-size:13px; white-space:pre-wrap;">${String(v.review_text||'')}</p>
                 <div style="display:flex; gap:12px; color:#6b7280; font-size:12px;">
                   <span>${(v.created_at||'').toString().slice(0,16)}</span>
                 </div>
@@ -204,7 +216,7 @@
         }catch(e){ console.error('SPA reviews error', e); showError(); }
       }
 
-      if(btnSubjects){ btnSubjects.addEventListener('click', ()=>{ setActive(btnSubjects); loadSubjects(); }); }
+      if(btnSubjects){ btnSubjects.addEventListener('click', ()=>{ loadSubjects(); }); }
       if(btnNotes){ btnNotes.addEventListener('click', ()=>{ setActive(btnNotes); loadNotes(); }); }
       if(btnReviews){ btnReviews.addEventListener('click', ()=>{ setActive(btnReviews); loadReviews(); }); }
       if(btnSubjects) { setActive(btnSubjects); loadSubjects(); }
