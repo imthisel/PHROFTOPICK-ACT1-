@@ -82,6 +82,15 @@
 
     </div>
 
+    <div id="spa-nav" style="position:sticky; top:0; background:#fff; z-index:50; padding:10px 0; border-bottom:1px solid #e5e7eb; display:flex; gap:10px; flex-wrap:wrap;">
+      <button id="nav-subjects" class="auth-btn" aria-controls="spa-container" aria-label="Show subjects">Subjects</button>
+      <button id="nav-notes" class="auth-btn" aria-controls="spa-container" aria-label="Show recent notes">Notes</button>
+      <button id="nav-reviews" class="auth-btn" aria-controls="spa-container" aria-label="Show recent reviews">Reviews</button>
+    </div>
+
+    <div id="spa-container" style="padding:16px 0; min-height:240px; transition:opacity .25s ease;">
+    </div>
+
     <!-- Cards appear here -->
     <div id="prof-list"></div>
     <div id="subjects-list" class="results"></div>
@@ -108,6 +117,98 @@
         console.warn("⚠️ Change School button not found");
       }
     }
+  </script>
+  <script>
+    (function(){
+      const container = document.getElementById('spa-container');
+      const btnSubjects = document.getElementById('nav-subjects');
+      const btnNotes = document.getElementById('nav-notes');
+      const btnReviews = document.getElementById('nav-reviews');
+      const school = localStorage.getItem('selectedSchool') || 'dlsu';
+
+      function setActive(btn){
+        [btnSubjects, btnNotes, btnReviews].forEach(b=>{ if(!b)return; b.classList.toggle('active', b===btn); });
+      }
+      function showLoading(){ container.style.opacity='0.5'; container.innerHTML='<div class="card">Loading...</div>'; }
+      function showError(){ container.style.opacity='1'; container.innerHTML='<div class="card">Failed to load</div>'; }
+
+      async function loadSubjects(){
+        showLoading();
+        try{
+          const r = await fetch(`/api/subjects?school=${school}`);
+          const j = await r.json();
+          const list = Array.isArray(j)? j : (j.subjects||[]);
+          console.log('SPA subjects', list.length);
+          if(!list.length){ container.innerHTML='<div class="card">No subjects found</div>'; container.style.opacity='1'; return; }
+          const html = `<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px;">` +
+            list.map(s=>`
+              <div class="card" style="padding:14px;">
+                <div style="font-size:12px; color:#6b7280;">${s.code||''}</div>
+                <h3 style="margin:6px 0;">${s.name||''}</h3>
+                <p style="color:#374151; font-size:13px;">${(s.name||'').split(' ').slice(0,8).join(' ')}...</p>
+                <a href="/subject.html?id=${s.id}"><button>Open Subject Page</button></a>
+              </div>
+            `).join('') + `</div>`;
+          container.innerHTML = html; container.style.opacity='1';
+        }catch(e){ console.error('SPA subjects error', e); showError(); }
+      }
+
+      async function loadNotes(){
+        showLoading();
+        try{
+          const r = await fetch(`/api/resources/recent?school=${school}&limit=5`);
+          const j = await r.json();
+          const list = j.resources||[];
+          console.log('SPA notes', list.length);
+          if(!list.length){ container.innerHTML='<div class="card">No recent notes</div>'; container.style.opacity='1'; return; }
+          const html = `<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px;">` +
+            list.map(n=>`
+              <div class="card" style="padding:14px;">
+                <div style="font-size:12px; color:#6b7280;">${n.subject_code||''} ${n.subject_name||''}</div>
+                <h3 style="margin:6px 0;">${n.title||n.file_name||'Note'}</h3>
+                <p style="color:#374151; font-size:13px;">${n.description||''}</p>
+                <div style="display:flex; gap:12px; color:#6b7280; font-size:12px;">
+                  <span>${(n.created_at||'').toString().slice(0,16)}</span>
+                  <span>${(n.file_name||'').split('.').pop().toUpperCase()}</span>
+                </div>
+              </div>
+            `).join('') + `</div>`;
+          container.innerHTML = html; container.style.opacity='1';
+        }catch(e){ console.error('SPA notes error', e); showError(); }
+      }
+
+      async function loadReviews(){
+        showLoading();
+        try{
+          const r = await fetch(`/api/reviews/recent?school=${school}&limit=5`);
+          const j = await r.json();
+          const list = j.reviews||[];
+          console.log('SPA reviews', list.length);
+          if(!list.length){ container.innerHTML='<div class="card">No recent reviews</div>'; container.style.opacity='1'; return; }
+          const html = `<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px;">` +
+            list.map(v=>{
+              const stars = Math.max(0, Math.min(5, Math.round(Number(v.rating||0))));
+              const starDisplay = '★'.repeat(stars) + '☆'.repeat(5-stars);
+              return `
+              <div class="card" style="padding:14px;">
+                <div style="font-size:12px; color:#6b7280;">${v.subject_code||''} ${v.subject_name||''}</div>
+                <h3 style="margin:6px 0;">${v.professor_name||'Professor'}</h3>
+                <div style="color:#111827; font-size:13px; margin-bottom:6px;">${starDisplay}</div>
+                <p style="color:#374151; font-size:13px;">${String(v.review_text||'').slice(0,160)}...</p>
+                <div style="display:flex; gap:12px; color:#6b7280; font-size:12px;">
+                  <span>${(v.created_at||'').toString().slice(0,16)}</span>
+                </div>
+              </div>`;
+            }).join('') + `</div>`;
+          container.innerHTML = html; container.style.opacity='1';
+        }catch(e){ console.error('SPA reviews error', e); showError(); }
+      }
+
+      if(btnSubjects){ btnSubjects.addEventListener('click', ()=>{ setActive(btnSubjects); loadSubjects(); }); }
+      if(btnNotes){ btnNotes.addEventListener('click', ()=>{ setActive(btnNotes); loadNotes(); }); }
+      if(btnReviews){ btnReviews.addEventListener('click', ()=>{ setActive(btnReviews); loadReviews(); }); }
+      if(btnSubjects) { setActive(btnSubjects); loadSubjects(); }
+    })();
   </script>
 
   <script src="js/app.js"></script>

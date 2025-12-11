@@ -1412,6 +1412,45 @@ app.get('/api/subjects/:id/resources', (req, res) => {
   });
 });
 
+app.get('/api/resources/recent', (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const db = getDb(school);
+  const limit = Math.min(parseInt(req.query.limit || '5', 10) || 5, 10);
+  const sql = `
+    SELECT sr.id, sr.subject_id, sr.file_name, sr.file_path, sr.file_size, sr.title, sr.description, sr.anonymous,
+           sr.display_name, sr.photo_path, sr.college, sr.batch, sr.created_at,
+           s.code AS subject_code, s.name AS subject_name
+    FROM subject_resources sr
+    LEFT JOIN subjects s ON sr.subject_id = s.id
+    ORDER BY sr.created_at DESC
+    LIMIT ?`;
+  db.all(sql, [limit], (err, rows) => {
+    db.close();
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json({ resources: rows || [] });
+  });
+});
+
+app.get('/api/reviews/recent', (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const db = getDb(school);
+  const limit = Math.min(parseInt(req.query.limit || '5', 10) || 5, 10);
+  const sql = `
+    SELECT pr.id, pr.prof_id, pr.user_id, pr.display_name, pr.anonymous, pr.course_code, pr.review_text, pr.rating, pr.created_at,
+           p.name AS professor_name,
+           s.code AS subject_code, s.name AS subject_name
+    FROM prof_reviews pr
+    LEFT JOIN professors p ON pr.prof_id = p.id
+    LEFT JOIN subjects s ON p.subject_id = s.id
+    ORDER BY pr.created_at DESC
+    LIMIT ?`;
+  db.all(sql, [limit], (err, rows) => {
+    db.close();
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json({ reviews: rows || [] });
+  });
+});
+
 // Upload a resource
 app.post('/api/subjects/:id/upload', upload.single('file'), (req, res) => {
   const school = req.query.school || 'dlsu';
