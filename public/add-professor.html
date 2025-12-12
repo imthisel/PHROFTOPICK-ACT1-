@@ -112,6 +112,15 @@
 
       const nameRe = /^[A-Za-z'\-\s]+,\s[A-Za-z'\-\s]+$/;
       const codeRe = /^[A-Z]{7}$/;
+      // Validation: exactly 7 uppercase letters, no digits/specials
+      function validateCode(raw){
+        const code = String(raw||'').trim();
+        if (!code) return { ok:false, reason:'empty' };
+        if (code.length !== 7) return { ok:false, reason:'length' };
+        if (/[^A-Za-z]/.test(code)) return { ok:false, reason:'lettersOnly' };
+        if (code !== code.toUpperCase()) return { ok:false, reason:'uppercase' };
+        return { ok:true, reason:null };
+      }
 
       const school = localStorage.getItem('selectedSchool') || 'dlsu';
       let allCourses = [];
@@ -132,13 +141,15 @@
         });
       }
       function addCode(code){
-        if (!codeRe.test(code)) return false;
+        const v = validateCode(code);
+        if (!v.ok) return false;
         const parts = (coursesInput.value||'').split(',').map(c=>c.trim()).filter(Boolean);
-        if (!parts.includes(code)) {
-          parts.push(code);
+        const up = String(code).toUpperCase();
+        if (!parts.includes(up)) {
+          parts.push(up);
           coursesInput.value = parts.join(',');
           const chip = document.createElement('span');
-          chip.className='chip'; chip.textContent=code;
+          chip.className='chip'; chip.textContent=up;
           chips.appendChild(chip);
         }
         return true;
@@ -184,8 +195,8 @@
           return;
         }
 
-        const codes = (coursesInput.value || '').split(',').map(c => c.trim()).filter(Boolean);
-        if (!codes.length || !codes.every(c => codeRe.test(c))) {
+        const codes = (coursesInput.value || '').split(',').map(c => String(c||'').trim()).filter(Boolean);
+        if (!codes.length || !codes.every(c => codeRe.test(String(c).toUpperCase()))) {
           courseErr.style.display = 'block';
           codeInput.setAttribute('aria-invalid','true');
           return;

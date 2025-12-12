@@ -497,11 +497,11 @@ function logAdminAction(adminRole, action, details, school) {
 app.post('/api/subjects/create', (req, res) => {
   const school = req.query.school || 'dlsu';
   const db = getDb(school);
-  const code = (req.body?.code || '').trim();
+  const code = String(req.body?.code || '').trim().toUpperCase();
   const name = (req.body?.name || '').trim();
   const codeRe = /^[A-Z]{7}$/;
   const nameRe = /^[A-Z]{7}\s-\s.+$/;
-  if (!codeRe.test(code)) { db.close(); return res.status(400).json({ error: 'Invalid course code' }); }
+  if (!codeRe.test(code)) { db.close(); return res.status(400).json({ error: 'Invalid course code: must be exactly 7 uppercase letters' }); }
   if (!nameRe.test(name)) { db.close(); return res.status(400).json({ error: 'Invalid course name format' }); }
 
   db.get('SELECT id FROM subjects WHERE code = ?', [code], (err, row) => {
@@ -584,14 +584,14 @@ app.post('/api/professors', (req, res) => {
   const school = req.query.school || 'dlsu';
   const db = getDb(school);
   const name = (req.body?.name || '').trim();
-  const courses = Array.isArray(req.body?.courses) ? req.body.courses : [];
+  const courses = Array.isArray(req.body?.courses) ? req.body.courses.map(c => String(c||'').trim().toUpperCase()) : [];
 
   const nameRe = /^[A-Za-z'\-\s]+,\s[A-Za-z'\-\s]+$/;
   const codeRe = /^[A-Z]{7}$/;
   if (!nameRe.test(name)) { db.close(); return res.status(400).json({ error: 'Invalid name format' }); }
   if (!courses.length || !courses.every(c => codeRe.test(String(c)))) {
     db.close();
-    return res.status(400).json({ error: 'Invalid course codes' });
+    return res.status(400).json({ error: 'Invalid course codes: each must be exactly 7 uppercase letters' });
   }
 
   db.serialize(() => {

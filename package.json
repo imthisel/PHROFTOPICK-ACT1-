@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "npm run test:persistence",
+    "test:codes": "node scripts/validate-codes.test.js",
     "start": "node server.js",
     "backup": "node backup-databases.js",
     "build": "npm rebuild sqlite3 --build-from-source",

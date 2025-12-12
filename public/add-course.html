@@ -74,6 +74,15 @@
       const resultEl = document.getElementById('course-result');
 
       const codeRe = /^[A-Z]{7}$/;
+      // Validation: exactly 7 uppercase letters, no digits/specials
+      function validateCode(raw){
+        const code = String(raw||'').trim();
+        if (!code) return { ok:false, reason:'empty' };
+        if (code.length !== 7) return { ok:false, reason:'length' };
+        if (/[^A-Za-z]/.test(code)) return { ok:false, reason:'lettersOnly' };
+        if (code !== code.toUpperCase()) return { ok:false, reason:'uppercase' };
+        return { ok:true, reason:null };
+      }
       const nameRe = /^[A-Z]{7}\s-\s.{3,}$/;
       const school = localStorage.getItem('selectedSchool') || 'dlsu';
       let debounceT;
@@ -125,14 +134,23 @@
 
         const code = (codeInput.value || '').trim();
         const name = (nameInput.value || '').trim();
-        if (!codeRe.test(code)) { codeErr.style.display = 'block'; codeInput.setAttribute('aria-invalid','true'); return; }
+        const v = validateCode(code);
+        if (!v.ok) {
+          codeErr.textContent = v.reason==='length' ? 'Code must be exactly 7 characters.'
+            : v.reason==='lettersOnly' ? 'Code must contain letters only (A–Z).'
+            : v.reason==='uppercase' ? 'Code must be uppercase (A–Z).'
+            : 'Course code is required.';
+          codeErr.style.display = 'block';
+          codeInput.setAttribute('aria-invalid','true');
+          return;
+        }
         if (!nameRe.test(name)) { nameErr.style.display = 'block'; nameInput.setAttribute('aria-invalid','true'); return; }
 
         try {
           const r = await fetch(`/api/subjects/create?school=${school}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, name })
+            body: JSON.stringify({ code: code.toUpperCase(), name })
           });
           const j = await r.json().catch(() => ({}));
           if (!r.ok) {
