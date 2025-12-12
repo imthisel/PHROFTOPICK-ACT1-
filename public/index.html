@@ -57,9 +57,12 @@
   <style>
     .hide-subjects { display: none !important; }
     .reviews-list { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-    .review-card { background:#fff; border:2px solid #e5e7eb; border-radius:16px; padding:24px; position:relative; }
+    .review-card { background:#fff; border:2px solid #e5e7eb; border-radius:16px; padding:24px; position:relative; cursor:pointer; transition:all .2s ease; }
+    .review-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); border-color: var(--primary); }
+    .review-card.selected { border-color: var(--primary); background: linear-gradient(135deg, rgba(0,105,62,0.02) 0%, rgba(0,0,0,0.01) 100%); box-shadow: 0 8px 16px rgba(0,105,62,0.15); }
     .review-header { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
     .review-avatar { width:56px; height:56px; border-radius:50%; object-fit:cover; background:linear-gradient(135deg,#f3f4f6 0%,#e5e7eb 100%); border:3px solid #e5e7eb; flex-shrink:0; }
+    .review-user-info { flex:1; }
     .review-user-name { font-weight:700; font-size:16px; color:#111827; margin-bottom:4px; }
     .review-meta { font-size:13px; color:#6b7280; display:flex; gap:12px; flex-wrap:wrap; }
     .review-rating { display:flex; align-items:center; gap:4px; margin-top:8px; font-size:16px; }
@@ -78,6 +81,11 @@
     .badge-workload.badge-low { background:linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color:#065f46; border:1px solid #6ee7b7; }
     .review-view-count { position:absolute; top:20px; right:20px; display:flex; align-items:center; gap:6px; color:#6b7280; font-size:13px; }
     .review-view-count svg { width:18px; height:18px; }
+    .review-card.zoomed { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(1.05); max-width:800px; width:90%; max-height:85vh; overflow-y:auto; z-index:10001; box-shadow:0 25px 50px rgba(0,0,0,0.3); animation: zoomIn .3s ease; }
+    @keyframes zoomIn { from { transform: translate(-50%, -50%) scale(0.9); opacity: 0; } to { transform: translate(-50%, -50%) scale(1.05); opacity: 1; } }
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:10000; animation: fadeIn .3s ease; }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    body.modal-open { overflow:hidden; }
     html { scroll-behavior: smooth; }
   </style>
 </head>
@@ -286,45 +294,85 @@
           const html = heading + `<div class="reviews-list">` +
             list.map(v=>{
               const stars = Math.max(0, Math.min(5, Math.round(Number(v.rating||0))));
-              const starDisplay = '★'.repeat(stars) + '☆'.repeat(5-stars);
-              const avatar = v.anonymous ? 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'56\' height=\'56\'%3E%3Crect fill=\'%23f3f4f6\' width=\'56\' height=\'56\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-size=\'24\'%3EA%3C/text%3E%3C/svg%3E' : (v.photo_path || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'56\' height=\'56\'%3E%3Crect fill=\'%23f3f4f6\' width=\'56\' height=\'56\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-size=\'24\'%3E👤%3C/text%3E%3C/svg%3E');
-              const name = v.anonymous ? 'Anonymous' : (v.display_name||'User');
+              const starDisplay = '★'.repeat(stars) + '☆'.repeat(5 - stars);
+              const avatarSrc = v.anonymous ? 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'56\' height=\'56\'%3E%3Crect fill=\'%23f3f4f6\' width=\'56\' height=\'56\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-size=\'24\'%3EA%3C/text%3E%3C/svg%3E' : (v.photo_path || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'56\' height=\'56\'%3E%3Crect fill=\'%23f3f4f6\' width=\'56\' height=\'56\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-size=\'24\'%3E👤%3C/text%3E%3C/svg%3E');
+              const displayName = v.anonymous ? 'Anonymous' : (v.display_name || 'User');
+              const metaInfo = v.anonymous ? '' : [
+                v.college ? `College: ${v.college}` : '',
+                v.batch_id ? `Batch: ${v.batch_id}` : ''
+              ].filter(Boolean).join(' • ');
+              const tags = (v.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
               const courseDisplay = (v.course_code||'').toString().toUpperCase().slice(0,7);
               const phDate = formatPH(v.created_at);
-              const rel = relativeTime(v.created_at);
-              const tags = (v.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
               const badges = [];
               if (v.would_take_again === 'Yes') badges.push('<span class="badge badge-success">✓ Would take again</span>');
               if (v.would_take_again === 'No') badges.push('<span class="badge badge-danger">✗ Would not take again</span>');
               if (v.attainable_4) badges.push(`<span class=\"badge badge-info\">🎯 Attainability: ${v.attainable_4}</span>`);
               if (v.workload_rating) badges.push(`<span class=\"badge badge-workload badge-${String(v.workload_rating).toLowerCase()}\">📚 Workload: ${v.workload_rating}</span>`);
-              if (v.deadline_leniency) badges.push(`<span class=\"badge badge-info\">📅 Deadlines: ${v.deadline_leniency}</span>`);
+              if (v.deadline_leniency) badges.push(`<span class=\"badge badge-deadline\">📅 Deadlines: ${v.deadline_leniency}</span>`);
               return `
-              <div class="review-card">
+              <div class="review-card" data-review-id="${v.id}">
                 <div class="review-view-count">
                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                  <span>${v.view_count||0}</span>
+                  <span>${v.view_count || 0}</span>
                 </div>
                 <div class="review-header">
-                  <img src="${avatar}" alt="${name}" class="review-avatar">
-                  <div>
-                    <div class="review-user-name">${name}</div>
-                    ${stars>0?`<div class="review-rating"><span class="stars">${starDisplay}</span> <span>${stars}/5</span></div>`:''}
+                  <img src="${avatarSrc}" alt="${displayName}" class="review-avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'56\' height=\'56\'%3E%3Crect fill=\'%23f3f4f6\' width=\'56\' height=\'56\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-size=\'24\'%3E👤%3C/text%3E%3C/svg%3E'">
+                  <div class="review-user-info">
+                    <div class="review-user-name">${displayName}</div>
+                    ${metaInfo ? `<div class="review-meta">${metaInfo}</div>` : ''}
+                    ${stars > 0 ? `<div class="review-rating"><span class="stars">${starDisplay}</span> <span>${stars}/5</span></div>` : ''}
                   </div>
                 </div>
                 <div class="review-content">
-                  ${courseDisplay?`<p><strong>Course:</strong> ${courseDisplay}</p>`:''}
+                  ${courseDisplay ? `<p><strong>Course:</strong> ${courseDisplay}</p>` : ''}
                   <p>${String(v.review_text||'')}</p>
-                  ${tags.length?`<div class="review-tags">${tags.map(t=>`<span class="review-tag">${t}</span>`).join('')}</div>`:''}
+                  ${tags.length ? `<div class="review-tags">${tags.map(t => `<span class=\"review-tag\">${t}</span>`).join('')}</div>` : ''}
                 </div>
                 <div class="review-footer">
                   <div class="footer-badges">${badges.join(' ')}</div>
-                  <div class="footer-timestamp">${phDate} • ${rel}</div>
+                  <div class="footer-timestamp">${phDate}</div>
                 </div>
               </div>`;
             }).join('') + `</div>`;
           container.innerHTML = html; container.style.opacity='1';
           container.scrollIntoView({ behavior:'smooth', block:'start' });
+
+          container.querySelectorAll('.review-card').forEach(card => {
+            card.addEventListener('click', async (e) => {
+              e.stopPropagation();
+              const isZoomed = card.classList.contains('zoomed');
+              if (isZoomed) {
+                card.classList.remove('zoomed');
+                document.body.classList.remove('modal-open');
+                const overlay = document.querySelector('.modal-overlay');
+                if (overlay) overlay.remove();
+              } else {
+                document.querySelectorAll('.review-card.zoomed').forEach(c => c.classList.remove('zoomed'));
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay';
+                overlay.addEventListener('click', () => {
+                  card.classList.remove('zoomed');
+                  document.body.classList.remove('modal-open');
+                  overlay.remove();
+                });
+                document.body.appendChild(overlay);
+                card.classList.add('zoomed');
+                document.body.classList.add('modal-open');
+                const reviewId = card.getAttribute('data-review-id');
+                try {
+                  await fetch(`/api/reviews/${reviewId}/view?school=${school}`, { method: 'POST' });
+                  const viewCountEl = card.querySelector('.review-view-count span');
+                  if (viewCountEl) {
+                    const currentCount = parseInt(viewCountEl.textContent) || 0;
+                    viewCountEl.textContent = currentCount + 1;
+                  }
+                } catch (e) {
+                  console.error('Failed to increment view count:', e);
+                }
+              }
+            });
+          });
         }catch(e){ console.error('SPA reviews error', e); showError(); }
       }
 
