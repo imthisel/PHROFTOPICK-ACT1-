@@ -34,11 +34,16 @@ const DB_DIR = (() => {
       return true;
     } catch (_) { return false; }
   };
+  // Normalize base paths to use a dedicated 'databases' subfolder
+  const withDbSubdir = (p) => (typeof p === 'string' ? path.join(p, 'databases') : p);
+
   if (ENV === 'production') {
-    const candidates = [];
-    if (process.env.RENDER_DISK_PATH) candidates.push(process.env.RENDER_DISK_PATH);
-    if (process.env.DATA_DIR) candidates.push(process.env.DATA_DIR);
-    candidates.push(path.join('/var', 'data', 'databases'));
+    const candidatesRaw = [];
+    if (process.env.DB_DIR) candidatesRaw.push(process.env.DB_DIR);
+    if (process.env.RENDER_DISK_PATH) candidatesRaw.push(process.env.RENDER_DISK_PATH);
+    if (process.env.DATA_DIR) candidatesRaw.push(process.env.DATA_DIR);
+    candidatesRaw.push(path.join('/var', 'data'));
+    const candidates = candidatesRaw.map(withDbSubdir);
     for (const c of candidates) {
       if (typeof c === 'string' && isWritable(c)) return c;
     }
@@ -130,7 +135,7 @@ function getDb(school) {
     if (ENV === 'production') {
       const isRepoPath = DB_DIR.startsWith(__dirname);
       if (isRepoPath) {
-        console.warn('⚠️ DB_DIR points inside repo in production. Configure persistent disk via RENDER_DISK_PATH or DATA_DIR.');
+        console.warn('⚠️ DB_DIR points inside repo in production. Configure a persistent disk and set RENDER_DISK_PATH, DATA_DIR, or DB_DIR to the disk mount path.');
       }
     }
   } catch (e) {

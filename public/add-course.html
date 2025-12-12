@@ -27,7 +27,8 @@
     <section class="card" style="padding:28px; width:100%; max-width:900px; margin:0 auto;">
       <form id="course-form" aria-label="Add Course Form">
         <div class="review-field">
-          <input id="course-code" placeholder="e.g., GEMATMW" maxlength="7" required aria-describedby="code-error" style="width:100%;" />
+          <input id="course-code" placeholder="e.g., GEMATMW" maxlength="7" required aria-describedby="code-error" style="width:100%;" list="course-code-list" />
+          <datalist id="course-code-list"></datalist>
           <label>Course Code</label>
           </div>
         <div id="code-error" style="color:#dc2626; font-weight:600; display:none;">Code must be exactly 7 uppercase letters.</div>
@@ -76,6 +77,7 @@
       const nameRe = /^[A-Z]{7}\s-\s.{3,}$/;
       const school = localStorage.getItem('selectedSchool') || 'dlsu';
       let debounceT;
+      let allCourses = [];
       async function autofillNameFromCode() {
         const code = (codeInput.value||'').trim().toUpperCase();
         if (!codeRe.test(code)) return;
@@ -92,6 +94,19 @@
       codeInput.addEventListener('input', ()=>{
         clearTimeout(debounceT); debounceT = setTimeout(autofillNameFromCode, 250);
       });
+
+      async function loadCourseList(){
+        try{
+          const r = await fetch(`/api/subjects?school=${school}`);
+          const j = await r.json();
+          allCourses = (Array.isArray(j)? j : (j.subjects||[])).slice().sort((a,b)=>String(a.code).localeCompare(String(b.code)));
+          const dl = document.getElementById('course-code-list');
+          if (dl) dl.innerHTML = allCourses.map(s => `<option value="${String(s.code||'').toUpperCase()}">${s.name||''}</option>`).join('');
+        }catch(_){ /* noop */ }
+      }
+
+      await loadCourseList();
+      codeInput.addEventListener('change', ()=>{ clearTimeout(debounceT); autofillNameFromCode(); });
 
       function clearValidation() {
         codeInput.removeAttribute('aria-invalid');

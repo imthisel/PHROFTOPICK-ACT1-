@@ -122,15 +122,17 @@
         suggBox.querySelectorAll('.dropdown-item').forEach(item=>{
           item.addEventListener('click', ()=>{
             const code = item.getAttribute('data-code');
-            addCode(code);
+            const ok = addCode(code);
+            codeInput.value = code || '';
             suggBox.style.display='none';
-            codeInput.value='';
+            if (!ok) { courseErr.style.display='block'; codeInput.setAttribute('aria-invalid','true'); }
+            else { codeInput.removeAttribute('aria-invalid'); courseErr.style.display='none'; }
             codeInput.focus();
           });
         });
       }
       function addCode(code){
-        if (!codeRe.test(code)) return;
+        if (!codeRe.test(code)) return false;
         const parts = (coursesInput.value||'').split(',').map(c=>c.trim()).filter(Boolean);
         if (!parts.includes(code)) {
           parts.push(code);
@@ -139,6 +141,7 @@
           chip.className='chip'; chip.textContent=code;
           chips.appendChild(chip);
         }
+        return true;
       }
       async function loadCourses(){
         try{

@@ -7,11 +7,14 @@ const DB_DIR = (() => {
   const isWritable = (dir) => {
     try { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); fs.accessSync(dir, fs.constants.W_OK); return true; } catch (_) { return false; }
   };
+  const withDbSubdir = (p) => (typeof p === 'string' ? path.join(p, 'databases') : p);
   if (ENV === 'production') {
-    const candidates = [];
-    if (process.env.RENDER_DISK_PATH) candidates.push(process.env.RENDER_DISK_PATH);
-    if (process.env.DATA_DIR) candidates.push(process.env.DATA_DIR);
-    candidates.push(path.join('/var','data','databases'));
+    const candidatesRaw = [];
+    if (process.env.DB_DIR) candidatesRaw.push(process.env.DB_DIR);
+    if (process.env.RENDER_DISK_PATH) candidatesRaw.push(process.env.RENDER_DISK_PATH);
+    if (process.env.DATA_DIR) candidatesRaw.push(process.env.DATA_DIR);
+    candidatesRaw.push(path.join('/var','data'));
+    const candidates = candidatesRaw.map(withDbSubdir);
     for (const c of candidates) { if (isWritable(c)) return c; }
     return path.join(__dirname, 'databases');
   }
