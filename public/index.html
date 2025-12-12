@@ -54,6 +54,22 @@
   <script src="js/theme-loader.js" defer></script>
 
   <link rel="stylesheet" href="css/mobile-override.css">
+  <style>
+    .reviews-list { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .review-card { background:#fff; border:2px solid #e5e7eb; border-radius:16px; padding:24px; position:relative; }
+    .review-header { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
+    .review-avatar { width:56px; height:56px; border-radius:50%; object-fit:cover; background:linear-gradient(135deg,#f3f4f6 0%,#e5e7eb 100%); border:3px solid #e5e7eb; flex-shrink:0; }
+    .review-user-name { font-weight:700; font-size:16px; color:#111827; margin-bottom:4px; }
+    .review-meta { font-size:13px; color:#6b7280; display:flex; gap:12px; flex-wrap:wrap; }
+    .review-rating { display:flex; align-items:center; gap:4px; margin-top:8px; font-size:16px; }
+    .review-rating .stars { color:#fbbf24; }
+    .review-content { margin:16px 0; color:#374151; line-height:1.6; }
+    .review-tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+    .review-tag { background:#f3f4f6; color:#6b7280; padding:4px 10px; border-radius:9999px; font-size:12px; font-weight:500; }
+    .review-footer { margin-top:16px; padding-top:16px; border-top:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
+    .footer-timestamp { font-size:13px; color:#6b7280; white-space:nowrap; }
+    html { scroll-behavior: smooth; }
+  </style>
 </head>
 
 <body>
@@ -206,30 +222,65 @@
         hideAll();
         showLoading();
         try{
-          const r = await fetch(`/api/reviews/recent?school=${school}&limit=20`);
+          const r = await fetch(`/api/reviews/recent?school=${school}&limit=50`);
           const j = await r.json();
-          const list = j.reviews||[];
+          let list = j.reviews||[];
+          list = list.slice().sort((a,b)=>{
+            const ta = new Date(a.created_at||0).getTime();
+            const tb = new Date(b.created_at||0).getTime();
+            return tb - ta;
+          });
           console.log('SPA reviews', list.length);
           if(!list.length){ container.innerHTML='<div class="card">No recent reviews</div>'; container.style.opacity='1'; return; }
           const heading = `<div class="container" style="display:flex; align-items:center; justify-content:space-between; margin:8px 0 12px;">
             <h2 style="margin:0; font-size:20px; font-weight:800; letter-spacing:-0.3px;">Recent Reviews from All Subjects</h2>
             <span style="display:inline-block; padding:6px 10px; border:1px solid #e5e7eb; border-radius:9999px; font-size:12px; color:#374151;">🌐 All Subjects</span>
           </div>`;
-          const html = heading + `<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px;">` +
+          function formatPH(ts){
+            try{
+              return new Intl.DateTimeFormat('en-PH',{timeZone:'Asia/Manila',year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(ts));
+            }catch(_){ return String(ts).slice(0,16); }
+          }
+          function relativeTime(ts){
+            const d = new Date(ts).getTime();
+            const diff = Math.max(0, Date.now() - d);
+            const m = Math.floor(diff/60000), h = Math.floor(m/60), days = Math.floor(h/24);
+            if (days > 0) return `${days} day${days>1?'s':''} ago`;
+            if (h > 0) return `${h} hour${h>1?'s':''} ago`;
+            return `${m} min${m>1?'s':''} ago`;
+          }
+          const html = heading + `<div class="reviews-list">` +
             list.map(v=>{
               const stars = Math.max(0, Math.min(5, Math.round(Number(v.rating||0))));
               const starDisplay = '★'.repeat(stars) + '☆'.repeat(5-stars);
+              const avatar = v.anonymous ? 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'56\' height=\'56\'%3E%3Crect fill=\'%23f3f4f6\' width=\'56\' height=\'56\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-size=\'24\'%3EA%3C/text%3E%3C/svg%3E' : (v.photo_path || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'56\' height=\'56\'%3E%3Crect fill=\'%23f3f4f6\' width=\'56\' height=\'56\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-size=\'24\'%3E👤%3C/text%3E%3C/svg%3E');
+              const name = v.anonymous ? 'Anonymous' : (v.display_name||'User');
+              const courseDisplay = (v.course_code||'').toString().toUpperCase().slice(0,7);
+              const phDate = formatPH(v.created_at);
+              const rel = relativeTime(v.created_at);
+              const tags = (v.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
               return `
-              <div class="card" style="padding:14px;">
-                <h3 style="margin:6px 0;">${v.professor_name||'Professor'}</h3>
-                <div style="color:#111827; font-size:13px; margin-bottom:6px;">${starDisplay}</div>
-                <p style="color:#374151; font-size:13px; white-space:pre-wrap;">${String(v.review_text||'')}</p>
-                <div style="display:flex; gap:12px; color:#6b7280; font-size:12px;">
-                  <span>${(v.created_at||'').toString().slice(0,16)}</span>
+              <div class="review-card">
+                <div class="review-header">
+                  <img src="${avatar}" alt="${name}" class="review-avatar">
+                  <div>
+                    <div class="review-user-name">${name}</div>
+                    ${stars>0?`<div class="review-rating"><span class="stars">${starDisplay}</span> <span>${stars}/5</span></div>`:''}
+                  </div>
+                </div>
+                <div class="review-content">
+                  ${courseDisplay?`<p><strong>Course:</strong> ${courseDisplay}</p>`:''}
+                  <p>${String(v.review_text||'')}</p>
+                  ${tags.length?`<div class="review-tags">${tags.map(t=>`<span class="review-tag">${t}</span>`).join('')}</div>`:''}
+                </div>
+                <div class="review-footer">
+                  <div class="footer-badges"></div>
+                  <div class="footer-timestamp">${phDate} • ${rel}</div>
                 </div>
               </div>`;
             }).join('') + `</div>`;
           container.innerHTML = html; container.style.opacity='1';
+          container.scrollIntoView({ behavior:'smooth', block:'start' });
         }catch(e){ console.error('SPA reviews error', e); showError(); }
       }
 
