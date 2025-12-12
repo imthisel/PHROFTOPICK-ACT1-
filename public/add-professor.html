@@ -26,16 +26,21 @@
     .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:12px; }
     .auth-btn.secondary { background:#f3f4f6; color:#111827; }
     .auth-btn:focus { outline:2px solid var(--primary); outline-offset:2px; }
+    /* Local override: float labels so placeholders remain visible */
+    .review-field input { padding: 16px 12px; }
+    .review-field label { top: -10px; transform: none; font-size: 12px; background: #fff; }
+    /* Ensure button doesn't get visually overlapped by dropdown container */
+    .field-row > .auth-btn { flex: 0 0 auto; align-self: center; }
   </style>
 
-  <main class="container" style="max-width:1000px; margin-top:24px;">
+  <main class="container" style="max-width:1200px; margin-top:24px; min-height:calc(100vh - 160px); display:flex; justify-content:center; align-items:flex-start;">
     <h1 style="margin-bottom:10px;">Add Professor</h1>
     <p style="color:#6b7280;">Provide the professor’s name and the course codes they teach.</p>
 
-    <section class="card" style="padding:24px;">
+    <section class="card" style="padding:28px; width:100%; max-width:900px; margin:0 auto;">
       <form id="prof-form" aria-label="Add Professor Form">
         <div class="review-field">
-          <input id="prof-name" placeholder="e.g., Dela Cruz, Juan" required />
+          <input id="prof-name" placeholder="e.g., Dela Cruz, Juan" required aria-describedby="name-error" style="width:100%;" />
           <label>Professor Name</label>
         </div>
         <div id="name-error" style="color:#dc2626; font-weight:600; display:none;">Use: Last name, First name (e.g., Dela Cruz, Juan)</div>
@@ -43,19 +48,19 @@
         <div class="review-field" style="margin-top:14px;">
           <label>Course Codes</label>
           <div class="field-row">
-            <div class="dropdown" style="flex:1; min-width:240px;">
-              <input id="course-code-input" placeholder="Type to search course code" aria-autocomplete="list" aria-controls="course-suggestions" autocomplete="off" />
+            <div class="dropdown" style="flex:1; min-width:240px; width:100%;">
+              <input id="course-code-input" placeholder="Type to search course code" aria-autocomplete="list" aria-controls="course-suggestions" autocomplete="off" aria-describedby="course-error" style="width:100%;" />
               <div id="course-suggestions" class="dropdown-list" role="listbox"></div>
             </div>
             <button id="course-not-found" type="button" class="auth-btn secondary" aria-haspopup="dialog">Course Not Found</button>
           </div>
           <div class="chip-list" id="selected-courses"></div>
-          <input id="prof-courses" placeholder="e.g., GEMATMW,GESOCSC" required style="margin-top:10px;" aria-label="Selected course codes (comma-separated)" />
+          <input id="prof-courses" type="hidden" required aria-label="Selected course codes (comma-separated)" />
         </div>
         <div id="course-error" style="color:#dc2626; font-weight:600; display:none;">Each code must be exactly 7 uppercase characters.</div>
 
         <button class="auth-btn" type="submit" style="margin-top:12px;">Submit</button>
-        <p id="prof-result" style="margin-top:10px; font-weight:600;"></p>
+        <p id="prof-result" style="margin-top:10px; font-weight:600;" aria-live="polite"></p>
       </form>
     </section>
   </main>
@@ -154,21 +159,32 @@
       notFoundBtn.addEventListener('click', ()=>{ overlay.style.display='block'; modal.style.display='block'; modal.setAttribute('aria-hidden','false'); });
       modalClose.addEventListener('click', ()=>{ overlay.style.display='none'; modal.style.display='none'; modal.setAttribute('aria-hidden','true'); });
 
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
+      function clearValidation(){
+        nameInput.removeAttribute('aria-invalid');
+        codeInput.removeAttribute('aria-invalid');
         nameErr.style.display = 'none';
         courseErr.style.display = 'none';
+      }
+
+      nameInput.addEventListener('input', clearValidation);
+      codeInput.addEventListener('input', clearValidation);
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearValidation();
         resultEl.textContent = '';
 
         const name = (nameInput.value || '').trim();
         if (!nameRe.test(name)) {
           nameErr.style.display = 'block';
+          nameInput.setAttribute('aria-invalid','true');
           return;
         }
 
         const codes = (coursesInput.value || '').split(',').map(c => c.trim()).filter(Boolean);
         if (!codes.length || !codes.every(c => codeRe.test(c))) {
           courseErr.style.display = 'block';
+          codeInput.setAttribute('aria-invalid','true');
           return;
         }
 

@@ -14,31 +14,32 @@
   <style>
     .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
     @media (max-width:800px){ .grid-2{ grid-template-columns:1fr; } }
-    .helper { color:#6b7280; font-size:13px; }
     .auth-btn:focus { outline:2px solid var(--primary); outline-offset:2px; }
+    /* Local override: keep labels above inputs to avoid covering placeholders */
+    .review-field input { padding: 16px 12px; }
+    .review-field label { top: -10px; transform: none; font-size: 12px; background: #fff; }
   </style>
 
-  <main class="container" style="max-width:1000px; margin-top:24px;">
+  <main class="container" style="max-width:1200px; margin-top:24px; min-height:calc(100vh - 160px); display:flex; justify-content:center; align-items:flex-start;">
     <h1 style="margin-bottom:10px;">Add Course</h1>
     <p style="color:#6b7280;">Submit a new course. It becomes searchable but is hidden from index listing.</p>
 
-    <section class="card" style="padding:20px;">
+    <section class="card" style="padding:28px; width:100%; max-width:900px; margin:0 auto;">
       <form id="course-form" aria-label="Add Course Form">
         <div class="review-field">
-          <input id="course-code" placeholder="e.g., GEMATMW" maxlength="7" required />
+          <input id="course-code" placeholder="e.g., GEMATMW" maxlength="7" required aria-describedby="code-error" style="width:100%;" />
           <label>Course Code</label>
           </div>
         <div id="code-error" style="color:#dc2626; font-weight:600; display:none;">Code must be exactly 7 uppercase letters.</div>
 
         <div class="review-field" style="margin-top:14px;">
-          <input id="course-name" placeholder="e.g., GEMATMW - Mathematics in The Modern World" required />
+          <input id="course-name" placeholder="e.g., GEMATMW - Mathematics in The Modern World" required aria-describedby="name-error" style="width:100%;" />
           <label>Course Name</label>
-          <div class="helper" id="name-helper">Auto-fills from known courses when you enter a code.</div>
         </div>
         <div id="name-error" style="color:#dc2626; font-weight:600; display:none;">Format must be: CODE - Full Course Name</div>
 
         <button class="auth-btn" type="submit" style="margin-top:12px;">Submit</button>
-        <p id="course-result" style="margin-top:10px; font-weight:600;"></p>
+        <p id="course-result" style="margin-top:10px; font-weight:600;" aria-live="polite"></p>
       </form>
     </section>
   </main>
@@ -92,16 +93,25 @@
         clearTimeout(debounceT); debounceT = setTimeout(autofillNameFromCode, 250);
       });
 
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
+      function clearValidation() {
+        codeInput.removeAttribute('aria-invalid');
+        nameInput.removeAttribute('aria-invalid');
         codeErr.style.display = 'none';
         nameErr.style.display = 'none';
+      }
+
+      codeInput.addEventListener('input', clearValidation);
+      nameInput.addEventListener('input', clearValidation);
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearValidation();
         resultEl.textContent = '';
 
         const code = (codeInput.value || '').trim();
         const name = (nameInput.value || '').trim();
-        if (!codeRe.test(code)) { codeErr.style.display = 'block'; return; }
-        if (!nameRe.test(name)) { nameErr.style.display = 'block'; return; }
+        if (!codeRe.test(code)) { codeErr.style.display = 'block'; codeInput.setAttribute('aria-invalid','true'); return; }
+        if (!nameRe.test(name)) { nameErr.style.display = 'block'; nameInput.setAttribute('aria-invalid','true'); return; }
 
         try {
           const r = await fetch(`/api/subjects/create?school=${school}`, {
