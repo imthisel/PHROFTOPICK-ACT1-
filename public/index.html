@@ -88,7 +88,7 @@
     </div>
 
 
-    <div id="spa-container" style="padding:16px 0; min-height:240px; transition:opacity .25s ease;">
+    <div id="spa-container" style="padding:16px 0; min-height:240px; transition:opacity .3s ease;">
     </div>
 
     <!-- Cards appear here -->
@@ -127,6 +127,7 @@
       const school = localStorage.getItem('selectedSchool') || 'dlsu';
       const subjectsSearchPanel = document.getElementById('subjects-search-panel');
       const subjectsListEl = document.getElementById('subjects-list');
+      const suggestionsEl = document.getElementById('index-suggestions');
 
       function setActive(btn){
         [btnSubjects, btnNotes, btnReviews].forEach(b=>{ if(!b)return; b.classList.toggle('active', b===btn); });
@@ -137,6 +138,7 @@
       function hideAll(){
         subjectsSearchPanel.style.display = 'none';
         subjectsListEl.style.display = 'none';
+        if (suggestionsEl) { suggestionsEl.innerHTML=''; suggestionsEl.style.display='none'; }
         container.style.display = 'block';
         container.innerHTML = '';
       }
@@ -154,7 +156,14 @@
           list = list.filter(s => { if (seen.has(s.id)) return false; seen.add(s.id); return true; });
           console.log('Subjects view', list.length);
           if (window.renderSubjects) window.renderSubjects(list);
-          else subjectsListEl.innerHTML = '<div class="card">Failed to render subjects</div>';
+          else {
+            subjectsListEl.innerHTML = list.map(s => `
+              <div class=\"card\">
+                <h3>${s.code || '—'} — ${s.name || ''}</h3>
+                <a href=\"/subject.html?id=${s.id}\"><button class=\"auth-btn\">Open Subject Page</button></a>
+              </div>
+            `).join('');
+          }
         }catch(e){ console.error('Subjects load error', e); subjectsListEl.innerHTML = '<div class="card">Failed to load subjects</div>'; }
       }
 
@@ -167,7 +176,11 @@
           const list = j.resources||[];
           console.log('SPA notes', list.length);
           if(!list.length){ container.innerHTML='<div class="card">No notes available</div>'; container.style.opacity='1'; return; }
-          const html = `<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px;">` +
+          const heading = `<div class="container" style="display:flex; align-items:center; justify-content:space-between; margin:8px 0 12px;">
+            <h2 style="margin:0; font-size:20px; font-weight:800; letter-spacing:-0.3px;">Recent Notes from All Subjects</h2>
+            <span style="display:inline-block; padding:6px 10px; border:1px solid #e5e7eb; border-radius:9999px; font-size:12px; color:#374151;">🌐 All Subjects</span>
+          </div>`;
+          const html = heading + `<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px;">` +
             list.map(n=>`
               <div class="card" style="padding:14px;">
                 <h3 style="margin:6px 0;">${n.title||n.file_name||'Note'}</h3>
@@ -198,7 +211,11 @@
           const list = j.reviews||[];
           console.log('SPA reviews', list.length);
           if(!list.length){ container.innerHTML='<div class="card">No recent reviews</div>'; container.style.opacity='1'; return; }
-          const html = `<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px;">` +
+          const heading = `<div class="container" style="display:flex; align-items:center; justify-content:space-between; margin:8px 0 12px;">
+            <h2 style="margin:0; font-size:20px; font-weight:800; letter-spacing:-0.3px;">Recent Reviews from All Subjects</h2>
+            <span style="display:inline-block; padding:6px 10px; border:1px solid #e5e7eb; border-radius:9999px; font-size:12px; color:#374151;">🌐 All Subjects</span>
+          </div>`;
+          const html = heading + `<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px;">` +
             list.map(v=>{
               const stars = Math.max(0, Math.min(5, Math.round(Number(v.rating||0))));
               const starDisplay = '★'.repeat(stars) + '☆'.repeat(5-stars);
