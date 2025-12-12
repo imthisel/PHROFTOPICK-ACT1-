@@ -55,6 +55,7 @@
 
   <link rel="stylesheet" href="css/mobile-override.css">
   <style>
+    .hide-subjects { display: none !important; }
     .reviews-list { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
     .review-card { background:#fff; border:2px solid #e5e7eb; border-radius:16px; padding:24px; position:relative; }
     .review-header { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
@@ -153,6 +154,8 @@
       const subjectsSearchPanel = document.getElementById('subjects-search-panel');
       const subjectsListEl = document.getElementById('subjects-list');
       const suggestionsEl = document.getElementById('index-suggestions');
+      const subjectElements = [subjectsSearchPanel, subjectsListEl, suggestionsEl].filter(Boolean);
+      let currentSection = 'subjects';
 
       function setActive(btn){
         [btnSubjects, btnNotes, btnReviews].forEach(b=>{ if(!b)return; b.classList.toggle('active', b===btn); });
@@ -161,18 +164,28 @@
       function showError(){ container.style.opacity='1'; container.innerHTML='<div class="card">Failed to load</div>'; }
 
       function hideAll(){
-        subjectsSearchPanel.style.display = 'none';
-        subjectsListEl.style.display = 'none';
-        if (suggestionsEl) { suggestionsEl.innerHTML=''; suggestionsEl.style.display='none'; }
+        applySubjectVisibilityState(true);
+        if (suggestionsEl) { suggestionsEl.innerHTML=''; }
         container.style.display = 'block';
         container.innerHTML = '';
       }
 
+      function applySubjectVisibilityState(hidden){
+        localStorage.setItem('hideSubjects', hidden ? '1' : '0');
+        subjectElements.forEach(el=>{
+          if(hidden){ el.classList.add('hide-subjects'); el.style.display='none'; }
+          else { el.classList.remove('hide-subjects'); el.style.display=''; }
+        });
+      }
+
       async function loadSubjects(){
         btnSubjects && setActive(btnSubjects);
+        applySubjectVisibilityState(false);
         subjectsSearchPanel.style.display = 'block';
         subjectsListEl.style.display = 'block';
         container.style.display = 'none';
+        currentSection = 'subjects';
+        localStorage.setItem('activeSection', currentSection);
         try{
           const r = await fetch(`/api/subjects?school=${school}`);
           const j = await r.json();
@@ -195,6 +208,8 @@
       async function loadNotes(){
         hideAll();
         showLoading();
+        currentSection = 'notes';
+        localStorage.setItem('activeSection', currentSection);
         try{
           const r = await fetch(`/api/resources?school=${school}&limit=50`);
           const j = await r.json();
@@ -238,6 +253,8 @@
       async function loadReviews(){
         hideAll();
         showLoading();
+        currentSection = 'reviews';
+        localStorage.setItem('activeSection', currentSection);
         try{
           const r = await fetch(`/api/reviews/recent?school=${school}&limit=50`);
           const j = await r.json();
@@ -311,10 +328,10 @@
         }catch(e){ console.error('SPA reviews error', e); showError(); }
       }
 
-      if(btnSubjects){ btnSubjects.addEventListener('click', ()=>{ loadSubjects(); }); }
-      if(btnNotes){ btnNotes.addEventListener('click', ()=>{ setActive(btnNotes); loadNotes(); }); }
-      if(btnReviews){ btnReviews.addEventListener('click', ()=>{ setActive(btnReviews); loadReviews(); }); }
-      if(btnSubjects) { setActive(btnSubjects); loadSubjects(); }
+      if(btnSubjects){ btnSubjects.addEventListener('click', ()=>{ setActive(btnSubjects); applySubjectVisibilityState(false); loadSubjects(); }); }
+      if(btnNotes){ btnNotes.addEventListener('click', ()=>{ setActive(btnNotes); applySubjectVisibilityState(true); loadNotes(); }); }
+      if(btnReviews){ btnReviews.addEventListener('click', ()=>{ setActive(btnReviews); applySubjectVisibilityState(true); loadReviews(); }); }
+      if(btnSubjects) { setActive(btnSubjects); applySubjectVisibilityState(false); loadSubjects(); }
     })();
   </script>
 
