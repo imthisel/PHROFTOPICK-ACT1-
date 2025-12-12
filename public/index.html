@@ -68,6 +68,15 @@
     .review-tag { background:#f3f4f6; color:#6b7280; padding:4px 10px; border-radius:9999px; font-size:12px; font-weight:500; }
     .review-footer { margin-top:16px; padding-top:16px; border-top:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
     .footer-timestamp { font-size:13px; color:#6b7280; white-space:nowrap; }
+    .badge { display:inline-block; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:600; white-space:nowrap; }
+    .badge-success { background:linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color:#065f46; border:1px solid #6ee7b7; }
+    .badge-danger { background:linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color:#991b1b; border:1px solid #fca5a5; }
+    .badge-info { background:linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color:#1e40af; border:1px solid #93c5fd; }
+    .badge-workload { background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); color:#92400e; border:1px solid #fcd34d; }
+    .badge-workload.badge-high { background:linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color:#991b1b; border:1px solid #fca5a5; }
+    .badge-workload.badge-low { background:linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color:#065f46; border:1px solid #6ee7b7; }
+    .review-view-count { position:absolute; top:20px; right:20px; display:flex; align-items:center; gap:6px; color:#6b7280; font-size:13px; }
+    .review-view-count svg { width:18px; height:18px; }
     html { scroll-behavior: smooth; }
   </style>
 </head>
@@ -196,16 +205,24 @@
             <h2 style="margin:0; font-size:20px; font-weight:800; letter-spacing:-0.3px;">Recent Notes from All Subjects</h2>
             <span style="display:inline-block; padding:6px 10px; border:1px solid #e5e7eb; border-radius:9999px; font-size:12px; color:#374151;">🌐 All Subjects</span>
           </div>`;
-          const html = heading + `<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px;">` +
+          function formatPH(ts){
+            try{
+              return new Intl.DateTimeFormat('en-PH',{timeZone:'Asia/Manila',year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(ts));
+            }catch(_){ return String(ts).slice(0,16); }
+          }
+          const html = heading + `<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px;">` +
             list.map(n=>`
-              <div class="card" style="padding:14px;">
+              <div class="card" style="padding:16px;">
                 <h3 style="margin:6px 0;">${n.title||n.file_name||'Note'}</h3>
-                <p style="color:#374151; font-size:13px;">${n.description||''}</p>
-                <div style="display:flex; gap:12px; color:#6b7280; font-size:12px;">
-                  <span>${(n.created_at||'').toString().slice(0,16)}</span>
+                <div style="display:flex; gap:12px; color:#6b7280; font-size:12px; flex-wrap:wrap;">
+                  <span>${formatPH(n.created_at)} (PH)</span>
                   <span>${(n.file_name||'').split('.').pop().toUpperCase()}</span>
                 </div>
-                ${n.file_path ? `<a href="${n.file_path}" target="_blank" rel="noopener" class="auth-btn" data-resid="${n.id}">View/Download</a>` : ''}
+                <p style="color:#374151; font-size:13px; white-space:pre-wrap;">${(n.description||'').split('\n').slice(0,3).join('\n')}</p>
+                <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
+                  ${n.file_path ? `<a href="${n.file_path}" target="_blank" rel="noopener" class="auth-btn" data-resid="${n.id}">View/Download</a>` : ''}
+                  ${n.subject_id ? `<a href="/subject.html?id=${n.subject_id}" class="auth-btn">Open Subject Page</a>` : ''}
+                </div>
               </div>
             `).join('') + `</div>`;
           container.innerHTML = html; container.style.opacity='1';
@@ -259,8 +276,18 @@
               const phDate = formatPH(v.created_at);
               const rel = relativeTime(v.created_at);
               const tags = (v.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
+              const badges = [];
+              if (v.would_take_again === 'Yes') badges.push('<span class="badge badge-success">✓ Would take again</span>');
+              if (v.would_take_again === 'No') badges.push('<span class="badge badge-danger">✗ Would not take again</span>');
+              if (v.attainable_4) badges.push(`<span class=\"badge badge-info\">🎯 Attainability: ${v.attainable_4}</span>`);
+              if (v.workload_rating) badges.push(`<span class=\"badge badge-workload badge-${String(v.workload_rating).toLowerCase()}\">📚 Workload: ${v.workload_rating}</span>`);
+              if (v.deadline_leniency) badges.push(`<span class=\"badge badge-info\">📅 Deadlines: ${v.deadline_leniency}</span>`);
               return `
               <div class="review-card">
+                <div class="review-view-count">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                  <span>${v.view_count||0}</span>
+                </div>
                 <div class="review-header">
                   <img src="${avatar}" alt="${name}" class="review-avatar">
                   <div>
@@ -274,7 +301,7 @@
                   ${tags.length?`<div class="review-tags">${tags.map(t=>`<span class="review-tag">${t}</span>`).join('')}</div>`:''}
                 </div>
                 <div class="review-footer">
-                  <div class="footer-badges"></div>
+                  <div class="footer-badges">${badges.join(' ')}</div>
                   <div class="footer-timestamp">${phDate} • ${rel}</div>
                 </div>
               </div>`;
