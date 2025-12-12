@@ -4,10 +4,16 @@ const path = require('path');
 // Backup databases to prevent data loss
 const ENV = process.env.NODE_ENV || 'development';
 const DB_DIR = (() => {
-  const renderDisk = process.env.RENDER_DISK_PATH || process.env.DATA_DIR;
+  const isWritable = (dir) => {
+    try { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); fs.accessSync(dir, fs.constants.W_OK); return true; } catch (_) { return false; }
+  };
   if (ENV === 'production') {
-    const base = renderDisk || path.join('/var', 'data', 'databases');
-    return base;
+    const candidates = [];
+    if (process.env.RENDER_DISK_PATH) candidates.push(process.env.RENDER_DISK_PATH);
+    if (process.env.DATA_DIR) candidates.push(process.env.DATA_DIR);
+    candidates.push(path.join('/var','data','databases'));
+    for (const c of candidates) { if (isWritable(c)) return c; }
+    return path.join(__dirname, 'databases');
   }
   const base = process.env.DB_DIR || path.join(__dirname, 'databases');
   try { return path.join(base, ENV); } catch (_) { return base; }
@@ -15,9 +21,13 @@ const DB_DIR = (() => {
 const BACKUP_DIR = process.env.BACKUP_DIR || path.join(DB_DIR, 'backups');
 
 // Create backup directory if it doesn't exist
-if (!fs.existsSync(BACKUP_DIR)) {
-  fs.mkdirSync(BACKUP_DIR, { recursive: true });
-  console.log('📁 Created backup directory:', BACKUP_DIR);
+try {
+  if (!fs.existsSync(BACKUP_DIR)) {
+    fs.mkdirSync(BACKUP_DIR, { recursive: true });
+    console.log('📁 Created backup directory:', BACKUP_DIR);
+  }
+} catch (e) {
+  console.warn('⚠️ Backup directory ensure failed:', e.message);
 }
 
 // Backup function

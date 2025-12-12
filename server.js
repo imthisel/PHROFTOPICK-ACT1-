@@ -27,10 +27,23 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 const ENV = process.env.NODE_ENV || 'development';
 const DB_DIR = (() => {
-  const renderDisk = process.env.RENDER_DISK_PATH || process.env.DATA_DIR;
+  const isWritable = (dir) => {
+    try {
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.accessSync(dir, fs.constants.W_OK);
+      return true;
+    } catch (_) { return false; }
+  };
   if (ENV === 'production') {
-    const base = renderDisk || path.join('/var', 'data', 'databases');
-    return base;
+    const candidates = [];
+    if (process.env.RENDER_DISK_PATH) candidates.push(process.env.RENDER_DISK_PATH);
+    if (process.env.DATA_DIR) candidates.push(process.env.DATA_DIR);
+    candidates.push(path.join('/var', 'data', 'databases'));
+    for (const c of candidates) {
+      if (typeof c === 'string' && isWritable(c)) return c;
+    }
+    // Fallback to repo path if persistent disk is not available
+    return path.join(__dirname, 'databases');
   }
   const base = process.env.DB_DIR || path.join(__dirname, 'databases');
   try { return path.join(base, ENV); } catch (_) { return base; }
@@ -292,9 +305,9 @@ try {
 
 try {
   const usingPersistent = ENV === 'production' && (
-    DB_DIR.startsWith(path.join('/var', 'data')) ||
     (process.env.RENDER_DISK_PATH && DB_DIR.startsWith(process.env.RENDER_DISK_PATH)) ||
-    (process.env.DATA_DIR && DB_DIR.startsWith(process.env.DATA_DIR))
+    (process.env.DATA_DIR && DB_DIR.startsWith(process.env.DATA_DIR)) ||
+    DB_DIR.startsWith(path.join('/var', 'data'))
   );
   if (usingPersistent) {
     const repoDir = path.join(__dirname, 'databases');
@@ -1376,11 +1389,30 @@ app.get('/api/admin/activity/stream', authenticateAdmin, (req, res) => {
 
 // =================== FILE UPLOAD CONFIGURATION ===================
 // Ensure uploads directory exists (configurable for persistent disks)
-const uploadsDir = process.env.UPLOADS_DIR || (ENV === 'production' ? path.join('/var','data','uploads') : path.join(__dirname, 'public', 'uploads'));
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('📁 Created uploads directory:', uploadsDir);
-}
+const uploadsDir = (() => {
+  const ensure = (dir) => {
+    try {
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.accessSync(dir, fs.constants.W_OK);
+      return true;
+    } catch (e) { return false; }
+  };
+  const prodCandidates = [];
+  if (process.env.UPLOADS_DIR) prodCandidates.push(process.env.UPLOADS_DIR);
+  prodCandidates.push(path.join('/var','data','uploads'));
+  if (ENV === 'production') {
+    for (const c of prodCandidates) {
+      if (ensure(c)) return c;
+    }
+  }
+  const fallback = path.join(__dirname, 'public', 'uploads');
+  if (!ensure(fallback)) {
+    console.warn(`⚠️ Failed to ensure uploads dir; attempted ${prodCandidates.join(', ')} and fallback ${fallback}`);
+  } else {
+    console.log('📁 Using uploads directory:', fallback);
+  }
+  return fallback;
+})();
 
 // Serve uploaded files even if UPLOADS_DIR is outside /public
 app.use('/uploads', express.static(uploadsDir));
