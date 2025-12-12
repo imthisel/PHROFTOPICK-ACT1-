@@ -29,8 +29,8 @@ const ENV = process.env.NODE_ENV || 'development';
 const DB_DIR = (() => {
   const renderDisk = process.env.RENDER_DISK_PATH || process.env.DATA_DIR;
   if (ENV === 'production') {
-    // Use Render persistent disk when provided, otherwise fall back to repo path
-    return renderDisk || path.join(__dirname, 'databases');
+    const base = renderDisk || path.join('/var', 'data', 'databases');
+    return base;
   }
   const base = process.env.DB_DIR || path.join(__dirname, 'databases');
   try { return path.join(base, ENV); } catch (_) { return base; }
@@ -288,6 +288,32 @@ try {
   if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
 } catch (e) {
   console.warn(`⚠️ Failed to ensure DB_DIR at ${DB_DIR}: ${e.message}`);
+}
+
+try {
+  const usingPersistent = ENV === 'production' && (
+    DB_DIR.startsWith(path.join('/var', 'data')) ||
+    (process.env.RENDER_DISK_PATH && DB_DIR.startsWith(process.env.RENDER_DISK_PATH)) ||
+    (process.env.DATA_DIR && DB_DIR.startsWith(process.env.DATA_DIR))
+  );
+  if (usingPersistent) {
+    const repoDir = path.join(__dirname, 'databases');
+    const candidates = ['dlsu.db', 'ateneo.db', 'up.db', 'benilde.db', 'sessions.sqlite'];
+    for (const name of candidates) {
+      const src = path.join(repoDir, name);
+      const dest = path.join(DB_DIR, name);
+      if (!fs.existsSync(dest) && fs.existsSync(src)) {
+        try {
+          fs.copyFileSync(src, dest);
+          console.log(`📦 Migrated ${name} to persistent disk at ${dest}`);
+        } catch (e) {
+          console.warn(`⚠️ Failed to migrate ${name}: ${e.message}`);
+        }
+      }
+    }
+  }
+} catch (e) {
+  console.warn('Startup migration check failed:', e.message);
 }
 
 
@@ -1350,7 +1376,7 @@ app.get('/api/admin/activity/stream', authenticateAdmin, (req, res) => {
 
 // =================== FILE UPLOAD CONFIGURATION ===================
 // Ensure uploads directory exists (configurable for persistent disks)
-const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, 'public', 'uploads');
+const uploadsDir = process.env.UPLOADS_DIR || (ENV === 'production' ? path.join('/var','data','uploads') : path.join(__dirname, 'public', 'uploads'));
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
   console.log('📁 Created uploads directory:', uploadsDir);

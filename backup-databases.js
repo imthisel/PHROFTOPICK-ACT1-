@@ -2,7 +2,16 @@ const fs = require('fs');
 const path = require('path');
 
 // Backup databases to prevent data loss
-const DB_DIR = process.env.DB_DIR || path.join(__dirname, 'databases');
+const ENV = process.env.NODE_ENV || 'development';
+const DB_DIR = (() => {
+  const renderDisk = process.env.RENDER_DISK_PATH || process.env.DATA_DIR;
+  if (ENV === 'production') {
+    const base = renderDisk || path.join('/var', 'data', 'databases');
+    return base;
+  }
+  const base = process.env.DB_DIR || path.join(__dirname, 'databases');
+  try { return path.join(base, ENV); } catch (_) { return base; }
+})();
 const BACKUP_DIR = process.env.BACKUP_DIR || path.join(DB_DIR, 'backups');
 
 // Create backup directory if it doesn't exist
@@ -43,7 +52,7 @@ databases.forEach(backupDatabase);
 
 // Also snapshot uploaded files
 function backupUploads() {
-  const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, 'public', 'uploads');
+  const uploadsDir = process.env.UPLOADS_DIR || (ENV === 'production' ? path.join('/var','data','uploads') : path.join(__dirname, 'public', 'uploads'));
   if (!fs.existsSync(uploadsDir)) return;
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const destDir = path.join(BACKUP_DIR, `uploads-${timestamp}`);
