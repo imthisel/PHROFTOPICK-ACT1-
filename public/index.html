@@ -42,6 +42,9 @@
   <meta name="twitter:image" content="/images/default-logo.png">
 
   <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Preload the correct logo before header loads -->
   <script>
@@ -68,23 +71,24 @@
   <link rel="stylesheet" href="css/mobile-override.css">
   <style>
     .hide-subjects { display: none !important; }
-    .reviews-list { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-    .review-card { background:#fff; border:2px solid #e5e7eb; border-radius:16px; padding:24px; position:relative; cursor:pointer; transition:all .2s ease; }
-    .review-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); border-color: var(--primary); }
-    .review-card.selected { border-color: var(--primary); background: linear-gradient(135deg, rgba(0,105,62,0.02) 0%, rgba(0,0,0,0.01) 100%); box-shadow: 0 8px 16px rgba(0,105,62,0.15); }
+    .reviews-list { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+    .review-card { background:#fff; border:2px solid #e5e7eb; border-radius:16px; padding:24px; position:relative; cursor:pointer; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+    .review-card:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(0,0,0,0.12); border-color: var(--primary); }
+    .review-card:active { transform: translateY(0); box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+    .review-card.selected { border-color: var(--primary); background: linear-gradient(135deg, rgba(0,105,62,0.03) 0%, rgba(0,0,0,0.01) 100%); box-shadow: 0 10px 20px rgba(0,105,62,0.15); }
     .review-header { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
-    .review-avatar { width:56px; height:56px; border-radius:50%; object-fit:cover; background:linear-gradient(135deg,#f3f4f6 0%,#e5e7eb 100%); border:3px solid #e5e7eb; flex-shrink:0; }
+    .review-avatar { width:56px; height:56px; border-radius:50%; object-fit:cover; background:linear-gradient(135deg,#f9fafb 0%,#eef2f7 100%); border:3px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,0.08); flex-shrink:0; }
     .review-user-info { flex:1; }
-    .review-user-name { font-weight:700; font-size:16px; color:#111827; margin-bottom:4px; }
+    .review-user-name { font-weight:700; font-size:16px; color:#111827; margin-bottom:4px; letter-spacing:0.2px; }
     .review-meta { font-size:13px; color:#6b7280; display:flex; gap:12px; flex-wrap:wrap; }
     .review-rating { display:flex; align-items:center; gap:4px; margin-top:8px; font-size:16px; }
     .review-rating .stars { color:#fbbf24; }
     .review-content { margin:16px 0; color:#374151; line-height:1.6; }
     .review-tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
-    .review-tag { background:#f3f4f6; color:#6b7280; padding:4px 10px; border-radius:9999px; font-size:12px; font-weight:500; }
+    .review-tag { background:#f3f4f6; color:#6b7280; padding:6px 12px; border-radius:9999px; font-size:12px; font-weight:600; }
     .review-footer { margin-top:16px; padding-top:16px; border-top:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
     .footer-timestamp { font-size:13px; color:#6b7280; white-space:nowrap; }
-    .badge { display:inline-block; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:600; white-space:nowrap; }
+    .badge { display:inline-block; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; white-space:nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
     .badge-success { background:linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color:#065f46; border:1px solid #6ee7b7; }
     .badge-danger { background:linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color:#991b1b; border:1px solid #fca5a5; }
     .badge-info { background:linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color:#1e40af; border:1px solid #93c5fd; }
@@ -93,9 +97,9 @@
     .badge-workload.badge-low { background:linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color:#065f46; border:1px solid #6ee7b7; }
     .review-view-count { position:absolute; top:20px; right:20px; display:flex; align-items:center; gap:6px; color:#6b7280; font-size:13px; }
     .review-view-count svg { width:18px; height:18px; }
-    .review-card.zoomed { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(1.05); max-width:800px; width:90%; max-height:85vh; overflow-y:auto; z-index:10001; box-shadow:0 25px 50px rgba(0,0,0,0.3); animation: zoomIn .3s ease; }
-    @keyframes zoomIn { from { transform: translate(-50%, -50%) scale(0.9); opacity: 0; } to { transform: translate(-50%, -50%) scale(1.05); opacity: 1; } }
-    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:10000; animation: fadeIn .3s ease; }
+    .review-card.zoomed { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(1.03); max-width:840px; width:92%; max-height:85vh; overflow-y:auto; z-index:10001; box-shadow:0 24px 48px rgba(0,0,0,0.28); animation: zoomIn .28s ease; }
+    @keyframes zoomIn { from { transform: translate(-50%, -50%) scale(0.96); opacity: 0; } to { transform: translate(-50%, -50%) scale(1.03); opacity: 1; } }
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); backdrop-filter:blur(4px); z-index:10000; animation: fadeIn .25s ease; }
     @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
     body.modal-open { overflow:hidden; }
     html { scroll-behavior: smooth; }
