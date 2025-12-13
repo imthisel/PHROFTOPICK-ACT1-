@@ -266,6 +266,7 @@ CREATE TABLE IF NOT EXISTS prof_reviews (
   batch_id TEXT,
   photo_path TEXT,
   view_count INTEGER DEFAULT 0,
+  entered_by_admin INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -296,6 +297,20 @@ CREATE TABLE IF NOT EXISTS admin_logs (
   details TEXT,
   admin_role TEXT,
   school TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity_type TEXT,
+  entity_id INTEGER,
+  action TEXT,
+  actor_type TEXT,
+  actor_id INTEGER,
+  admin_role TEXT,
+  school TEXT,
+  details TEXT,
+  changes TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 `;
@@ -376,6 +391,19 @@ for (const school of schools) {
   const db = getDb(school);
   db.run(subjectResourcesSQL, err => {
     if (err) console.error(`subject_resources ensure failed for ${school}:`, err.message);
+    db.close();
+  });
+}
+
+for (const school of schools) {
+  const db = getDb(school);
+  db.all("PRAGMA table_info(prof_reviews)", [], (err, rows) => {
+    if (!err) {
+      const names = new Set((rows||[]).map(r => r.name));
+      if (!names.has('entered_by_admin')) {
+        db.run("ALTER TABLE prof_reviews ADD COLUMN entered_by_admin INTEGER DEFAULT 0", () => {});
+      }
+    }
     db.close();
   });
 }
@@ -490,6 +518,18 @@ function logAdminAction(adminRole, action, details, school) {
   try {
     const db = getDb(school || 'dlsu');
     db.run('INSERT INTO admin_logs (action, details, admin_role, school) VALUES (?,?,?,?)', [action, details, adminRole, school || 'dlsu'], () => db.close());
+  } catch (_) {}
+}
+
+function logAudit({ school, entity_type, entity_id, action, actor_type, actor_id, admin_role, details, changes }) {
+  try {
+    const db = getDb(school || 'dlsu');
+    const ch = typeof changes === 'string' ? changes : JSON.stringify(changes || {});
+    db.run(
+      'INSERT INTO audit_logs (entity_type, entity_id, action, actor_type, actor_id, admin_role, school, details, changes) VALUES (?,?,?,?,?,?,?,?,?)',
+      [entity_type || '', entity_id || null, action || '', actor_type || '', actor_id || null, admin_role || null, school || 'dlsu', details || '', ch],
+      () => db.close()
+    );
   } catch (_) {}
 }
 
@@ -704,6 +744,23 @@ app.post('/api/profs/:id/review', (req, res) => {
     workload_rating, tags, review_text, anonymous, rating
   } = req.body;
 
+  const code = String(course_code||'').trim().toUpperCase();
+  const text = String(review_text||'').trim();
+  const tagStr = String(tags||'').trim();
+  const ratingValue = parseInt(rating) || 0;
+  const codeRe = /^[A-Z]{7}$/;
+  const againOk = new Set(['Yes','No']);
+  const attainOk = new Set(['Easy','Fair','Hard']);
+  const deadlineOk = new Set(['Yes','No']);
+  const workloadOk = new Set(['Low','Medium','High']);
+  if (!codeRe.test(code)) { db.close(); return res.status(400).json({ error: 'Invalid course code' }); }
+  if (!againOk.has(String(would_take_again||''))) { db.close(); return res.status(400).json({ error: 'Invalid would_take_again' }); }
+  if (!attainOk.has(String(attainable_4||''))) { db.close(); return res.status(400).json({ error: 'Invalid attainability' }); }
+  if (!deadlineOk.has(String(deadline_leniency||''))) { db.close(); return res.status(400).json({ error: 'Invalid deadline leniency' }); }
+  if (!workloadOk.has(String(workload_rating||''))) { db.close(); return res.status(400).json({ error: 'Invalid workload' }); }
+  if (!ratingValue || ratingValue < 1 || ratingValue > 5) { db.close(); return res.status(400).json({ error: 'Rating must be 1-5' }); }
+  if (text.length < 10 || text.length > 4000) { db.close(); return res.status(400).json({ error: 'Review length must be between 10 and 4000 characters' }); }
+
   // Fetch user profile data from database (same data used in settings.html)
   db.get('SELECT display_name, photo_path, college, batch FROM users WHERE id = ?', [userId], (err, userData) => {
     if (err) {
@@ -723,7 +780,6 @@ app.post('/api/profs/:id/review', (req, res) => {
     const photoPath = anonymous ? null : (userData.photo_path || null);
     const college = anonymous ? null : (userData.college || null);
     const batchId = anonymous ? null : (userData.batch || null);
-    const ratingValue = parseInt(rating) || 0;
 
     console.log('📝 Creating review with user data:', {
       userId: userId,
@@ -739,14 +795,14 @@ app.post('/api/profs/:id/review', (req, res) => {
         prof_id, user_id, display_name, anonymous,
         course_code, would_take_again, attainable_4,
         deadline_leniency, workload_rating, tags, review_text,
-        rating, college, batch_id, photo_path
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        rating, college, batch_id, photo_path, entered_by_admin
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     [
       profId, userId, displayName, anonymous ? 1 : 0,
-      course_code, would_take_again, attainable_4,
-      deadline_leniency, workload_rating, tags, review_text,
-      ratingValue, college, batchId, photoPath
+      code, would_take_again, attainable_4,
+      deadline_leniency, workload_rating, tagStr, text,
+      ratingValue, college, batchId, photoPath, 0
     ],
     function(insertErr) {
       if (insertErr) {
@@ -776,6 +832,7 @@ app.post('/api/profs/:id/review', (req, res) => {
         db.close();
         res.json({ ok: true, review_id: reviewId });
       }
+      logAudit({ school, entity_type: 'prof_reviews', entity_id: reviewId, action: 'create', actor_type: 'user', actor_id: userId, details: `prof_id=${profId}`, changes: { review_id: reviewId, user_id: userId, prof_id: profId } });
     });
   });
 });
@@ -1390,6 +1447,69 @@ app.get('/api/admin/activity/stream', authenticateAdmin, (req, res) => {
     } catch (_) {}
   }, 5000);
   req.on('close', () => { clearInterval(timer); });
+});
+
+app.get('/api/admin/reviews', authenticateAdmin, (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const limit = Math.min(500, parseInt(req.query.limit||'100')||100);
+  const db = getDb(school);
+  db.all('SELECT * FROM prof_reviews ORDER BY created_at DESC LIMIT ?', [limit], (err, rows) => {
+    db.close();
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json({ reviews: rows });
+  });
+});
+
+app.post('/api/admin/reviews/:id/edit', authenticateAdmin, (req, res) => {
+  if (!['moderator','admin'].includes(req.adminRole)) return res.status(403).json({ error: 'Forbidden' });
+  const school = req.query.school || 'dlsu';
+  const id = req.params.id;
+  const db = getDb(school);
+  const allowed = ['course_code','would_take_again','attainable_4','deadline_leniency','workload_rating','tags','review_text','rating'];
+  const codeRe = /^[A-Z]{7}$/;
+  const againOk = new Set(['Yes','No']);
+  const attainOk = new Set(['Easy','Fair','Hard']);
+  const deadlineOk = new Set(['Yes','No']);
+  const workloadOk = new Set(['Low','Medium','High']);
+  const patch = {};
+  for (const k of allowed) { if (k in req.body) patch[k] = req.body[k]; }
+  if (patch.course_code && !codeRe.test(String(patch.course_code||'').trim().toUpperCase())) { db.close(); return res.status(400).json({ error: 'Invalid course code' }); }
+  if (patch.would_take_again && !againOk.has(String(patch.would_take_again))) { db.close(); return res.status(400).json({ error: 'Invalid would_take_again' }); }
+  if (patch.attainable_4 && !attainOk.has(String(patch.attainable_4))) { db.close(); return res.status(400).json({ error: 'Invalid attainability' }); }
+  if (patch.deadline_leniency && !deadlineOk.has(String(patch.deadline_leniency))) { db.close(); return res.status(400).json({ error: 'Invalid deadline leniency' }); }
+  if (patch.workload_rating && !workloadOk.has(String(patch.workload_rating))) { db.close(); return res.status(400).json({ error: 'Invalid workload' }); }
+  if (patch.rating !== undefined) { const r = parseInt(patch.rating)||0; if (!r || r<1 || r>5) { db.close(); return res.status(400).json({ error: 'Rating must be 1-5' }); } patch.rating = r; }
+  if (patch.review_text !== undefined) { const t = String(patch.review_text||'').trim(); if (t.length<10 || t.length>4000) { db.close(); return res.status(400).json({ error: 'Invalid review length' }); } patch.review_text = t; }
+  db.get('SELECT * FROM prof_reviews WHERE id = ?', [id], (e,row)=>{
+    if (e || !row) { db.close(); return res.status(404).json({ error: 'Not found' }); }
+    const fields = Object.keys(patch);
+    if (!fields.length) { db.close(); return res.status(400).json({ error: 'No changes' }); }
+    const setSql = fields.map(f => `${f} = ?`).join(', ');
+    const values = fields.map(f => f==='course_code' ? String(patch[f]||'').trim().toUpperCase() : patch[f]);
+    values.push(id);
+    db.run(`UPDATE prof_reviews SET ${setSql}, entered_by_admin = 1 WHERE id = ?`, values, function(err2){
+      db.close();
+      if (err2) return res.status(500).json({ error: 'DB error' });
+      logAudit({ school, entity_type: 'prof_reviews', entity_id: Number(id), action: 'edit', actor_type: 'admin', actor_id: null, admin_role: req.adminRole, details: `id=${id}`, changes: { before: row, after: patch } });
+      res.json({ ok:true });
+    });
+  });
+});
+
+app.delete('/api/admin/reviews/:id', authenticateAdmin, (req, res) => {
+  if (req.adminRole !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+  const school = req.query.school || 'dlsu';
+  const id = req.params.id;
+  const db = getDb(school);
+  db.get('SELECT * FROM prof_reviews WHERE id = ?', [id], (e,row)=>{
+    if (e || !row) { db.close(); return res.status(404).json({ error: 'Not found' }); }
+    db.run('DELETE FROM prof_reviews WHERE id = ?', [id], function(err2){
+      db.close();
+      if (err2) return res.status(500).json({ error: 'DB error' });
+      logAudit({ school, entity_type: 'prof_reviews', entity_id: Number(id), action: 'delete', actor_type: 'admin', actor_id: null, admin_role: req.adminRole, details: `id=${id}`, changes: { before: row } });
+      res.json({ ok:true });
+    });
+  });
 });
 
 // =================== FILE UPLOAD CONFIGURATION ===================
