@@ -10,7 +10,8 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/mobile-override.css">
   <style>
-    .admin-container { max-width: 1200px; margin: 32px auto; padding: 16px; }
+    /* Admin page layout refinements for visibility & responsiveness */
+    .admin-container { max-width: 1280px; margin: 32px auto; padding: 16px; }
     .admin-header {
       background: linear-gradient(135deg, #0a6a42 0%, #06442a 100%);
       color: #ffffff;
@@ -22,7 +23,7 @@
       margin: 0 0 6px 0;
       font-size: 32px;
     }
-    .login-form { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); max-width: 420px; margin: 24px auto; }
+    .login-form { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); max-width: 480px; margin: 24px auto; }
     .login-form input {
       width: 100%; padding: 12px 14px; margin: 8px 0 12px; border: 2px solid #d1d5db; border-radius: 10px; font-size: 16px;
     }
@@ -36,7 +37,7 @@
       background: #f8fafc; padding: 16px 20px; border-bottom: 2px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;
     }
     .table-header h2 { margin: 0; font-size: 20px; color: #111827; }
-    .stats { display: grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap: 16px; margin-bottom: 16px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap: 16px; margin-bottom: 16px; }
     .stat-card {
       background: white; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); flex: 1;
     }
@@ -51,17 +52,17 @@
       background: #f3f4f6;
     }
     th {
-      padding: 14px; text-align: left; font-weight: 700; color: #111827; border-bottom: 2px solid #e5e7eb;
+      padding: 14px; text-align: left; font-weight: 700; color: #111827; border-bottom: 2px solid #e5e7eb; vertical-align: top; word-break: break-word;
     }
     td {
-      padding: 14px; border-bottom: 1px solid #e5e7eb;
+      padding: 14px; border-bottom: 1px solid #e5e7eb; vertical-align: top; word-break: break-word;
     }
     tr:hover {
       background: #f9fafb;
     }
-    .school-filter {
-      display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0 16px;
-    }
+    #users-list { overflow-x: auto; }
+    #users-list table { min-width: 900px; }
+    .school-filter { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0 16px; }
     .school-filter button {
       padding: 8px 14px; border: 2px solid #0a6a42; background: white; color: #0a6a42; border-radius: 10px; cursor: pointer; font-weight: 700; transition: all 0.2s ease;
     }
@@ -88,7 +89,7 @@
       .admin-container { padding: 12px; }
       .admin-header { padding: 20px; }
       .stats { grid-template-columns: repeat(2, 1fr); }
-      .hscroll { grid-auto-columns: minmax(320px, 1fr); }
+      .hscroll { grid-auto-columns: minmax(340px, 1fr); }
     }
     @media (max-width: 768px) {
       .admin-header h1 { font-size: 28px; }
@@ -96,24 +97,36 @@
       .hscroll { display: block; overflow-x: visible; }
       .panel { margin-bottom: 16px; }
       .inline-controls { flex-wrap: wrap; }
+      #users-list table { min-width: 720px; }
     }
-    .hscroll { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(340px, 1fr); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; }
-    .panel { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); min-height: 300px; scroll-snap-align: start; display: flex; flex-direction: column; }
-    .panel-header { display:flex; justify-content: space-between; align-items:center; padding: 12px 16px; border-bottom: 2px solid #e5e7eb; }
+    .hscroll { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(360px, 1fr); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; align-items: stretch; }
+    .panel { position: relative; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); min-height: 300px; scroll-snap-align: start; display: flex; flex-direction: column; z-index: 1; }
+    .panel-header { display:flex; justify-content: space-between; align-items:center; padding: 12px 16px; border-bottom: 2px solid #e5e7eb; gap: 8px; }
     .panel-body { padding: 12px 16px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
     .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; }
     .scroll-indicator { position: relative; }
-    .scroll-indicator::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 18px; pointer-events: none; background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0)); opacity: 0; transition: opacity .2s; }
-    .scroll-indicator::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 18px; pointer-events: none; background: linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0)); opacity: 0; transition: opacity .2s; }
+    .scroll-indicator::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 18px; pointer-events: none; background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0)); opacity: 0; transition: opacity .2s; z-index: 2; }
+    .scroll-indicator::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 18px; pointer-events: none; background: linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0)); opacity: 0; transition: opacity .2s; z-index: 2; }
     .scroll-indicator.scroll-left::before { opacity: 1; }
     .scroll-indicator.scroll-right::after { opacity: 1; }
     .action-btn { padding:8px 12px; border:1px solid #00693e; border-radius:8px; background:white; color:#00693e; font-weight:600; }
     .action-btn.primary { background:#00693e; color:white; }
-    .inline-controls { display:flex; gap:8px; align-items:center; }
+    .inline-controls { display:flex; gap:8px; align-items:center; flex-wrap: wrap; }
+    .inline-controls .input, .inline-controls select, .inline-controls button { flex: 1 1 180px; min-width: 160px; }
     .input { padding:8px; border:1px solid #ddd; border-radius:8px; }
     .modal { position: fixed; inset: 0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.6); z-index: 10000; }
     .modal-content { background:white; border-radius:12px; max-width:900px; width:90%; max-height:85vh; overflow:auto; }
+
+    /* CSS change log (admin.html):
+       - Increased container max-width for desktop clarity
+       - Expanded stats grid min column width
+       - Enabled word-break in table cells to avoid overflow
+       - Added horizontal scroll to users table for narrow screens
+       - Increased panel auto column width; ensured stretch alignment
+       - Introduced z-index to scroll indicators; panel positioned relative
+       - Made inline controls wrap by default with min widths
+       - Tuned media queries for better small-screen table handling */
   </style>
 </head>
 <body>
