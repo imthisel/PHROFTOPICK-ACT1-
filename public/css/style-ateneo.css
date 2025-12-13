@@ -3,4 +3,9 @@
   --accent: #00264d;
   --accent-hover: #001f3a;
   --bg: #f4f7ff;
+  --surface: #ffffff;
+  --ring: rgba(0,51,102,0.18);
+  --gradient-start: #003a80;
+  --gradient-end: #00264d;
+  --text-on-primary: #ffffff;
 }
