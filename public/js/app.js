@@ -360,7 +360,7 @@ async function initializeHeader() {
   const token = localStorage.getItem('token');
   if (!token) return showLoggedOut();
 
-  const tSchool = tokenSchool(token) || storedSchool;
+  const tSchool = storedSchool || tokenSchool(token);
 
   try {
     const resp = await fetch(`/api/me?school=${tSchool}`, {
@@ -378,7 +378,10 @@ async function initializeHeader() {
     localStorage.setItem('user_display', user.display_name || 'You');
     const photoUrl = user.photo_path || localStorage.getItem('user_photo') || '';
     if (photoUrl) localStorage.setItem('user_photo', photoUrl);
-    try { if (tSchool) localStorage.setItem('selectedSchool', tSchool); } catch (_) {}
+    try {
+      const existing = localStorage.getItem('selectedSchool');
+      if (!existing && tSchool) localStorage.setItem('selectedSchool', tSchool);
+    } catch (_) {}
     
     showLoggedIn(user.display_name || 'You', photoUrl);
   } catch (err) {
