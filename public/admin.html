@@ -7,11 +7,7 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/mobile-override.css">
   <style>
-    .admin-container {
-      max-width: 1200px;
-      margin: 50px auto;
-      padding: 20px;
-    }
+    .admin-container { max-width: 1200px; margin: 50px auto; padding: 20px; }
     .admin-header {
       background: linear-gradient(135deg, #00693e 0%, #004d2b 100%);
       color: white;
@@ -80,11 +76,7 @@
       margin: 0;
       font-size: 20px;
     }
-    .stats {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 20px;
-    }
+    .stats { display: grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap: 16px; margin-bottom: 20px; }
     .stat-card {
       background: white;
       padding: 20px;
@@ -204,10 +196,6 @@
           <div class="value" id="total-professors">0</div>
         </div>
         <div class="stat-card">
-          <h3>Comments</h3>
-          <div class="value" id="total-comments">0</div>
-        </div>
-        <div class="stat-card">
           <h3>Reviews</h3>
           <div class="value" id="total-reviews">0</div>
         </div>
@@ -226,63 +214,86 @@
       </div>
 
   <div class="school-filter">
-    <button onclick="loadUsers('dlsu')" class="active" data-school="dlsu">DLSU</button>
-        <button onclick="loadUsers('ateneo')" data-school="ateneo">Ateneo</button>
-        <button onclick="loadUsers('up')" data-school="up">UP</button>
-        <button onclick="loadUsers('benilde')" data-school="benilde">Benilde</button>
-        <button onclick="loadUsers('all')" data-school="all">All Schools</button>
+    <button onclick="loadAdmin('dlsu')" class="active" data-school="dlsu">DLSU</button>
+        <button onclick="loadAdmin('ateneo')" data-school="ateneo">Ateneo</button>
+        <button onclick="loadAdmin('up')" data-school="up">UP</button>
+        <button onclick="loadAdmin('benilde')" data-school="benilde">Benilde</button>
+        <button onclick="loadAdmin('all')" data-school="all">All Schools</button>
     <button class="export-btn" onclick="exportEmails()">📥 Export CSV</button>
     <button class="export-btn" onclick="exportJSON()">🧾 Export JSON</button>
     <button class="export-btn" onclick="exportPDF()">🖨️ Export PDF</button>
   </div>
 
-      <div class="users-table">
-        <div class="table-header">
-          <h2>Registered Users</h2>
-          <div id="table-count">0 users</div>
-        </div>
-        <div style="padding: 12px 16px; border-bottom: 1px solid #e5e7eb; display:flex; gap:12px; flex-wrap:wrap;">
-          <input id="filter-text" placeholder="Search name/email" style="flex:1; min-width:220px; padding:8px; border:1px solid #ddd; border-radius:8px;">
-          <select id="filter-type" style="padding:8px; border:1px solid #ddd; border-radius:8px;">
-            <option value="all">All Types</option>
-            <option value="oauth">OAuth Users</option>
-            <option value="email">Email Users</option>
-          </select>
-          <select id="filter-activity" style="padding:8px; border:1px solid #ddd; border-radius:8px;">
-            <option value="all">All Activity</option>
-            <option value="active">Active (>=1 comment)</option>
-            <option value="inactive">Inactive (0 comments)</option>
-          </select>
-          <button class="export-btn" onclick="applyFilters()">Apply Filters</button>
-        </div>
-        <div id="loading" class="loading">Loading users...</div>
-        <div id="users-list"></div>
-      </div>
-      <div class="users-table" style="margin-top:24px;">
-        <div class="table-header">
-          <h2>Recent Activity</h2>
-        </div>
-        <div id="activity" style="padding: 12px 16px;">
-          <div id="recent-comments"></div>
-          <div id="recent-reviews" style="margin-top:14px;"></div>
-          <div id="recent-resources" style="margin-top:14px;"></div>
-        </div>
-      </div>
+      <div class="scroll-indicator">
+        <div id="panels" class="hscroll">
+          <div class="panel" id="panel-reviews">
+            <div class="panel-header">
+              <h2>Reviews</h2>
+              <div class="inline-controls">
+                <input id="filter-reviews" class="input" placeholder="Search reviews">
+                <button class="action-btn" onclick="exportReviewsJSON()">Export JSON</button>
+                <button class="action-btn" onclick="bulkDeleteSelectedReviews()">Bulk Delete</button>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div id="reviews-grid" class="grid"></div>
+            </div>
+          </div>
 
-      <div class="users-table" style="margin-top:24px;">
-        <div class="table-header">
-          <h2>Comment Trends (last 14 days)</h2>
-        </div>
-        <div style="padding: 12px 16px;">
-          <canvas id="trendCanvas" width="1000" height="260"></canvas>
-        </div>
-      </div>
+          <div class="panel" id="panel-notes">
+            <div class="panel-header">
+              <h2>Notes</h2>
+              <div class="inline-controls">
+                <input id="filter-notes" class="input" placeholder="Search notes">
+                <button class="action-btn" onclick="exportNotesJSON()">Export JSON</button>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div id="notes-grid" class="grid"></div>
+            </div>
+          </div>
 
-      <div class="users-table" style="margin-top:24px;">
-        <div class="table-header">
-          <h2>Live Activity</h2>
+          <div class="panel" id="panel-users">
+            <div class="panel-header">
+              <h2>Users</h2>
+              <div class="inline-controls">
+                <input id="filter-text" class="input" placeholder="Search name/email">
+                <select id="filter-type" class="input"><option value="all">All Types</option><option value="oauth">OAuth Users</option><option value="email">Email Users</option></select>
+                <button class="action-btn" onclick="applyFilters()">Apply</button>
+                <button class="action-btn" onclick="exportJSON()">Export JSON</button>
+                <button class="action-btn" onclick="exportEmails()">Export Emails</button>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div id="loading" class="loading">Loading users...</div>
+              <div id="users-list"></div>
+              <div style="margin-top:16px; display:grid; grid-template-columns: 1fr; gap:12px;">
+                <div class="card">
+                  <div style="font-weight:600; margin-bottom:8px;">Change User Password</div>
+                  <div style="display:grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap:8px; align-items:end;">
+                    <select id="pw-user" class="input"></select>
+                    <input id="pw-current" class="input" type="password" placeholder="Current password">
+                    <input id="pw-next" class="input" type="password" placeholder="New password">
+                    <input id="pw-confirm" class="input" type="password" placeholder="Confirm new password">
+                    <button class="action-btn" onclick="togglePwVisibility()">Toggle Visibility</button>
+                    <button class="action-btn primary" onclick="submitChangePassword()">Change</button>
+                    <button class="action-btn" onclick="submitResetPassword()">Admin Reset</button>
+                  </div>
+                  <div id="pw-msg" style="margin-top:8px; font-size:13px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" id="panel-tools">
+            <div class="panel-header"><h2>Tools</h2></div>
+            <div class="panel-body">
+              <div id="recent-reviews" style="margin-bottom:12px;"></div>
+              <div id="recent-resources" style="margin-bottom:12px;"></div>
+              <div id="live-feed" style="font-size:13px; color:#374151;"></div>
+            </div>
+          </div>
         </div>
-        <div id="live-feed" style="padding:12px 16px; font-size:13px; color:#374151;"></div>
       </div>
     </div>
   </div>
@@ -290,6 +301,9 @@
   <script>
     let currentSchool = 'dlsu';
     let allUsersData = [];
+    let reviewsData = [];
+    let notesData = [];
+    let selectedReviewIds = new Set();
 
     async function handleLogin() {
       const password = document.getElementById('admin-password').value;
@@ -309,7 +323,7 @@
         localStorage.setItem('admin_role', j.role);
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('admin-content').style.display = 'block';
-        loadUsers('dlsu');
+        loadAdmin('dlsu');
         initLiveFeed();
       } catch (error) {
         errorDiv.textContent = error.message || 'Error connecting to server. Please try again.';
@@ -324,7 +338,7 @@
       }
     });
 
-    async function loadUsers(school) {
+    async function loadAdmin(school) {
       currentSchool = school;
       
       // Update active button
@@ -366,12 +380,14 @@
         allUsersData = data.users || [];
         displayUsers(allUsersData);
         updateStats(allUsersData);
+        populatePwUsers();
+
+        await loadReviews();
+        await loadNotes();
 
         const actRes = await fetch(`/api/admin/activity?school=${school}&limit=10`, { headers:{ 'Authorization':'Bearer ' + token } });
         const act = await actRes.json();
         updateActivity(act);
-
-        await loadTrends();
       } catch (error) {
         const errorMsg = error.message || 'Unknown error occurred';
         document.getElementById('users-list').innerHTML = `
@@ -389,7 +405,6 @@
 
     function displayUsers(users) {
       const container = document.getElementById('users-list');
-      document.getElementById('table-count').textContent = `${users.length} users`;
 
       if (users.length === 0) {
         container.innerHTML = '<div class="no-data">No users found</div>';
@@ -412,7 +427,6 @@
               <th>Course</th>
               <th>Batch</th>
               <th>Username</th>
-              <th>Comments</th>
               <th>Reviews</th>
               <th>Resources</th>
             </tr>
@@ -433,7 +447,6 @@
             <td>${user.course || '<span style="color:#999;">N/A</span>'}</td>
             <td>${user.batch || '<span style="color:#999;">N/A</span>'}</td>
             <td>${user.username || '<span style="color:#999;">N/A</span>'}</td>
-            <td>${Number(user.comments_count || 0)}</td>
             <td>${Number(user.reviews_count || 0)}</td>
             <td>${Number(user.notes_count || 0)}</td>
           </tr>
@@ -453,27 +466,15 @@
       document.getElementById('total-users').textContent = totals.users || 0;
       document.getElementById('total-subjects').textContent = totals.subjects || 0;
       document.getElementById('total-professors').textContent = totals.professors || 0;
-      document.getElementById('total-comments').textContent = totals.comments || 0;
       document.getElementById('total-reviews').textContent = totals.reviews || 0;
       document.getElementById('total-resources').textContent = totals.resources || 0;
     }
 
     function updateActivity(act) {
-      const comments = act.activity ? act.activity.flatMap(a => a.comments.map(x => ({...x, school:a.school}))) : (act.comments || []);
       const reviews = act.activity ? act.activity.flatMap(a => a.reviews.map(x => ({...x, school:a.school}))) : (act.reviews || []);
       const resources = act.activity ? act.activity.flatMap(a => a.resources.map(x => ({...x, school:a.school}))) : (act.resources || []);
-      const cEl = document.getElementById('recent-comments');
       const rEl = document.getElementById('recent-reviews');
       const nEl = document.getElementById('recent-resources');
-      const canModerate = (localStorage.getItem('admin_role') === 'moderator' || localStorage.getItem('admin_role') === 'admin');
-      cEl.innerHTML = `<h3 style="margin-bottom:8px;">Recent Comments</h3>` + (comments.slice(0,10).map(c => {
-        const actions = canModerate ? `<span style="float:right;">
-          <a href="#" onclick="flagComment(${c.id})" style="margin-right:8px;">Flag</a>
-          <a href="#" onclick="editComment(${c.id}, '${String(c.comment||'').replace(/'/g, "\'")}')" style="margin-right:8px;">Edit</a>
-          ${localStorage.getItem('admin_role')==='admin' ? `<a href="#" onclick="deleteComment(${c.id})" style="color:#dc2626;">Delete</a>` : ''}
-        </span>` : '';
-        return `<div style="font-size:13px; color:#374151; padding:6px 0; border-bottom:1px solid #eee;">${c.display_name || 'Anonymous'} on prof ${c.prof_id} • ${c.school ? c.school.toUpperCase() : ''} <span style="color:#6b7280;">${c.created_at || ''}</span>${actions}</div>`;
-      }).join(''));
       rEl.innerHTML = `<h3 style="margin-bottom:8px;">Recent Reviews</h3>` + (reviews.slice(0,10).map(v => `<div style="font-size:13px; color:#374151; padding:6px 0; border-bottom:1px solid #eee;">${v.display_name || 'User'} reviewed prof ${v.prof_id} • ${v.school ? v.school.toUpperCase() : ''} <span style="color:#6b7280;">${v.created_at || ''}</span></div>`).join(''));
       nEl.innerHTML = `<h3 style="margin-bottom:8px;">Recent Resources</h3>` + (resources.slice(0,10).map(n => `<div style="font-size:13px; color:#374151; padding:6px 0; border-bottom:1px solid #eee;">${n.display_name || 'User'} uploaded ${n.file_name} to subject ${n.subject_id} • ${n.school ? n.school.toUpperCase() : ''} <span style="color:#6b7280;">${n.created_at || ''}</span></div>`).join(''));
     }
@@ -488,44 +489,20 @@
     function applyFilters() {
       const txt = (document.getElementById('filter-text').value || '').toLowerCase();
       const type = document.getElementById('filter-type').value;
-      const activity = document.getElementById('filter-activity').value;
       let filtered = allUsersData.slice();
       if (txt) filtered = filtered.filter(u => String(u.display_name||'').toLowerCase().includes(txt) || String(u.email||'').toLowerCase().includes(txt));
       if (type==='oauth') filtered = filtered.filter(u => !!u.oauth_provider);
       if (type==='email') filtered = filtered.filter(u => !!u.email);
-      if (activity==='active') filtered = filtered.filter(u => Number(u.comments_count||0) >= 1);
-      if (activity==='inactive') filtered = filtered.filter(u => Number(u.comments_count||0) === 0);
       displayUsers(filtered);
     }
 
-    async function loadTrends() {
-      const token = localStorage.getItem('admin_token');
-      const res = await fetch(`/api/admin/comment-trends?school=${currentSchool}`, { headers:{ 'Authorization': 'Bearer ' + token } });
-      const j = await res.json();
-      const data = j.series || [];
-      const canvas = document.getElementById('trendCanvas');
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      ctx.strokeStyle = '#00693e';
-      ctx.lineWidth = 2;
-      const max = Math.max(1, ...data.map(d => d.count));
-      const pad = 30;
-      const w = canvas.width - pad*2;
-      const h = canvas.height - pad*2;
-      ctx.beginPath();
-      data.forEach((d, i) => {
-        const x = pad + (i/(data.length-1||1))*w;
-        const y = pad + h - (d.count/max)*h;
-        if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-      });
-      ctx.stroke();
-      ctx.fillStyle = '#374151';
-      ctx.font = '12px system-ui';
-      data.forEach((d, i) => {
-        const x = pad + (i/(data.length-1||1))*w;
-        const y = pad + h - (d.count/max)*h;
-        ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
-      });
+    function updateScrollIndicators() {
+      const el = document.getElementById('panels');
+      const wrap = el.parentElement;
+      const left = el.scrollLeft > 0;
+      const right = el.scrollLeft + el.clientWidth < el.scrollWidth;
+      wrap.classList.toggle('scroll-left', left);
+      wrap.classList.toggle('scroll-right', right);
     }
 
     function initLiveFeed() {
@@ -536,31 +513,159 @@
         try {
           const j = JSON.parse(e.data);
           const items = [];
-          j.comments.forEach(c => items.push(`Comment by ${c.display_name||'Anonymous'} on prof ${c.prof_id}`));
           j.reviews.forEach(r => items.push(`Review by ${r.display_name||'User'} on prof ${r.prof_id}`));
           j.resources.forEach(n => items.push(`Resource by ${n.display_name||'User'}: ${n.file_name||''}`));
           feed.innerHTML = items.slice(0,10).map(s => `<div style="padding:4px 0; border-bottom:1px solid #eee;">${s}</div>`).join('');
         } catch(_) {}
       };
+      const el = document.getElementById('panels');
+      el.addEventListener('scroll', updateScrollIndicators);
+      updateScrollIndicators();
     }
 
-    async function flagComment(id) {
+    async function loadReviews() {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`/api/admin/comments/${id}/flag?school=${currentSchool}`, { method:'POST', headers:{ 'Authorization':'Bearer ' + token } });
-      if (res.ok) loadUsers(currentSchool);
+      const res = await fetch(`/api/admin/reviews?school=${currentSchool}&limit=200`, { headers:{ 'Authorization':'Bearer ' + token } });
+      const j = await res.json();
+      reviewsData = j.reviews || [];
+      renderReviews(reviewsData);
     }
-    async function editComment(id, current) {
-      const text = prompt('Edit comment text:', current || '');
+
+    function renderReviews(list) {
+      const map = new Map((allUsersData||[]).map(u => [u.id, u]));
+      const q = (document.getElementById('filter-reviews').value||'').toLowerCase();
+      const filtered = q ? list.filter(r => String(r.review_text||'').toLowerCase().includes(q) || String(r.course_code||'').toLowerCase().includes(q)) : list;
+      const grid = document.getElementById('reviews-grid');
+      grid.innerHTML = filtered.map(r => {
+        const u = map.get(r.user_id);
+        const dn = u?.display_name || r.display_name || 'User';
+        const meta = `${dn} • User#${r.user_id} • ${r.college||u?.college||''} ${r.batch_id||u?.batch||''}`;
+        const stars = '★★★★★'.slice(0, Math.max(0, Math.min(5, Number(r.rating||0))))
+        return `<div class="card"><div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-weight:600;">${stars} <span style="color:#6b7280; font-weight:400;">${r.rating||0}/5</span></div>
+          <div><input type="checkbox" data-id="${r.id}" onchange="toggleSelectReview(${r.id}, this.checked)"></div></div>
+          <div style="color:#374151; margin:8px 0;">${(r.review_text||'').replace(/</g,'&lt;')}</div>
+          <div style="font-size:12px; color:#6b7280;">${meta}</div>
+          <div style="font-size:12px; color:#6b7280;">Course ${r.course_code||''} • Prof ${r.prof_id} • ${r.created_at||''}</div>
+          <div style="margin-top:8px; display:flex; gap:8px;">
+            <button class="action-btn" onclick="editReview(${r.id})">Edit</button>
+            <button class="action-btn" onclick="deleteReview(${r.id})">Delete</button>
+          </div>
+        </div>`;
+      }).join('');
+      document.getElementById('filter-reviews').oninput = () => renderReviews(reviewsData);
+    }
+
+    function toggleSelectReview(id, on) { if (on) selectedReviewIds.add(id); else selectedReviewIds.delete(id); }
+    async function bulkDeleteSelectedReviews() {
+      if (!selectedReviewIds.size) return;
+      if (!confirm('Delete selected reviews?')) return;
+      const token = localStorage.getItem('admin_token');
+      const ids = Array.from(selectedReviewIds);
+      for (const id of ids) {
+        await fetch(`/api/admin/reviews/${id}?school=${currentSchool}`, { method:'DELETE', headers:{ 'Authorization':'Bearer ' + token } });
+      }
+      selectedReviewIds.clear();
+      await loadReviews();
+    }
+    async function editReview(id) {
+      const r = reviewsData.find(x => x.id===id);
+      if (!r) return;
+      const text = prompt('Edit review text', r.review_text||'');
       if (text==null) return;
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`/api/admin/comments/${id}/edit?school=${currentSchool}`, { method:'POST', headers:{ 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' }, body: JSON.stringify({ comment:text }) });
-      if (res.ok) loadUsers(currentSchool);
+      const res = await fetch(`/api/admin/reviews/${id}/edit?school=${currentSchool}`, { method:'POST', headers:{ 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' }, body: JSON.stringify({ review_text: text }) });
+      if (res.ok) loadReviews();
     }
-    async function deleteComment(id) {
-      if (!confirm('Delete this comment?')) return;
+    async function deleteReview(id) {
+      if (!confirm('Delete this review?')) return;
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`/api/admin/comments/${id}?school=${currentSchool}`, { method:'DELETE', headers:{ 'Authorization':'Bearer ' + token } });
-      if (res.ok) loadUsers(currentSchool);
+      const res = await fetch(`/api/admin/reviews/${id}?school=${currentSchool}`, { method:'DELETE', headers:{ 'Authorization':'Bearer ' + token } });
+      if (res.ok) loadReviews();
+    }
+
+    async function loadNotes() {
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`/api/resources?school=${currentSchool}&limit=200`, { headers:{ 'Authorization':'Bearer ' + token } });
+      const j = await res.json();
+      notesData = j.resources || [];
+      renderNotes(notesData);
+    }
+    function renderNotes(list) {
+      const map = new Map((allUsersData||[]).map(u => [u.id, u]));
+      const q = (document.getElementById('filter-notes').value||'').toLowerCase();
+      const filtered = q ? list.filter(n => String(n.title||'').toLowerCase().includes(q) || String(n.description||'').toLowerCase().includes(q) || String(n.file_name||'').toLowerCase().includes(q)) : list;
+      const grid = document.getElementById('notes-grid');
+      grid.innerHTML = filtered.map(n => {
+        const u = map.get(n.user_id);
+        const dn = u?.display_name || n.display_name || 'User';
+        const meta = `${dn} • User#${n.user_id} • ${n.college||u?.college||''} ${n.batch||u?.batch||''}`;
+        const kb = n.file_size ? (Math.round(Number(n.file_size)/1024*10)/10)+' KB' : '';
+        return `<div class="card">
+          <div style="font-weight:600;">${n.title||n.file_name||''}</div>
+          <div style="color:#374151; margin:8px 0;">${(n.description||'').replace(/</g,'&lt;')}</div>
+          <div style="font-size:12px; color:#6b7280;">${meta}</div>
+          <div style="font-size:12px; color:#6b7280;">${n.created_at||''} • ${kb}</div>
+          <div style="margin-top:8px; display:flex; gap:8px;">
+            <a class="action-btn" href="${n.file_path}" target="_blank">Download</a>
+            <button class="action-btn" onclick="previewFile('${n.file_path}')">Preview</button>
+          </div>
+        </div>`;
+      }).join('');
+      document.getElementById('filter-notes').oninput = () => renderNotes(notesData);
+    }
+
+    function exportReviewsJSON() { const blob = new Blob([JSON.stringify(reviewsData)], { type:'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `reviews_${currentSchool}.json`; a.click(); }
+    function exportNotesJSON() { const blob = new Blob([JSON.stringify(notesData)], { type:'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `notes_${currentSchool}.json`; a.click(); }
+
+    function previewFile(url) {
+      const m = document.getElementById('modal');
+      const c = document.getElementById('modal-content');
+      const ext = (url.split('.').pop()||'').toLowerCase();
+      let inner = '';
+      if (['png','jpg','jpeg','gif','webp'].includes(ext)) inner = `<img src="${url}" style="max-width:100%; height:auto; display:block;">`;
+      else if (['pdf'].includes(ext)) inner = `<embed src="${url}" type="application/pdf" style="width:100%; height:80vh;">`;
+      else inner = `<iframe src="${url}" style="width:100%; height:80vh;"></iframe>`;
+      c.innerHTML = inner;
+      m.style.display = 'flex';
+    }
+    function closeModal() { const m = document.getElementById('modal'); m.style.display = 'none'; }
+
+    function populatePwUsers() {
+      const sel = document.getElementById('pw-user');
+      sel.innerHTML = (allUsersData||[]).map(u => `<option value="${u.id}">${u.id} • ${u.display_name||u.email||''}</option>`).join('');
+    }
+    function togglePwVisibility() {
+      ['pw-current','pw-next','pw-confirm'].forEach(id => { const el = document.getElementById(id); el.type = el.type==='password' ? 'text' : 'password'; });
+      setTimeout(() => { ['pw-current','pw-next','pw-confirm'].forEach(id => { const el = document.getElementById(id); el.type = 'password'; }); }, 3000);
+    }
+    function validateStrength(v) { return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/.test(v); }
+    async function submitChangePassword() {
+      const uid = document.getElementById('pw-user').value;
+      const current = document.getElementById('pw-current').value;
+      const next = document.getElementById('pw-next').value;
+      const confirm = document.getElementById('pw-confirm').value;
+      const msg = document.getElementById('pw-msg');
+      msg.textContent = '';
+      if (!validateStrength(next)) { msg.textContent = 'Weak password'; return; }
+      if (next !== confirm) { msg.textContent = 'Password confirmation mismatch'; return; }
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`/api/admin/users/${uid}/change-password?school=${currentSchool}`, { method:'POST', headers:{ 'Authorization':'Bearer '+token, 'Content-Type':'application/json' }, body: JSON.stringify({ current, next, confirm }) });
+      const j = await res.json().catch(()=>({}));
+      msg.textContent = res.ok ? 'Password changed' : (j.error||'Error');
+    }
+    async function submitResetPassword() {
+      const uid = document.getElementById('pw-user').value;
+      const next = document.getElementById('pw-next').value;
+      const confirm = document.getElementById('pw-confirm').value;
+      const msg = document.getElementById('pw-msg');
+      msg.textContent = '';
+      if (!validateStrength(next)) { msg.textContent = 'Weak password'; return; }
+      if (next !== confirm) { msg.textContent = 'Password confirmation mismatch'; return; }
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`/api/admin/users/${uid}/change-password?school=${currentSchool}`, { method:'POST', headers:{ 'Authorization':'Bearer '+token, 'Content-Type':'application/json' }, body: JSON.stringify({ next, confirm }) });
+      const j = await res.json().catch(()=>({}));
+      msg.textContent = res.ok ? 'Password reset' : (j.error||'Error');
     }
 
     function exportJSON() {
@@ -626,6 +731,24 @@
       document.body.removeChild(link);
     }
   </script>
+  <div id="modal" class="modal" onclick="closeModal()"><div id="modal-content" class="modal-content"></div></div>
 </body>
 </html>
 
+    .hscroll { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(340px, 1fr); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; }
+    .panel { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); min-height: 300px; scroll-snap-align: start; display: flex; flex-direction: column; }
+    .panel-header { display:flex; justify-content: space-between; align-items:center; padding: 12px 16px; border-bottom: 2px solid #e5e7eb; }
+    .panel-body { padding: 12px 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; }
+    .scroll-indicator { position: relative; }
+    .scroll-indicator::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 18px; pointer-events: none; background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0)); opacity: 0; transition: opacity .2s; }
+    .scroll-indicator::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 18px; pointer-events: none; background: linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0)); opacity: 0; transition: opacity .2s; }
+    .scroll-indicator.scroll-left::before { opacity: 1; }
+    .scroll-indicator.scroll-right::after { opacity: 1; }
+    .action-btn { padding:8px 12px; border:1px solid #00693e; border-radius:8px; background:white; color:#00693e; font-weight:600; }
+    .action-btn.primary { background:#00693e; color:white; }
+    .inline-controls { display:flex; gap:8px; align-items:center; }
+    .input { padding:8px; border:1px solid #ddd; border-radius:8px; }
+    .modal { position: fixed; inset: 0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.6); z-index: 10000; }
+    .modal-content { background:white; border-radius:12px; max-width:900px; width:90%; max-height:85vh; overflow:auto; }

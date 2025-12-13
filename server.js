@@ -1512,6 +1512,40 @@ app.delete('/api/admin/reviews/:id', authenticateAdmin, (req, res) => {
   });
 });
 
+app.post('/api/admin/users/:id/change-password', authenticateAdmin, (req, res) => {
+  const school = req.query.school || 'dlsu';
+  const id = parseInt(req.params.id);
+  const current = String(req.body?.current || '');
+  const next = String(req.body?.next || '');
+  const confirm = String(req.body?.confirm || '');
+  if (!next || next !== confirm) return res.status(400).json({ error: 'Password confirmation mismatch' });
+  const strengthOk = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/.test(next);
+  if (!strengthOk) return res.status(400).json({ error: 'Weak password' });
+  const db = getDb(school);
+  db.get('SELECT id, password_hash FROM users WHERE id = ?', [id], async (err, user) => {
+    if (err) { db.close(); return res.status(500).json({ error: 'DB error' }); }
+    if (!user) { db.close(); return res.status(404).json({ error: 'User not found' }); }
+    try {
+      if (current) {
+        const ok = await bcrypt.compare(current, user.password_hash || '');
+        if (!ok) { db.close(); return res.status(400).json({ error: 'Current password incorrect' }); }
+      } else {
+        if (req.adminRole !== 'admin') { db.close(); return res.status(403).json({ error: 'Forbidden' }); }
+      }
+      const hash = await bcrypt.hash(next, 10);
+      db.run('UPDATE users SET password_hash = ? WHERE id = ?', [hash, id], function(uerr){
+        db.close();
+        if (uerr) return res.status(500).json({ error: 'DB error' });
+        logAudit({ school, entity_type: 'users', entity_id: id, action: current ? 'change_password' : 'reset_password', actor_type: 'admin', actor_id: null, admin_role: req.adminRole, details: `id=${id}`, changes: '' });
+        res.json({ ok: true });
+      });
+    } catch (e) {
+      db.close();
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+});
+
 // =================== FILE UPLOAD CONFIGURATION ===================
 // Ensure uploads directory exists (configurable for persistent disks)
 const uploadsDir = (() => {
