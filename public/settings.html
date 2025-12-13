@@ -410,15 +410,3 @@ try {
        app.js is loaded dynamically above after the header is inserted. -->
 </body>
 </html>
-      // session ping to keep-alive and log activity
-      try {
-        const payload = { path: window.location.pathname };
-        await fetch(`/api/session/ping?school=${school}`, { method:'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
-      } catch (_) {}
-      document.addEventListener('visibilitychange', async () => {
-        if (document.visibilityState === 'visible') {
-          try {
-            await fetch(`/api/session/ping?school=${school}`, { method:'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type':'application/json' }, body: JSON.stringify({ path: window.location.pathname }) });
-          } catch (_) {}
-        }
-      });

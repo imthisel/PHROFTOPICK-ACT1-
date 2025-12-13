@@ -163,6 +163,23 @@
       padding: 40px;
       color: #999;
     }
+    .hscroll { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(340px, 1fr); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; }
+    .panel { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); min-height: 300px; scroll-snap-align: start; display: flex; flex-direction: column; }
+    .panel-header { display:flex; justify-content: space-between; align-items:center; padding: 12px 16px; border-bottom: 2px solid #e5e7eb; }
+    .panel-body { padding: 12px 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; }
+    .scroll-indicator { position: relative; }
+    .scroll-indicator::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 18px; pointer-events: none; background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0)); opacity: 0; transition: opacity .2s; }
+    .scroll-indicator::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 18px; pointer-events: none; background: linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0)); opacity: 0; transition: opacity .2s; }
+    .scroll-indicator.scroll-left::before { opacity: 1; }
+    .scroll-indicator.scroll-right::after { opacity: 1; }
+    .action-btn { padding:8px 12px; border:1px solid #00693e; border-radius:8px; background:white; color:#00693e; font-weight:600; }
+    .action-btn.primary { background:#00693e; color:white; }
+    .inline-controls { display:flex; gap:8px; align-items:center; }
+    .input { padding:8px; border:1px solid #ddd; border-radius:8px; }
+    .modal { position: fixed; inset: 0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.6); z-index: 10000; }
+    .modal-content { background:white; border-radius:12px; max-width:900px; width:90%; max-height:85vh; overflow:auto; }
   </style>
 </head>
 <body>
@@ -734,21 +751,3 @@
   <div id="modal" class="modal" onclick="closeModal()"><div id="modal-content" class="modal-content"></div></div>
 </body>
 </html>
-
-    .hscroll { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(340px, 1fr); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; }
-    .panel { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); min-height: 300px; scroll-snap-align: start; display: flex; flex-direction: column; }
-    .panel-header { display:flex; justify-content: space-between; align-items:center; padding: 12px 16px; border-bottom: 2px solid #e5e7eb; }
-    .panel-body { padding: 12px 16px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-    .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; }
-    .scroll-indicator { position: relative; }
-    .scroll-indicator::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 18px; pointer-events: none; background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0)); opacity: 0; transition: opacity .2s; }
-    .scroll-indicator::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 18px; pointer-events: none; background: linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0)); opacity: 0; transition: opacity .2s; }
-    .scroll-indicator.scroll-left::before { opacity: 1; }
-    .scroll-indicator.scroll-right::after { opacity: 1; }
-    .action-btn { padding:8px 12px; border:1px solid #00693e; border-radius:8px; background:white; color:#00693e; font-weight:600; }
-    .action-btn.primary { background:#00693e; color:white; }
-    .inline-controls { display:flex; gap:8px; align-items:center; }
-    .input { padding:8px; border:1px solid #ddd; border-radius:8px; }
-    .modal { position: fixed; inset: 0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.6); z-index: 10000; }
-    .modal-content { background:white; border-radius:12px; max-width:900px; width:90%; max-height:85vh; overflow:auto; }
