@@ -9,11 +9,11 @@
 
       if (isLogout || !hasToken) {
         sessionStorage.removeItem('justLoggedOut');
-        window.location.replace('home.html');
+        window.location.replace('/home');
       } else {
         localStorage.setItem('visitedApp', '1');
         const lastPage = localStorage.getItem('lastVisitedPage');
-        if (!skipLanding && lastPage && !lastPage.includes('home.html') && !lastPage.includes('school.html')) {
+        if (!skipLanding && lastPage && !(lastPage.includes('/home') || lastPage.includes('home.html')) && !(lastPage.includes('/school') || lastPage.includes('school.html'))) {
           localStorage.removeItem('lastVisitedPage');
           window.location.replace(lastPage);
         }
@@ -22,12 +22,24 @@
         }
       }
     } catch (e) {
-      window.location.replace('home.html');
+      window.location.replace('/home');
     }
   </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=1100, initial-scale=0.3, user-scalable=yes" />
   <title>PHrofstopick — Home</title>
+  <meta name="description" content="Browse professors, subjects, recent notes, and reviews for your school.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="/index">
+  <meta property="og:title" content="Phroftopick — Student Reviews and Notes">
+  <meta property="og:description" content="Discover professors and subjects with community reviews and study resources.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://phroftopick.com/index">
+  <meta property="og:image" content="/images/default-logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Phroftopick — Student Reviews and Notes">
+  <meta name="twitter:description" content="Discover professors and subjects with community reviews and study resources.">
+  <meta name="twitter:image" content="/images/default-logo.png">
 
   <link rel="icon" type="image/png" href="images/favicon.png">
 
@@ -144,7 +156,7 @@
         changeBtn.style.display = "inline-block";
         changeBtn.onclick = () => {
           localStorage.removeItem("selectedSchool");
-          window.location.href = "school.html";
+          window.location.href = "/school";
         };
         console.log("✅ Change School button initialized");
       } else {
@@ -206,7 +218,7 @@
             subjectsListEl.innerHTML = list.map(s => `
               <div class=\"card\">
                 <h3>${s.code || '—'} — ${s.name || ''}</h3>
-                <a href=\"/subject.html?id=${s.id}\"><button class=\"auth-btn\">Open Subject Page</button></a>
+                <a href=\"/subject?id=${s.id}\"><button class=\"auth-btn\">Open Subject Page</button></a>
               </div>
             `).join('');
           }
@@ -244,7 +256,7 @@
                 <p style="color:#374151; font-size:13px; white-space:pre-wrap;">${(n.description||'').split('\n').slice(0,3).join('\n')}</p>
                 <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
                   ${n.file_path ? `<a href="${n.file_path}" target="_blank" rel="noopener" class="auth-btn" data-resid="${n.id}">View/Download</a>` : ''}
-                  ${n.subject_id ? `<a href="/subject.html?id=${n.subject_id}" class="auth-btn">Open Subject Page</a>` : ''}
+                  ${n.subject_id ? `<a href="/subject?id=${n.subject_id}" class="auth-btn">Open Subject Page</a>` : ''}
                 </div>
               </div>
             `).join('') + `</div>`;

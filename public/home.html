@@ -4,6 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=1100, initial-scale=0.3, user-scalable=yes">
   <title>Phroftopick - Find Your Perfect Professor</title>
+  <meta name="description" content="Professor reviews and subject resources for DLSU, Ateneo, UP, and Benilde. Find the best professors and study smarter.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="/home">
+  <meta property="og:title" content="Phroftopick — Find Your Perfect Professor">
+  <meta property="og:description" content="Honest professor reviews and study resources across the Big Four schools.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://phroftopick.com/home">
+  <meta property="og:image" content="/images/default-logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Phroftopick — Find Your Perfect Professor">
+  <meta name="twitter:description" content="Honest professor reviews and study resources across the Big Four schools.">
+  <meta name="twitter:image" content="/images/default-logo.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Phroftopick",
+    "url": "https://phroftopick.com/",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://phroftopick.com/index?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
   <link rel="icon" type="image/png" href="images/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -584,7 +609,7 @@
     function handleGoogleAuth() {
       // Store redirect intention
       try {
-        sessionStorage.setItem('post_auth_redirect', '/school.html');
+        sessionStorage.setItem('post_auth_redirect', '/school');
       } catch (e) {
         console.warn('Could not set redirect', e);
       }

@@ -4,6 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=1100, initial-scale=0.3, user-scalable=yes" />
   <title>Add Course</title>
+  <meta name="description" content="Submit a new course to make it searchable for students.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="/add-course">
+  <meta property="og:title" content="Add Course — Phroftopick">
+  <meta property="og:description" content="Contribute course details to help students find information.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://phroftopick.com/add-course">
+  <meta property="og:image" content="/images/default-logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Add Course — Phroftopick">
+  <meta name="twitter:description" content="Contribute course details to help students find information.">
+  <meta name="twitter:image" content="/images/default-logo.png">
   <link rel="stylesheet" href="css/base.css">
   <script src="js/theme-loader.js" defer></script>
   <link rel="stylesheet" href="css/mobile-override.css">
@@ -159,7 +171,7 @@
             return;
           }
           resultEl.style.color = '#065f46';
-          resultEl.innerHTML = `Course created. <a href="/subject.html?id=${j.id}">Open page</a>`;
+          resultEl.innerHTML = `Course created. <a href="/subject?id=${j.id}">Open page</a>`;
         } catch (err) {
           resultEl.style.color = '#dc2626';
           resultEl.textContent = 'Network error. Please try again.';

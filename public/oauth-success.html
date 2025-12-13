@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <title>Signing you in…</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="canonical" href="/oauth-success">
   <style>
     /* Minimal centered loader */
     body{display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:Inter,system-ui;}
@@ -46,7 +48,7 @@
       // Best UX: small delay so user sees the spinner if redirect is instant
       setTimeout(() => {
         // prefer returning to the page that initiated login if present
-        const next = sessionStorage.getItem('post_auth_redirect') || '/index.html';
+        const next = sessionStorage.getItem('post_auth_redirect') || '/index';
         sessionStorage.removeItem('post_auth_redirect');
         window.location.replace(next);
       }, 600);

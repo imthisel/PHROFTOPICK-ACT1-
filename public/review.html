@@ -4,6 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=1100, initial-scale=0.3, user-scalable=yes">
   <title>Create Review</title>
+  <meta name="description" content="Write a review for your professor and share your experience anonymously or publicly.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="/review">
+  <meta property="og:title" content="Create Review — Phroftopick">
+  <meta property="og:description" content="Share your honest experience to help other students choose professors.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://phroftopick.com/review">
+  <meta property="og:image" content="/images/default-logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Create Review — Phroftopick">
+  <meta name="twitter:description" content="Share your honest experience to help other students choose professors.">
+  <meta name="twitter:image" content="/images/default-logo.png">
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const l = document.querySelector('link[rel="canonical"]');
+      if (l) { l.href = location.origin + location.pathname + location.search; }
+    });
+  </script>
   <link rel="stylesheet" href="css/base.css">
   <script src="js/theme-loader.js" defer></script>
   <style>
@@ -775,7 +793,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (starRating) {
         starRating.querySelectorAll('.star').forEach(s => s.classList.remove('selected', 'hovered'));
       }
-      setTimeout(() => { window.location.href = `/prof.html?id=${profId}`; }, 900);
+      setTimeout(() => { window.location.href = `/prof?id=${profId}`; }, 900);
     } catch (err) {
       console.error('Network error submitting review', err);
       revResult.textContent = 'Network error. Please try again.';

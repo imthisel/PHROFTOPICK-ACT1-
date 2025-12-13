@@ -179,10 +179,61 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'home.html'));
 });
 
+// Extensionless routes for top-level pages
+app.get('/home', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'home.html'));
+});
+
+// Protect index behind login (extensionless)
+app.get('/index', (req, res, next) => {
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    return res.redirect('/home');
+  }
+  return res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/school', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'school.html'));
+});
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+app.get('/settings', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'settings.html'));
+});
+app.get('/review', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'review.html'));
+});
+app.get('/prof', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'prof.html'));
+});
+app.get('/subject', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'subject.html'));
+});
+app.get('/add-professor', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'add-professor.html'));
+});
+app.get('/add-course', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'add-course.html'));
+});
+app.get('/oauth-success', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'oauth-success.html'));
+});
+
+// Redirect old .html URLs (top-level only) to extensionless versions
+app.use((req, res, next) => {
+  const m = req.path.match(/^\/([^\/]+)\.html$/);
+  if (m) {
+    const target = `/${m[1]}`;
+    return res.redirect(301, target + (req.url.includes('?') ? req.url.slice(req.path.length) : ''));
+  }
+  next();
+});
+
 // Protect index.html behind login
 app.get('/index.html', (req, res, next) => {
   if (!req.isAuthenticated || !req.isAuthenticated()) {
-    return res.redirect('/home.html');
+    return res.redirect('/home');
   }
   next();
 });

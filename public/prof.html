@@ -4,6 +4,24 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=1100, initial-scale=0.3, user-scalable=yes" />
   <title>Professor Details</title>
+  <meta name="description" content="See professor ratings, workload, and reviews to choose the right class.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="/prof">
+  <meta property="og:title" content="Professor Details — Phroftopick">
+  <meta property="og:description" content="Explore professor ratings, review summaries, and teaching styles.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://phroftopick.com/prof">
+  <meta property="og:image" content="/images/default-logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Professor Details — Phroftopick">
+  <meta name="twitter:description" content="Explore professor ratings, review summaries, and teaching styles.">
+  <meta name="twitter:image" content="/images/default-logo.png">
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const l = document.querySelector('link[rel="canonical"]');
+      if (l) { l.href = location.origin + location.pathname + location.search; }
+    });
+  </script>
   <link rel="icon" type="image/png" href="images/favicon.png">
 
   <link rel="stylesheet" href="css/base.css" />
@@ -760,7 +778,7 @@
 
     const addBtn = document.getElementById('add-review-btn');
     if (addBtn && profId) {
-      addBtn.href = `/review.html?prof=${profId}`;
+      addBtn.href = `/review?prof=${profId}`;
       addBtn.style.display = 'inline-block';
       addBtn.addEventListener('click', () => {
         try {

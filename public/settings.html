@@ -4,6 +4,18 @@
   <meta charset="utf-8">
   <title>User Settings</title>
   <meta name="viewport" content="width=1100, initial-scale=0.3, user-scalable=yes">
+  <meta name="description" content="Manage your profile, preferences, and account settings securely.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="/settings">
+  <meta property="og:title" content="User Settings — Phroftopick">
+  <meta property="og:description" content="Update your profile and preferences for a personalized experience.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://phroftopick.com/settings">
+  <meta property="og:image" content="/images/default-logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="User Settings — Phroftopick">
+  <meta name="twitter:description" content="Update your profile and preferences for a personalized experience.">
+  <meta name="twitter:image" content="/images/default-logo.png">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/mobile-override.css">
   <script src="/js/theme-loader.js" defer></script>
@@ -188,7 +200,7 @@ if (!token) {
       <div class="settings-card" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
         <h3 style="margin-bottom: 12px; color: #374151;">Sign In Required</h3>
         <p style="margin-bottom: 20px; color: #6b7280;">You need to be signed in to view and edit your profile settings.</p>
-        <a href="/home.html" class="auth-btn" style="display: inline-block; text-decoration: none;">Go to Sign In</a>
+        <a href="/home" class="auth-btn" style="display: inline-block; text-decoration: none;">Go to Sign In</a>
       </div>
     `;
   }
@@ -243,7 +255,7 @@ try {
           <div class="settings-card" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
             <h3 style="margin-bottom: 12px; color: #374151;">Session Expired</h3>
             <p style="margin-bottom: 20px; color: #6b7280;">Your session has expired. Please sign in again to continue.</p>
-            <a href="/home.html" class="auth-btn" style="display: inline-block; text-decoration: none;">Sign In Again</a>
+            <a href="/home" class="auth-btn" style="display: inline-block; text-decoration: none;">Sign In Again</a>
           </div>
         `;
       }
