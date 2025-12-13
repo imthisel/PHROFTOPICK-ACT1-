@@ -170,7 +170,9 @@ if (!token && urlToken) {
   token = urlToken;
 }
 
-const school = localStorage.getItem('selectedSchool') || 'dlsu';
+const schoolSelected = localStorage.getItem('selectedSchool') || 'dlsu';
+const schoolFromToken = (typeof window.tokenSchool === 'function') ? window.tokenSchool(token) : null;
+const school = schoolFromToken || schoolSelected;
 
 // If no token, show login prompt and don't make API calls
 if (!token) {
@@ -204,6 +206,28 @@ try {
     if (meRes.status === 401) {
       console.warn('Token is invalid or expired');
       // Clear invalid token
+      // Attempt token renewal once
+      try {
+        const renew = await fetch(`/api/auth/renew?school=${school}`, { method:'POST', headers: { 'Authorization': 'Bearer ' + token } });
+        const rj = await renew.json().catch(()=>({}));
+        if (renew.ok && rj.token) {
+          localStorage.setItem('token', rj.token);
+          token = rj.token;
+          const retry = await fetch(`/api/me?school=${school}`, { headers: { 'Authorization': 'Bearer ' + token } });
+          if (retry.ok) {
+            const data2 = await retry.json();
+            const u2 = data2.user || {};
+            document.getElementById('fld-display').value = u2.display_name || '';
+            document.getElementById('fld-college').value = u2.college || '';
+            document.getElementById('fld-course').value = u2.course || '';
+            document.getElementById('fld-batch').value = u2.batch || '';
+            document.getElementById('fld-username').value = u2.username || '';
+            document.getElementById('fld-bio').value = u2.bio || '';
+            if (typeof window.updateAuthUI === 'function') { try { window.updateAuthUI(); } catch(e){} }
+            return;
+          }
+        }
+      } catch (_) {}
       localStorage.removeItem('token');
       sessionStorage.removeItem('token');
       
@@ -386,3 +410,15 @@ try {
        app.js is loaded dynamically above after the header is inserted. -->
 </body>
 </html>
+      // session ping to keep-alive and log activity
+      try {
+        const payload = { path: window.location.pathname };
+        await fetch(`/api/session/ping?school=${school}`, { method:'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+      } catch (_) {}
+      document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible') {
+          try {
+            await fetch(`/api/session/ping?school=${school}`, { method:'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type':'application/json' }, body: JSON.stringify({ path: window.location.pathname }) });
+          } catch (_) {}
+        }
+      });

@@ -1034,8 +1034,17 @@ function authenticateJWT(req, res, next) {
   try {
     const payload = jwt.verify(match[1], JWT_SECRET);
     req.userId = payload.id;
+    req.tokenPayload = payload;
+    req.tokenRaw = match[1];
     next();
   } catch {
+    try {
+      const school = req.query.school || 'dlsu';
+      const db = getDb(school);
+      db.run('CREATE TABLE IF NOT EXISTS session_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, school TEXT, action TEXT, path TEXT, user_agent TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)', () => {
+        db.run('INSERT INTO session_logs (user_id, school, action, path, user_agent) VALUES (?,?,?,?,?)', [null, school, 'invalid_token', req.originalUrl || '', req.headers['user-agent'] || ''], () => db.close());
+      });
+    } catch (_) {}
     res.status(401).json({ error: 'Invalid token' });
   }
 }
@@ -1045,6 +1054,7 @@ function authenticateJWT(req, res, next) {
 app.get('/api/me', authenticateJWT, (req, res) => {
   const school = req.query.school || 'dlsu';
   const db = getDb(school);
+  db.run('ALTER TABLE users ADD COLUMN last_seen DATETIME', () => {});
   db.get('SELECT id, email, display_name, photo_path, college, course, batch, username, bio FROM users WHERE id = ?', [req.userId], (err, row) => {
     db.close();
 if (err || !row) return res.status(401).json({ error: 'User not found' });
@@ -1057,6 +1067,7 @@ app.post('/api/me', authenticateJWT, (req, res) => {
   const school = req.query.school || 'dlsu';
   const { display_name, college, course, batch, username, bio, photo_path } = req.body;
   const db = getDb(school);
+  db.run('ALTER TABLE users ADD COLUMN last_seen DATETIME', () => {});
   db.run(
     `UPDATE users SET display_name = COALESCE(?, display_name),
                        college = COALESCE(?, college),
@@ -1068,11 +1079,44 @@ app.post('/api/me', authenticateJWT, (req, res) => {
      WHERE id = ?`,
     [display_name, college, course, batch, username, bio, photo_path, req.userId],
     err => {
-      db.close();
+      db.run('UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = ?', [req.userId], () => {
+        db.close();
+      });
       if (err) return res.status(500).json({ error: 'Update failed' });
       res.json({ ok: true });
     }
   );
+});
+
+app.post('/api/session/ping', authenticateJWT, (req, res) => {
+  const school = req.query.school || 'dlsu';
+  try {
+    const db = getDb(school);
+    db.run('CREATE TABLE IF NOT EXISTS session_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, school TEXT, action TEXT, path TEXT, user_agent TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)', () => {
+      db.run('UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = ?', [req.userId], () => {
+        db.run('INSERT INTO session_logs (user_id, school, action, path, user_agent) VALUES (?,?,?,?,?)', [req.userId, school, 'ping', req.body && req.body.path || '', req.headers['user-agent'] || ''], () => {
+          db.close();
+          res.json({ ok: true });
+        });
+      });
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/auth/renew', authenticateJWT, (req, res) => {
+  try {
+    const school = (req.query.school || req.tokenPayload && req.tokenPayload.school || 'dlsu');
+    const token = jwt.sign({ id: req.userId, school }, JWT_SECRET);
+    const db = getDb(school);
+    db.run('CREATE TABLE IF NOT EXISTS session_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, school TEXT, action TEXT, path TEXT, user_agent TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)', () => {
+      db.run('INSERT INTO session_logs (user_id, school, action, path, user_agent) VALUES (?,?,?,?,?)', [req.userId, school, 'renew', req.originalUrl || '', req.headers['user-agent'] || ''], () => db.close());
+    });
+    res.json({ token });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 

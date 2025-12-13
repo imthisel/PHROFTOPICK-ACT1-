@@ -360,7 +360,7 @@ async function initializeHeader() {
   const token = localStorage.getItem('token');
   if (!token) return showLoggedOut();
 
-  const tSchool = storedSchool || tokenSchool(token);
+  const tSchool = tokenSchool(token) || storedSchool;
 
   try {
     const resp = await fetch(`/api/me?school=${tSchool}`, {
