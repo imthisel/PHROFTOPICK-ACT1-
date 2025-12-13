@@ -2,166 +2,97 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1100, initial-scale=0.3, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Admin - View Registered Emails</title>
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/mobile-override.css">
   <style>
-    .admin-container { max-width: 1200px; margin: 50px auto; padding: 20px; }
+    .admin-container { max-width: 1200px; margin: 32px auto; padding: 16px; }
     .admin-header {
-      background: linear-gradient(135deg, #00693e 0%, #004d2b 100%);
-      color: white;
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 30px;
+      background: linear-gradient(135deg, #0a6a42 0%, #06442a 100%);
+      color: #ffffff;
+      padding: 24px;
+      border-radius: 16px;
+      margin-bottom: 24px;
     }
     .admin-header h1 {
-      margin: 0;
-      font-size: 28px;
+      margin: 0 0 6px 0;
+      font-size: 32px;
     }
-    .login-form {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      max-width: 400px;
-      margin: 50px auto;
-    }
+    .login-form { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); max-width: 420px; margin: 24px auto; }
     .login-form input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 16px;
+      width: 100%; padding: 12px 14px; margin: 8px 0 12px; border: 2px solid #d1d5db; border-radius: 10px; font-size: 16px;
     }
-    .login-form button {
-      width: 100%;
-      padding: 12px;
-      background: #00693e;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    .login-form button:hover {
-      background: #004d2b;
-    }
+    .login-form button { width: 100%; padding: 12px; background: #00693e; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+    .login-form button:hover { background: #005634; }
     .error-message {
-      color: #dc2626;
-      margin-top: 10px;
-      padding: 10px;
-      background: #fef2f2;
-      border-radius: 8px;
-      display: none;
+      color: #991b1b; margin-top: 10px; padding: 10px; background: #fee2e2; border-radius: 10px; display: none;
     }
-    .users-table {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      overflow: hidden;
-    }
+    .users-table { background: white; border-radius: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); overflow: hidden; }
     .table-header {
-      background: #f8f9fa;
-      padding: 15px 20px;
-      border-bottom: 2px solid #e5e7eb;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      background: #f8fafc; padding: 16px 20px; border-bottom: 2px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;
     }
-    .table-header h2 {
-      margin: 0;
-      font-size: 20px;
-    }
-    .stats { display: grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap: 16px; margin-bottom: 20px; }
+    .table-header h2 { margin: 0; font-size: 20px; color: #111827; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap: 16px; margin-bottom: 16px; }
     .stat-card {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      flex: 1;
+      background: white; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); flex: 1;
     }
     .stat-card h3 {
-      margin: 0 0 10px;
-      color: #666;
-      font-size: 14px;
-      font-weight: 600;
+      margin: 0 0 4px; color: #374151; font-size: 13px; font-weight: 700;
     }
     .stat-card .value {
-      font-size: 32px;
-      font-weight: 700;
-      color: #00693e;
+      font-size: 28px; font-weight: 800; color: #0a6a42;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+    table { width: 100%; border-collapse: collapse; }
     thead {
-      background: #f8f9fa;
+      background: #f3f4f6;
     }
     th {
-      padding: 15px;
-      text-align: left;
-      font-weight: 600;
-      color: #374151;
-      border-bottom: 2px solid #e5e7eb;
+      padding: 14px; text-align: left; font-weight: 700; color: #111827; border-bottom: 2px solid #e5e7eb;
     }
     td {
-      padding: 15px;
-      border-bottom: 1px solid #e5e7eb;
+      padding: 14px; border-bottom: 1px solid #e5e7eb;
     }
     tr:hover {
       background: #f9fafb;
     }
     .school-filter {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
+      display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0 16px;
     }
     .school-filter button {
-      padding: 8px 16px;
-      border: 2px solid #00693e;
-      background: white;
-      color: #00693e;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s;
+      padding: 8px 14px; border: 2px solid #0a6a42; background: white; color: #0a6a42; border-radius: 10px; cursor: pointer; font-weight: 700; transition: all 0.2s ease;
     }
     .school-filter button.active {
-      background: #00693e;
-      color: white;
+      background: #0a6a42; color: white;
     }
     .school-filter button:hover {
-      background: #004d2b;
-      color: white;
-      border-color: #004d2b;
+      background: #005634; color: white; border-color: #005634;
     }
     .export-btn {
-      padding: 10px 20px;
-      background: #00693e;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      margin-left: 10px;
+      padding: 10px 16px; background: #0a6a42; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; margin-left: 10px;
     }
     .export-btn:hover {
-      background: #004d2b;
+      background: #005634;
     }
     .loading {
-      text-align: center;
-      padding: 40px;
-      color: #666;
+      text-align: center; padding: 32px; color: #374151;
     }
     .no-data {
-      text-align: center;
-      padding: 40px;
-      color: #999;
+      text-align: center; padding: 32px; color: #6b7280;
+    }
+    .action-btn:focus-visible, .export-btn:focus-visible, .input:focus-visible { outline: 3px solid rgba(0,105,62,0.4); outline-offset: 2px; }
+    @media (max-width: 1024px) {
+      .admin-container { padding: 12px; }
+      .admin-header { padding: 20px; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .hscroll { grid-auto-columns: minmax(320px, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .admin-header h1 { font-size: 28px; }
+      .stats { grid-template-columns: 1fr; }
+      .hscroll { display: block; overflow-x: visible; }
+      .panel { margin-bottom: 16px; }
+      .inline-controls { flex-wrap: wrap; }
     }
     .hscroll { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(340px, 1fr); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; }
     .panel { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); min-height: 300px; scroll-snap-align: start; display: flex; flex-direction: column; }
