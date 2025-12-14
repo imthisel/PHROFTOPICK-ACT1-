@@ -11,8 +11,8 @@
   --border: #ddd;
   --shadow: rgba(0, 0, 0, 0.06);
   --pattern-size: 22px;
-  --pattern-color: rgba(0, 0, 0, 0.10);
-  --pattern-color-dark: rgba(255, 255, 255, 0.10);
+  --pattern-color: rgba(0, 0, 0, 0.12);
+  --pattern-color-dark: rgba(255, 255, 255, 0.12);
 }
 
 
@@ -51,7 +51,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 
@@ -101,7 +101,7 @@ body {
 #btn-create-review,
 #btn-add-review {
   background: transparent;
-  color: #374151;
+  color: #ffffff;
   border: none;
   border-radius: 12px;
   padding: 12px 20px;
@@ -112,25 +112,17 @@ body {
 }
 #btn-create-review:hover,
 #btn-add-review:hover {
-  background: rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.12);
 }
 #btn-create-review:active,
 #btn-add-review:active {
-  background: rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.18);
 }
 #btn-create-review:focus-visible,
 #btn-add-review:focus-visible {
   outline: 3px solid #2563eb;
   outline-offset: 2px;
 }
-body.dlsu #btn-create-review,
-body.dlsu #btn-add-review { color:#00703C; }
-body.ateneo #btn-create-review,
-body.ateneo #btn-add-review { color:#0033A0; }
-body.benilde #btn-create-review,
-body.benilde #btn-add-review { color:#006241; }
-body.up #btn-create-review,
-body.up #btn-add-review { color:#7B1113; }
 
 /* Add Content dropdown modern styles */
 #add-content-menu {
@@ -723,13 +715,17 @@ body.up .change-school-btn {
 .site-header .header-search input {
   flex: 1;
   width: 100%;
-  padding: 10px 16px;
+  padding: 10px 16px 10px 36px;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: #fff;
   font-size: 15px;
   color: #222;
   transition: border-color 0.25s, box-shadow 0.25s;
+  background-repeat: no-repeat;
+  background-position: 12px center;
+  background-size: 16px 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%23000000' d='M10 2a8 8 0 1 1 0 16a8 8 0 0 1 0-16m0 2a6 6 0 1 0 0 12a6 6 0 0 0 0-12m8.32 13.9l3.39 3.39l-1.42 1.42l-3.39-3.39z'/%3E%3C/svg%3E");
 }
 
 
