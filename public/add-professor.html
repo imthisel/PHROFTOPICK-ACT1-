@@ -107,6 +107,17 @@
         if (window.initializeHeader) await window.initializeHeader();
         if (window.updateAuthUI) window.updateAuthUI();
       } catch (e) { console.warn('Header init failed', e); }
+      try {
+        const school = localStorage.getItem('selectedSchool') || 'dlsu';
+        const titleEl = document.getElementById('site-title');
+        const logoEl = document.querySelector('.school-logo');
+        if (titleEl) titleEl.textContent = `${String(school||'').toUpperCase()} — PHROFS TO PICK`;
+        if (logoEl) {
+          const map = { dlsu:'images/dlsu-logo.png', ateneo:'images/ateneo-logo.png', benilde:'images/benilde-logo.png', up:'images/up-logo.png' };
+          const src = map[String(school).toLowerCase()] || 'images/default-logo.png';
+          logoEl.src = window.__PRELOADED_LOGO || src;
+        }
+      } catch (_) {}
 
       const form = document.getElementById('prof-form');
       const nameInput = document.getElementById('prof-name');
@@ -182,8 +193,8 @@
       codeInput.addEventListener('focus', ()=>{ filterCourses(codeInput.value); });
       codeInput.addEventListener('input', ()=>{ filterCourses(codeInput.value); });
       document.addEventListener('click', (e)=>{ if (!suggBox.contains(e.target) && e.target!==codeInput) suggBox.style.display='none'; });
-      notFoundBtn.addEventListener('click', ()=>{ overlay.style.display='block'; modal.style.display='block'; modal.setAttribute('aria-hidden','false'); });
-      modalClose.addEventListener('click', ()=>{ overlay.style.display='none'; modal.style.display='none'; modal.setAttribute('aria-hidden','true'); });
+      notFoundBtn.addEventListener('click', ()=>{ overlay.style.display='block'; modal.style.display='block'; modal.setAttribute('aria-hidden','false'); const f = modal.querySelector('a,button,input,select,textarea'); if (f) f.focus(); });
+      modalClose.addEventListener('click', ()=>{ overlay.style.display='none'; modal.style.display='none'; modal.setAttribute('aria-hidden','true'); notFoundBtn.focus(); });
 
       function clearValidation(){
         nameInput.removeAttribute('aria-invalid');

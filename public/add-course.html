@@ -77,6 +77,17 @@
         if (window.initializeHeader) await window.initializeHeader();
         if (window.updateAuthUI) window.updateAuthUI();
       } catch (e) { console.warn('Header init failed', e); }
+      try {
+        const school = localStorage.getItem('selectedSchool') || 'dlsu';
+        const titleEl = document.getElementById('site-title');
+        const logoEl = document.querySelector('.school-logo');
+        if (titleEl) titleEl.textContent = `${String(school||'').toUpperCase()} — PHROFS TO PICK`;
+        if (logoEl) {
+          const map = { dlsu:'images/dlsu-logo.png', ateneo:'images/ateneo-logo.png', benilde:'images/benilde-logo.png', up:'images/up-logo.png' };
+          const src = map[String(school).toLowerCase()] || 'images/default-logo.png';
+          logoEl.src = window.__PRELOADED_LOGO || src;
+        }
+      } catch (_) {}
 
       const form = document.getElementById('course-form');
       const codeInput = document.getElementById('course-code');
