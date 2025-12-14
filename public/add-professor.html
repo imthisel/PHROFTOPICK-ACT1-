@@ -38,9 +38,11 @@
     .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:12px; }
     .auth-btn.secondary { background:#f3f4f6; color:#111827; }
     .auth-btn:focus { outline:2px solid var(--primary); outline-offset:2px; }
-    /* Local override: float labels so placeholders remain visible */
+    /* Local override: float labels only when label follows the input */
     .review-field input { padding: 16px 12px; }
-    .review-field label { top: -10px; transform: none; font-size: 12px; background: #fff; }
+    .review-field input + label { top: -10px; transform: none; font-size: 12px; background: #fff; }
+    /* Static field label variant (does not overlap inputs) */
+    .review-field .field-label { position: static; display:block; margin-bottom:6px; font-size:14px; font-weight:600; color:#374151; }
     /* Ensure button doesn't get visually overlapped by dropdown container */
     .field-row > .auth-btn { flex: 0 0 auto; align-self: center; }
   </style>
@@ -58,7 +60,7 @@
         <div id="name-error" style="color:#dc2626; font-weight:600; display:none;">Use: Last name, First name (e.g., Dela Cruz, Juan)</div>
 
         <div class="review-field" style="margin-top:14px;">
-          <label>Course Codes</label>
+          <label class="field-label" for="course-code-input">Course Codes</label>
           <div class="field-row">
             <div class="dropdown" style="flex:1; min-width:240px; width:100%;">
               <input id="course-code-input" placeholder="Type to search course code" aria-autocomplete="list" aria-controls="course-suggestions" autocomplete="off" aria-describedby="course-error" style="width:100%;" />
