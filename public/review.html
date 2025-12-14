@@ -832,49 +832,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.addEventListener('click', (e)=>{ if(!courseSuggest.contains(e.target) && e.target!==courseEl){ courseSuggest.style.display='none'; courseEl.setAttribute('aria-expanded','false'); }});
   loadCourses();
 
-  // ===== Add Course Modal =====
+  // ===== Add Course redirect =====
   addCourseBtn.addEventListener('click', () => {
-    const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay';
-    const modal = document.createElement('div');
-    modal.className = 'card';
-    modal.style.maxWidth = '520px';
-    modal.style.margin = '10vh auto';
-    modal.style.padding = '20px';
-    modal.innerHTML = `
-      <h3 style="margin:0 0 12px;">Add Course</h3>
-      <p style="margin:0 0 12px; color:#6b7280;">Enter a course code and the full course name. Do not include the code in the name.</p>
-      <div class="review-field"><input id="new-course-code" placeholder="e.g., GEMATMW" maxlength="7"><label>Course Code</label></div>
-      <div class="review-field"><input id="new-course-name" placeholder="e.g., Mathematics in the Modern World"><label>Full Name</label></div>
-      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px;">
-        <button id="new-course-cancel" class="auth-btn">Cancel</button>
-        <button id="new-course-save" class="auth-btn">Save</button>
-      </div>
-    `;
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-    document.body.classList.add('modal-open');
-    const codeInput = modal.querySelector('#new-course-code');
-    const nameInput = modal.querySelector('#new-course-name');
-    const cancelBtn = modal.querySelector('#new-course-cancel');
-    const saveBtn = modal.querySelector('#new-course-save');
-    cancelBtn.onclick = () => { document.body.classList.remove('modal-open'); overlay.remove(); };
-    saveBtn.onclick = async () => {
-      const code = (codeInput.value||'').trim().toUpperCase();
-      const name = (nameInput.value||'').trim();
-      if (!/^[A-Z]{7}$/.test(code)) { alert('Invalid course code'); return; }
-      if (!/^.{3,}$/.test(name)) { alert('Enter the full course name'); return; }
-      try {
-        const school = localStorage.getItem('selectedSchool')||'dlsu';
-        const res = await fetch(`/api/subjects/create?school=${school}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ code, name }) });
-        const j = await res.json();
-        if (!res.ok) { alert(j.error||'Failed to add course'); return; }
-        alert('Course added');
-        document.body.classList.remove('modal-open'); overlay.remove();
-        courseList.push({ code, name }); courseList.sort((a,b)=> a.code.localeCompare(b.code));
-        renderCourseSuggestions(courseEl.value);
-      } catch(e) { console.error('Add course failed', e); alert('Network error'); }
-    };
+    window.location.href = '/add-course';
   });
 });
 </script>

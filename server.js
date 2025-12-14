@@ -591,7 +591,7 @@ app.post('/api/subjects/create', (req, res) => {
   const code = String(req.body?.code || '').trim().toUpperCase();
   const name = (req.body?.name || '').trim();
   const codeRe = /^[A-Z]{7}$/;
-  const nameRe = /^[A-Z]{7}\s-\s.+$/;
+  const nameRe = /^.{3,}$/;
   if (!codeRe.test(code)) { db.close(); return res.status(400).json({ error: 'Invalid course code: must be exactly 7 uppercase letters' }); }
   if (!nameRe.test(name)) { db.close(); return res.status(400).json({ error: 'Invalid course name format' }); }
 
