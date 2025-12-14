@@ -72,7 +72,7 @@
   <style>
     :root { --ease: ease-in-out; --t: .22s; }
     .hide-subjects { display: none !important; }
-    #index-page { background: var(--bg); }
+    #index-page { background-color: transparent; }
     #index-page .container { max-width: 1120px; }
     /* Typography: Inter for headings, Poppins for body */
     #index-page h1, #index-page h2, #index-page h3 { font-family: 'Inter', 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; letter-spacing: -0.2px; }
@@ -81,9 +81,7 @@
     #index-page h3 { font-size: 18px; font-weight: 700; }
     #index-page p, #index-page small, #index-page span, #index-page button, #index-page input { font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
     /* Decorative background accents */
-    #index-page::before { content:''; position:fixed; inset:-10% -10%; pointer-events:none; background:
-      radial-gradient(800px 500px at 5% 0%, rgba(255,255,255,0.7), transparent 60%),
-      radial-gradient(900px 600px at 100% -10%, rgba(0,0,0,0.03), transparent 65%); z-index:-1; }
+    #index-page::before { content:''; position:fixed; inset:-10% -10%; pointer-events:none; background: none; z-index:-1; }
     .reviews-list { max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
     .review-card { background:#fff; border:2px solid #e5e7eb; border-radius:16px; padding:24px; position:relative; cursor:pointer; transition: all var(--t) var(--ease); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
     .review-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.12); border-color: var(--primary); }
@@ -117,7 +115,7 @@
     body.modal-open { overflow:hidden; }
     html { scroll-behavior: smooth; }
 
-    #spa-nav { position:sticky; top:0; background: transparent; z-index:50; padding:14px; border-bottom: none; display:flex; gap:12px; flex-wrap:wrap; justify-content:center; box-shadow: none; }
+    #spa-nav { position:absolute; left:16px; top:-12px; background: transparent; z-index:10; padding:0; border-bottom: none; display:flex; gap:12px; flex-wrap:wrap; justify-content:flex-start; box-shadow: none; }
     #spa-nav .auth-btn { background: transparent; border: none; border-radius: 12px; padding: 14px 22px; box-shadow: none; transition: color var(--t) var(--ease), background-color var(--t) var(--ease); font-weight:600 !important; font-size:16px; }
     #spa-nav .auth-btn:hover { background: rgba(0,0,0,0.06); }
     html.dark #spa-nav .auth-btn:hover { background: rgba(255,255,255,0.08); }
@@ -157,11 +155,7 @@
 <body id="index-page">
   <!-- ===== HEADER PLACEHOLDER ===== -->
   <div id="header-placeholder"></div>
-  <div id="spa-nav">
-    <button id="nav-subjects" class="auth-btn" aria-controls="spa-container" aria-label="Show subjects" style="font-weight:800; padding:12px 18px;">Subjects</button>
-    <button id="nav-notes" class="auth-btn" aria-controls="spa-container" aria-label="Show notes" style="font-weight:800; padding:12px 18px;">Notes</button>
-    <button id="nav-reviews" class="auth-btn" aria-controls="spa-container" aria-label="Show reviews" style="font-weight:800; padding:12px 18px;">Reviews</button>
-  </div>
+  <!-- moved SPA nav into search panel for precise alignment -->
 
   <!-- ===== MODAL (single copy) ===== -->
   <div id="modal" class="modal hidden">
@@ -173,6 +167,11 @@
   <main class="container fade-in">
     <!-- Search -->
     <div class="search-panel" id="subjects-search-panel" style="position: relative; display:none;">
+      <div id="spa-nav" aria-label="Section navigation" style="position:absolute; left:16px; top:-12px; display:flex; gap:12px;">
+        <button id="nav-subjects" class="auth-btn" aria-controls="spa-container" aria-label="Show subjects">Subjects</button>
+        <button id="nav-notes" class="auth-btn" aria-controls="spa-container" aria-label="Show notes">Notes</button>
+        <button id="nav-reviews" class="auth-btn" aria-controls="spa-container" aria-label="Show reviews">Reviews</button>
+      </div>
       <input
         id="subject-search"
         type="text"
