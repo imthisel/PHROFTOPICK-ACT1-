@@ -46,10 +46,10 @@
         <div id="code-error" style="color:#dc2626; font-weight:600; display:none;">Code must be exactly 7 uppercase letters.</div>
 
         <div class="review-field" style="margin-top:14px;">
-          <input id="course-name" placeholder="e.g., GEMATMW - Mathematics in The Modern World" required aria-describedby="name-error" style="width:100%;" />
-          <label>Course Name</label>
+          <input id="course-name" placeholder="e.g., Mathematics in The Modern World" required aria-describedby="name-error" style="width:100%;" />
+          <label for="course-name">Course Name</label>
         </div>
-        <div id="name-error" style="color:#dc2626; font-weight:600; display:none;">Format must be: CODE - Full Course Name</div>
+        <div id="name-error" style="color:#dc2626; font-weight:600; display:none;">Enter the full course name (no code).</div>
 
         <button class="auth-btn" type="submit" style="margin-top:12px;">Submit</button>
         <p id="course-result" style="margin-top:10px; font-weight:600;" aria-live="polite"></p>
@@ -106,7 +106,7 @@
         if (code !== code.toUpperCase()) return { ok:false, reason:'uppercase' };
         return { ok:true, reason:null };
       }
-      const nameRe = /^[A-Z]{7}\s-\s.{3,}$/;
+      const nameRe = /^.{3,}$/;
       const school = localStorage.getItem('selectedSchool') || 'dlsu';
       let debounceT;
       let allCourses = [];
@@ -119,7 +119,7 @@
           const list = Array.isArray(j) ? j : (j.subjects||[]);
           const match = list.find(s => String(s.code||'').toUpperCase() === code) || list[0];
           if (match && match.name) {
-            nameInput.value = `${code} - ${match.name}`;
+            nameInput.value = `${match.name}`;
           }
         } catch (_) {}
       }

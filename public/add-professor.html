@@ -184,10 +184,22 @@
           allCourses = (Array.isArray(j)? j : (j.subjects||[])).slice().sort((a,b)=>String(a.code).localeCompare(String(b.code)));
         }catch(_){ allCourses=[]; }
       }
-      function filterCourses(q){
-        q = (q||'').toUpperCase();
-        const list = allCourses.filter(s => String(s.code||'').toUpperCase().includes(q));
-        renderSuggestions(list.slice(0,50));
+      async function filterCourses(q){
+        const term = String(q||'').trim().toUpperCase();
+        let remote = [];
+        try{
+          const r = await fetch(`/api/subjects?school=${school}` + (term ? `&q=${encodeURIComponent(term)}` : ''));
+          const j = await r.json();
+          remote = (Array.isArray(j)? j : (j.subjects||[]));
+        }catch(_){ remote = []; }
+        const map = new Map();
+        [...allCourses, ...remote].forEach(s => {
+          const code = String(s.code||'').toUpperCase();
+          if (!code) return;
+          if (!map.has(code)) map.set(code, s);
+        });
+        const merged = Array.from(map.values()).filter(s => String(s.code||'').toUpperCase().includes(term));
+        renderSuggestions(merged.slice(0,50));
       }
       await loadCourses();
       codeInput.addEventListener('focus', ()=>{ filterCourses(codeInput.value); });
