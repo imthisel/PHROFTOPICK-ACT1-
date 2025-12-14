@@ -10,9 +10,9 @@
   --panel: #ffffff;
   --border: #ddd;
   --shadow: rgba(0, 0, 0, 0.06);
-  --pattern-size: 24px;
-  --pattern-color: rgba(0, 0, 0, 0.08);
-  --pattern-color-dark: rgba(255, 255, 255, 0.08);
+  --pattern-size: 22px;
+  --pattern-color: rgba(0, 0, 0, 0.10);
+  --pattern-color-dark: rgba(255, 255, 255, 0.10);
 }
 
 
@@ -98,44 +98,39 @@ body {
 }
 
 /* Create Review header link */
-#btn-create-review {
-  background: #ffffff;
-  color: var(--primary);
-  border: 2px solid #ffffff;
-  border-radius: 10px;
-  padding: 8px 14px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  display: inline-block;
-}
-#btn-create-review:hover {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-/* Add Review header link */
+#btn-create-review,
 #btn-add-review {
-  background: #ffffff;
-  color: var(--primary);
-  border: 2px solid #ffffff;
-  border-radius: 10px;
-  padding: 8px 14px;
-  font-weight: 700;
+  background: transparent;
+  color: #374151;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-weight: 600;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease, background-color 0.3s ease;
   display: inline-block;
 }
+#btn-create-review:hover,
 #btn-add-review:hover {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  background: rgba(0,0,0,0.06);
 }
+#btn-create-review:active,
+#btn-add-review:active {
+  background: rgba(0,0,0,0.08);
+}
+#btn-create-review:focus-visible,
+#btn-add-review:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+body.dlsu #btn-create-review,
+body.dlsu #btn-add-review { color:#00703C; }
+body.ateneo #btn-create-review,
+body.ateneo #btn-add-review { color:#0033A0; }
+body.benilde #btn-create-review,
+body.benilde #btn-add-review { color:#006241; }
+body.up #btn-create-review,
+body.up #btn-add-review { color:#7B1113; }
 
 /* Add Content dropdown modern styles */
 #add-content-menu {
