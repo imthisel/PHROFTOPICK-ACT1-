@@ -10,6 +10,9 @@
   --panel: #ffffff;
   --border: #ddd;
   --shadow: rgba(0, 0, 0, 0.06);
+  --pattern-size: 24px;
+  --pattern-color: rgba(0, 0, 0, 0.06);
+  --pattern-color-dark: rgba(255, 255, 255, 0.06);
 }
 
 
@@ -25,7 +28,11 @@
 
 body {
   font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(to right, var(--pattern-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--pattern-color) 1px, transparent 1px);
+  background-size: var(--pattern-size) var(--pattern-size);
   color: var(--text);
   display: flex;
   flex-direction: column;
@@ -1081,6 +1088,13 @@ input:checked + .slider:before { transform: translateX(18px); }
 
 /* ===== Minimal dark mode support (class added by JS) ===== */
 html.dark body { background: #0f1214; color: #e6e6e6; }
+html.dark body {
+  background-color: #0f1214;
+  background-image:
+    linear-gradient(to right, var(--pattern-color-dark) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--pattern-color-dark) 1px, transparent 1px);
+  background-size: var(--pattern-size) var(--pattern-size);
+}
 html.dark .card { background: #14191c; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
 html.dark .site-header { box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
 html.dark .suggestions { background:#1a2024; color:#f0f0f0; border-color:#2a2f34; }
