@@ -1078,13 +1078,14 @@ input:checked + .slider { background: #00693e; }
 input:checked + .slider:before { transform: translateX(18px); }
 
 /* ===== Minimal dark mode support (class added by JS) ===== */
-html.dark body { background: #0f1214; color: #e6e6e6; }
-html.dark body {
-  background-color: #0f1214;
+html.dark body { background: #0f1214 !important; color: #e6e6e6; }
+html.dark body,
+html.dark #index-page {
+  background-color: #0f1214 !important;
   background-image:
-    linear-gradient(to right, var(--pattern-color-dark) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--pattern-color-dark) 1px, transparent 1px);
-  background-size: var(--pattern-size) var(--pattern-size);
+    linear-gradient(to right, var(--pattern-color-dark) 1px, transparent 1px) !important,
+    linear-gradient(to bottom, var(--pattern-color-dark) 1px, transparent 1px) !important;
+  background-size: var(--pattern-size) var(--pattern-size) !important;
 }
 html.dark .card { background: #14191c; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
 html.dark .site-header { box-shadow: 0 10px 20px rgba(0,0,0,0.8); }

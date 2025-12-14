@@ -115,7 +115,7 @@
     body.modal-open { overflow:hidden; }
     html { scroll-behavior: smooth; }
 
-    #spa-nav { position:absolute; left:16px; top:-12px; background: transparent; z-index:10; padding:0; border-bottom: none; display:flex; gap:12px; flex-wrap:wrap; justify-content:flex-start; box-shadow: none; }
+    #spa-nav { position:absolute; left:16px; top:16px; background: transparent; z-index:10; padding:0; border-bottom: none; display:flex; gap:14px; flex-wrap:wrap; justify-content:flex-start; box-shadow: none; }
     #spa-nav .auth-btn { background: transparent; border: none; border-radius: 12px; padding: 14px 22px; box-shadow: none; transition: color var(--t) var(--ease), background-color var(--t) var(--ease); font-weight:600 !important; font-size:16px; }
     #spa-nav .auth-btn:hover { background: rgba(0,0,0,0.06); }
     html.dark #spa-nav .auth-btn:hover { background: rgba(255,255,255,0.08); }
@@ -140,7 +140,7 @@
     @keyframes pulse { to { transform: scale(1.35); opacity: .7; } }
 
     /* Search bar area */
-    #subjects-search-panel { background: #fff; border: 2px solid #e5e7eb; border-radius: 16px; padding: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+    #subjects-search-panel { background: #fff; border: 2px solid #e5e7eb; border-radius: 16px; padding: 16px; padding-top: 96px; margin-bottom: 18px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
     #subjects-search-panel input { border-radius: 12px; padding: 12px 14px; }
     #subjects-search-panel #btn-search, #subjects-search-panel #btn-list-all { border-radius: 12px; }
 
@@ -167,7 +167,7 @@
   <main class="container fade-in">
     <!-- Search -->
     <div class="search-panel" id="subjects-search-panel" style="position: relative; display:none;">
-      <div id="spa-nav" aria-label="Section navigation" style="position:absolute; left:16px; top:-12px; display:flex; gap:12px;">
+      <div id="spa-nav" aria-label="Section navigation">
         <button id="nav-subjects" class="auth-btn" aria-controls="spa-container" aria-label="Show subjects">Subjects</button>
         <button id="nav-notes" class="auth-btn" aria-controls="spa-container" aria-label="Show notes">Notes</button>
         <button id="nav-reviews" class="auth-btn" aria-controls="spa-container" aria-label="Show reviews">Reviews</button>
