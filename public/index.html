@@ -118,11 +118,18 @@
     html { scroll-behavior: smooth; }
 
     #spa-nav { position:sticky; top:0; background: transparent; z-index:50; padding:14px; border-bottom: none; display:flex; gap:12px; flex-wrap:wrap; justify-content:center; box-shadow: none; }
-    #spa-nav .auth-btn { background: transparent; color:#374151; border: none; border-radius: 12px; padding: 12px 18px; box-shadow: none; transition: color var(--t) var(--ease), transform var(--t) var(--ease); }
-    #spa-nav .auth-btn:hover { color:#111827; transform: translateY(-1px); }
-    #spa-nav .auth-btn:active { color: var(--primary); transform: translateY(1px); }
+    #spa-nav .auth-btn { background: transparent; border: none; border-radius: 12px; padding: 12px 18px; box-shadow: none; transition: color var(--t) var(--ease), background-color var(--t) var(--ease); font-weight:600 !important; }
+    #spa-nav .auth-btn:hover { background: rgba(0,0,0,0.06); }
+    html.dark #spa-nav .auth-btn:hover { background: rgba(255,255,255,0.08); }
+    #spa-nav .auth-btn:active { background: rgba(0,0,0,0.08); }
+    html.dark #spa-nav .auth-btn:active { background: rgba(255,255,255,0.12); }
     #spa-nav .auth-btn:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
-    #spa-nav .auth-btn.active { background: transparent; color: var(--primary); border: none; }
+    #spa-nav .auth-btn.active { background: transparent; border-bottom: 2px solid currentColor; }
+    /* School-specific text colors */
+    body.dlsu #spa-nav .auth-btn { color:#00703C; }
+    body.ateneo #spa-nav .auth-btn { color:#0033A0; }
+    body.benilde #spa-nav .auth-btn { color:#006241; }
+    body.up #spa-nav .auth-btn { color:#7B1113; }
 
     /* Global button style */
     #index-page .auth-btn { transition: all var(--t) var(--ease); border-radius: 12px; padding: 10px 16px; font-weight: 700; box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
