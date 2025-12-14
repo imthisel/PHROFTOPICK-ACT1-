@@ -44,7 +44,7 @@
   <link rel="icon" type="image/png" href="images/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@600;700;800&display=swap" rel="stylesheet">
 
   <!-- Preload the correct logo before header loads -->
   <script>
@@ -72,6 +72,18 @@
   <style>
     :root { --ease: ease-in-out; --t: .22s; }
     .hide-subjects { display: none !important; }
+    #index-page { background: var(--bg); }
+    #index-page .container { max-width: 1120px; }
+    /* Typography: Inter for headings, Poppins for body */
+    #index-page h1, #index-page h2, #index-page h3 { font-family: 'Inter', 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; letter-spacing: -0.2px; }
+    #index-page h1 { font-size: 30px; font-weight: 800; }
+    #index-page h2 { font-size: 22px; font-weight: 800; }
+    #index-page h3 { font-size: 18px; font-weight: 700; }
+    #index-page p, #index-page small, #index-page span, #index-page button, #index-page input { font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    /* Decorative background accents */
+    #index-page::before { content:''; position:fixed; inset:-10% -10%; pointer-events:none; background:
+      radial-gradient(800px 500px at 5% 0%, rgba(255,255,255,0.7), transparent 60%),
+      radial-gradient(900px 600px at 100% -10%, rgba(0,0,0,0.03), transparent 65%); z-index:-1; }
     .reviews-list { max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
     .review-card { background:#fff; border:2px solid #e5e7eb; border-radius:16px; padding:24px; position:relative; cursor:pointer; transition: all var(--t) var(--ease); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
     .review-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.12); border-color: var(--primary); }
@@ -106,21 +118,38 @@
     html { scroll-behavior: smooth; }
 
     #spa-nav { position:sticky; top:0; background: linear-gradient(180deg, var(--gradient-start), var(--gradient-end)); z-index:50; padding:14px; border-bottom:none; display:flex; gap:12px; flex-wrap:wrap; justify-content:center; box-shadow: 0 14px 30px rgba(0,0,0,0.12); }
-    #spa-nav .auth-btn { background:#fff; color: var(--primary); border: 2px solid #ffffff; border-radius: 12px; padding: 12px 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); transition: all var(--t) var(--ease); }
+    #spa-nav .auth-btn { background:#fff; color: var(--primary); border: 2px solid #ffffff; border-radius: 14px; padding: 12px 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); transition: all var(--t) var(--ease); }
     #spa-nav .auth-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.12); }
     #spa-nav .auth-btn:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
     #spa-nav .auth-btn.active { background: var(--primary); color: var(--text-on-primary); border-color: var(--primary); }
 
-    #index-page .auth-btn { transition: all var(--t) var(--ease); border-radius: 12px; padding: 10px 16px; font-weight: 700; }
+    /* Global button style */
+    #index-page .auth-btn { transition: all var(--t) var(--ease); border-radius: 12px; padding: 10px 16px; font-weight: 700; box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
     #index-page .auth-btn:active { transform: translateY(1px); }
     #index-page .auth-btn:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+    #index-page .auth-btn.primary { background: var(--primary); color: var(--text-on-primary); border: 2px solid var(--primary); }
+    #index-page .auth-btn.secondary { background: #fff; color: var(--primary); border: 2px solid #e5e7eb; }
+    #index-page .auth-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(0,0,0,0.12); }
+    #index-page .auth-btn .pulse { display:inline-block; width:6px; height:6px; border-radius:9999px; background: var(--accent); margin-left:8px; animation: pulse var(--t) var(--ease) alternate infinite; }
+    @keyframes pulse { to { transform: scale(1.35); opacity: .7; } }
+
+    /* Search bar area */
+    #subjects-search-panel { background: #fff; border: 2px solid #e5e7eb; border-radius: 16px; padding: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+    #subjects-search-panel input { border-radius: 12px; padding: 12px 14px; }
+    #subjects-search-panel #btn-search, #subjects-search-panel #btn-list-all { border-radius: 12px; }
+
+    /* Cards and results grid */
+    #index-page .results { gap: 20px; }
+    #index-page .card { border: 2px solid #e5e7eb; border-radius: 18px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); transition: all var(--t) var(--ease); }
+    #index-page .card:hover { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(0,0,0,0.12); border-color: var(--primary); }
+    #index-page .card h3 { margin: 6px 0 8px; }
   </style>
 </head>
 
 <body id="index-page">
   <!-- ===== HEADER PLACEHOLDER ===== -->
   <div id="header-placeholder"></div>
-  <div id="spa-nav" style="position:sticky; top:0; background:#fff; z-index:50; padding:14px; border-bottom:1px solid #e5e7eb; display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+  <div id="spa-nav">
     <button id="nav-subjects" class="auth-btn" aria-controls="spa-container" aria-label="Show subjects" style="font-weight:800; padding:12px 18px;">Subjects</button>
     <button id="nav-notes" class="auth-btn" aria-controls="spa-container" aria-label="Show notes" style="font-weight:800; padding:12px 18px;">Notes</button>
     <button id="nav-reviews" class="auth-btn" aria-controls="spa-container" aria-label="Show reviews" style="font-weight:800; padding:12px 18px;">Reviews</button>
