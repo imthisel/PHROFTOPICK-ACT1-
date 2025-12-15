@@ -437,7 +437,7 @@ try {
     });
   </script>
 
-  <!-- NOTE: DO NOT keep a static <script src="/js/app.js"></script> here.
-       app.js is loaded dynamically above after the header is inserted. -->
+  <!-- Ensure app.js is available globally across pages (static include) -->
+  <script src="/js/app.js"></script>
 </body>
 </html>

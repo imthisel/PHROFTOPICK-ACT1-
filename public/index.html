@@ -70,7 +70,7 @@
 
   <link rel="stylesheet" href="css/mobile-override.css">
   <style>
-    :root { --ease: ease-in-out; --t: .22s; }
+    :root { --ease: ease-in-out; --t: .22s; --controls-gap-y: 24px; }
     .hide-subjects { display: none !important; }
     #index-page { background-color: transparent; }
     #index-page .container { max-width: 1120px; }
@@ -144,7 +144,7 @@
     @keyframes pulse { to { transform: scale(1.35); opacity: .7; } }
 
     /* Search bar area */
-    #subjects-search-panel { background: #fff; border: 2px solid #e5e7eb; border-radius: 16px; padding: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+    #subjects-search-panel { background: #fff; border: 2px solid #e5e7eb; border-radius: 16px; padding: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); margin-top: var(--controls-gap-y); }
     /* Spacer to prevent overlap with fixed controls */
     #index-controls-spacer { height: 120px; }
     #subjects-search-panel input { border-radius: 12px; padding: 12px 14px; }
