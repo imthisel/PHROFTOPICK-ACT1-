@@ -91,7 +91,7 @@
           <div class="chip-list" id="selected-courses"></div>
           <input id="prof-courses" type="hidden" required aria-label="Selected course codes (comma-separated)" />
         </div>
-        <div id="course-error" style="color:#dc2626; font-weight:600; display:none;">Each code must be exactly 7 uppercase characters.</div>
+        <div id="course-error" style="color:#dc2626; font-weight:600; display:none;">Each code must be 3–8 uppercase letters or numbers (A–Z, 0–9).</div>
 
         <button class="auth-btn" type="submit" style="margin-top:12px;">Submit</button>
         <p id="prof-result" style="margin-top:10px; font-weight:600;" aria-live="polite"></p>
@@ -156,13 +156,12 @@
       const resultEl = document.getElementById('prof-result');
 
       const nameRe = /^[A-Za-z'\-\s]+,\s[A-Za-z'\-\s]+$/;
-      const codeRe = /^[A-Z]{7}$/;
-      // Validation: exactly 7 uppercase letters, no digits/specials
+      const codeRe = /^[A-Z0-9]{3,8}$/;
       function validateCode(raw){
         const code = String(raw||'').trim();
         if (!code) return { ok:false, reason:'empty' };
-        if (code.length !== 7) return { ok:false, reason:'length' };
-        if (/[^A-Za-z]/.test(code)) return { ok:false, reason:'lettersOnly' };
+        if (code.length < 3 || code.length > 8) return { ok:false, reason:'length' };
+        if (/[^A-Za-z0-9]/.test(code)) return { ok:false, reason:'alnumOnly' };
         if (code !== code.toUpperCase()) return { ok:false, reason:'uppercase' };
         return { ok:true, reason:null };
       }
@@ -253,7 +252,19 @@
         }
 
         const codes = (coursesInput.value || '').split(',').map(c => String(c||'').trim()).filter(Boolean);
-        if (!codes.length || !codes.every(c => codeRe.test(String(c).toUpperCase()))) {
+        if (!codes.length) {
+          courseErr.textContent = 'Enter at least one course code.';
+          courseErr.style.display = 'block';
+          codeInput.setAttribute('aria-invalid','true');
+          return;
+        }
+        if (!codes.every(c => codeRe.test(String(c).toUpperCase()))) {
+          const firstInvalid = codes.find(c => !codeRe.test(String(c).toUpperCase()));
+          const v = validateCode(firstInvalid);
+          courseErr.textContent = v.reason==='length' ? 'Each code must be 3–8 characters.'
+            : v.reason==='alnumOnly' ? 'Each code must contain only letters or numbers (A–Z, 0–9).'
+            : v.reason==='uppercase' ? 'Each code must be uppercase (A–Z).'
+            : 'Invalid course code.';
           courseErr.style.display = 'block';
           codeInput.setAttribute('aria-invalid','true');
           return;

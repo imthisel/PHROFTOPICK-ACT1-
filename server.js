@@ -679,11 +679,11 @@ app.post('/api/professors', (req, res) => {
   const courses = Array.isArray(req.body?.courses) ? req.body.courses.map(c => String(c||'').trim().toUpperCase()) : [];
 
   const nameRe = /^[A-Za-z'\-\s]+,\s[A-Za-z'\-\s]+$/;
-  const codeRe = /^[A-Z]{7}$/;
+  const codeRe = /^[A-Z0-9]{3,8}$/;
   if (!nameRe.test(name)) { db.close(); return res.status(400).json({ error: 'Invalid name format' }); }
   if (!courses.length || !courses.every(c => codeRe.test(String(c)))) {
     db.close();
-    return res.status(400).json({ error: 'Invalid course codes: each must be exactly 7 uppercase letters' });
+    return res.status(400).json({ error: 'Invalid course codes: each must be 3–8 uppercase letters or numbers (A–Z, 0–9)' });
   }
 
   db.serialize(() => {
