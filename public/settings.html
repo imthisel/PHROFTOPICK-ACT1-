@@ -16,6 +16,25 @@
   <meta name="twitter:title" content="User Settings — Phroftopick">
   <meta name="twitter:description" content="Update your profile and preferences for a personalized experience.">
   <meta name="twitter:image" content="/images/default-logo.png">
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@600;700;800&display=swap" rel="stylesheet">
+  <script>
+    (function preloadLogo() {
+      const school = localStorage.getItem('selectedSchool') || 'dlsu';
+      const logoMap = {
+        dlsu: 'images/dlsu-logo.png',
+        ateneo: 'images/ateneo-logo.png',
+        benilde: 'images/benilde-logo.png',
+        up: 'images/up-logo.png',
+      };
+      const selectedLogo = logoMap[school] || 'images/default-logo.png';
+      const img = new Image();
+      img.src = selectedLogo;
+      window.__PRELOADED_LOGO = selectedLogo;
+    })();
+  </script>
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/mobile-override.css">
   <script src="/js/theme-loader.js" defer></script>
