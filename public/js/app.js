@@ -131,6 +131,8 @@ async function initializeHeader() {
   const headerAddReview = document.getElementById('btn-add-review');
   const addContentMenu = document.getElementById('add-content-menu');
   const addContentWrapper = document.getElementById('add-content');
+  const headerAddCourseLink = document.getElementById('menu-add-course');
+  const headerAddProfLink = document.getElementById('menu-add-prof');
 
   if (headerAddContent && addContentMenu && addContentWrapper) {
     headerAddContent.onclick = (e) => {
@@ -148,6 +150,44 @@ async function initializeHeader() {
     });
   }
 
+  if (headerAddCourseLink) {
+    headerAddCourseLink.addEventListener('click', (e) => {
+      const path = (window.location.pathname || '').toLowerCase();
+      try {
+        const prev = JSON.parse(sessionStorage.getItem('refData') || '{}');
+        if (path.includes('/add-professor')) {
+          const name = document.getElementById('prof-name')?.value || '';
+          const selected = Array.from(document.querySelectorAll('#selected-courses .chip')).map(el => String(el.textContent||'').trim().toUpperCase());
+          prev.addProfessor = { name, courses: selected };
+          sessionStorage.setItem('referrer', 'add-professor');
+        } else if (path.includes('/review')) {
+          const data = {
+            rating: document.getElementById('rev-rating')?.value || '0',
+            course: document.getElementById('rev-course')?.value || '',
+            again: document.getElementById('rev-again')?.value || 'Yes',
+            attain: document.getElementById('rev-4')?.value || 'Easy',
+            deadline: document.getElementById('rev-deadline')?.value || 'Yes',
+            workload: document.getElementById('rev-workload')?.value || 'Low',
+            text: document.getElementById('rev-text')?.value || '',
+            anon: !!document.getElementById('rev-anon')?.checked,
+            prof_id: sessionStorage.getItem('review_prof_id') || null,
+            prof_name: sessionStorage.getItem('review_prof_name') || null
+          };
+          prev.review = data;
+          sessionStorage.setItem('referrer', 'review');
+        } else {
+          sessionStorage.removeItem('referrer');
+        }
+        sessionStorage.setItem('refData', JSON.stringify(prev));
+      } catch (_) {}
+    });
+  }
+
+  if (headerAddProfLink) {
+    headerAddProfLink.addEventListener('click', () => {
+      try { sessionStorage.removeItem('referrer'); } catch (_) {}
+    });
+  }
   if (headerAddReview) {
     headerAddReview.onclick = (e) => {
       e.preventDefault();

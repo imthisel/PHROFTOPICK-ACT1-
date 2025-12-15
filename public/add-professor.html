@@ -279,9 +279,10 @@
         }
       });
       try {
-        const addCourseLink = document.getElementById('link-add-course') || document.querySelector('a[href="/add-course"]');
-        if (addCourseLink) {
-          addCourseLink.addEventListener('click', (e) => {
+        // Wire up ALL 'Add Course' links on the page (header menu and modal)
+        const addCourseLinks = Array.from(document.querySelectorAll('a[href="/add-course"]'));
+        addCourseLinks.forEach(link => {
+          link.addEventListener('click', (e) => {
             e.preventDefault();
             try {
               const name = nameInput?.value || '';
@@ -293,7 +294,7 @@
             } catch (_) {}
             window.location.href = '/add-course';
           });
-        }
+        });
         const ref = sessionStorage.getItem('referrer');
         const raw = sessionStorage.getItem('refData');
         const rr = sessionStorage.getItem('refReturn');
@@ -301,6 +302,7 @@
         if (ref === 'add-professor' && data) {
           if (nameInput && data.name) nameInput.value = data.name;
           if (Array.isArray(data.courses)) {
+            coursesInput.value = data.courses.map(c => String(c||'').toUpperCase()).join(',');
             data.courses.forEach(c => {
               const chip = document.createElement('span');
               chip.className='chip'; chip.textContent=String(c||'').toUpperCase();
@@ -311,9 +313,15 @@
         if (rr) {
           const back = JSON.parse(rr);
           if (back && back.from === 'add-course' && back.createdCode) {
-            const chip = document.createElement('span');
-            chip.className='chip'; chip.textContent=String(back.createdCode).toUpperCase();
-            chips.appendChild(chip);
+            const codeUp = String(back.createdCode).toUpperCase();
+            const existing = (coursesInput.value||'').split(',').map(s=>s.trim()).filter(Boolean);
+            if (!existing.includes(codeUp)) {
+              existing.push(codeUp);
+              coursesInput.value = existing.join(',');
+              const chip = document.createElement('span');
+              chip.className='chip'; chip.textContent=codeUp;
+              chips.appendChild(chip);
+            }
             sessionStorage.removeItem('refReturn');
           }
         }

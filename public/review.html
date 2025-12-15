@@ -846,20 +846,56 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // ===== Course Autocomplete =====
+  // ===== Course Autocomplete (enhanced: real-time + mixed sources) =====
   let courseList = [];
-  async function loadCourses() {
+  let lastFetchTs = 0;
+  const FETCH_COOLDOWN_MS = 10000;
+  async function fetchAllCourses(force=false) {
+    const now = Date.now();
+    if (!force && (now - lastFetchTs) < FETCH_COOLDOWN_MS && courseList.length) return courseList;
     try {
       const school = localStorage.getItem('selectedSchool')||'dlsu';
       const res = await fetch(`/api/subjects?school=${school}`);
+      // Handle permissions or failures gracefully
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          console.warn('Permission issue fetching courses', res.status);
+          return courseList;
+        }
+        console.warn('Failed to fetch courses', res.status);
+        return courseList;
+      }
       const j = await res.json();
-      courseList = (j.subjects||[]).map(s => ({ code: (s.code||'').toUpperCase(), name: s.name||'' }))
-        .filter(s => s.code).sort((a,b)=> a.code.localeCompare(b.code));
-    } catch(e) { console.warn('Failed to load course list', e); }
+      const systemCourses = (j.subjects||j||[]).map(s => ({ code: (s.code||'').toUpperCase(), name: s.name||'' }));
+      // Merge with any newly added course captured via sessionStorage
+      let extra = [];
+      try {
+        const rrRaw = sessionStorage.getItem('refReturn');
+        if (rrRaw) {
+          const rr = JSON.parse(rrRaw);
+          if (rr && rr.createdCode) {
+            extra.push({ code: String(rr.createdCode).toUpperCase(), name: '' });
+          }
+        }
+      } catch (_) {}
+      // Dedupe by code
+      const map = new Map();
+      [...systemCourses, ...extra].forEach(s => {
+        const code = String(s.code||'').toUpperCase();
+        if (!code) return;
+        if (!map.has(code)) map.set(code, { code, name: s.name||'' });
+      });
+      courseList = Array.from(map.values()).sort((a,b)=> a.code.localeCompare(b.code));
+      lastFetchTs = now;
+      return courseList;
+    } catch(e) {
+      console.warn('Course fetch error', e);
+      return courseList;
+    }
   }
   function renderCourseSuggestions(filter=''){
     const f = filter.trim().toUpperCase();
-    const items = courseList.filter(s => !f || s.code.includes(f) || s.name.toUpperCase().includes(f)).slice(0,50);
+    const items = courseList.filter(s => !f || s.code.includes(f) || s.name.toUpperCase().includes(f)).slice(0,100);
     if (!items.length) { courseSuggest.style.display='none'; courseEl.setAttribute('aria-expanded','false'); return; }
     courseSuggest.innerHTML = items.map(s => `<li role="option" data-code="${s.code}" style="padding:8px 10px; border-radius:8px; cursor:pointer;">${s.code} - ${s.name}</li>`).join('');
     courseSuggest.style.display='block';
@@ -872,10 +908,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     });
   }
-  courseEl.addEventListener('input', () => renderCourseSuggestions(courseEl.value));
-  courseEl.addEventListener('focus', () => renderCourseSuggestions(courseEl.value));
+  async function ensureFreshSuggestions() {
+    await fetchAllCourses(false);
+    renderCourseSuggestions(courseEl.value);
+  }
+  courseEl.addEventListener('input', ensureFreshSuggestions);
+  courseEl.addEventListener('focus', async () => { await fetchAllCourses(true); renderCourseSuggestions(courseEl.value); });
   document.addEventListener('click', (e)=>{ if(!courseSuggest.contains(e.target) && e.target!==courseEl){ courseSuggest.style.display='none'; courseEl.setAttribute('aria-expanded','false'); }});
-  loadCourses();
+  // Initial load
+  fetchAllCourses(true).then(()=> renderCourseSuggestions(''));
 
   addCourseBtn.addEventListener('click', () => {
     try {
