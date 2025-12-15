@@ -590,9 +590,10 @@ app.post('/api/subjects/create', (req, res) => {
   const db = getDb(school);
   const code = String(req.body?.code || '').trim().toUpperCase();
   const name = (req.body?.name || '').trim();
-  const codeRe = /^[A-Z]{7}$/;
+  // Spec: Course code allows uppercase alphanumeric only, 3–8 chars (A–Z, 0–9)
+  const codeRe = /^[A-Z0-9]{3,8}$/;
   const nameRe = /^.{3,}$/;
-  if (!codeRe.test(code)) { db.close(); return res.status(400).json({ error: 'Invalid course code: must be exactly 7 uppercase letters' }); }
+  if (!codeRe.test(code)) { db.close(); return res.status(400).json({ error: 'Invalid course code: must be 3–8 uppercase letters or numbers' }); }
   if (!nameRe.test(name)) { db.close(); return res.status(400).json({ error: 'Invalid course name format' }); }
 
   db.get('SELECT id FROM subjects WHERE code = ?', [code], (err, row) => {

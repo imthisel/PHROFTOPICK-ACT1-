@@ -546,6 +546,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.enableAutocomplete) try { window.enableAutocomplete('prof-search', 'header-suggestions'); } catch(e){}
   } catch (e) { console.warn('Header injection failed', e); }
 
+  try {
+    const ref = sessionStorage.getItem('referrer');
+    const raw = sessionStorage.getItem('refData');
+    const rr = sessionStorage.getItem('refReturn');
+    const data = raw ? JSON.parse(raw).review || {} : {};
+    if (ref === 'review' && data) {
+      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? el.value; };
+      setVal('rev-rating', data.rating);
+      setVal('rev-course', data.course);
+      setVal('rev-again', data.again);
+      setVal('rev-4', data.attain);
+      setVal('rev-deadline', data.deadline);
+      setVal('rev-workload', data.workload);
+      const txt = document.getElementById('rev-text'); if (txt) txt.value = data.text || txt.value || '';
+      const anon = document.getElementById('rev-anon'); if (anon) anon.checked = !!data.anon;
+    }
+    if (rr) {
+      const back = JSON.parse(rr);
+      if (back && back.from === 'add-course' && back.createdCode) {
+        const cc = document.getElementById('rev-course');
+        if (cc) cc.value = String(back.createdCode).toUpperCase();
+        sessionStorage.removeItem('refReturn');
+      }
+    }
+  } catch (_) {}
+
   const urlParams = new URLSearchParams(window.location.search);
   let profId = urlParams.get('prof');
   const forceSelect = urlParams.get('select') === '1';
@@ -851,8 +877,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.addEventListener('click', (e)=>{ if(!courseSuggest.contains(e.target) && e.target!==courseEl){ courseSuggest.style.display='none'; courseEl.setAttribute('aria-expanded','false'); }});
   loadCourses();
 
-  // ===== Add Course redirect =====
   addCourseBtn.addEventListener('click', () => {
+    try {
+      const data = {
+        rating: document.getElementById('rev-rating')?.value || '0',
+        course: document.getElementById('rev-course')?.value || '',
+        again: document.getElementById('rev-again')?.value || 'Yes',
+        attain: document.getElementById('rev-4')?.value || 'Easy',
+        deadline: document.getElementById('rev-deadline')?.value || 'Yes',
+        workload: document.getElementById('rev-workload')?.value || 'Low',
+        text: document.getElementById('rev-text')?.value || '',
+        anon: !!document.getElementById('rev-anon')?.checked,
+        prof_id: sessionStorage.getItem('review_prof_id') || null,
+        prof_name: sessionStorage.getItem('review_prof_name') || null
+      };
+      const prev = JSON.parse(sessionStorage.getItem('refData') || '{}');
+      prev.review = data;
+      sessionStorage.setItem('refData', JSON.stringify(prev));
+      sessionStorage.setItem('referrer', 'review');
+    } catch (_) {}
     window.location.href = '/add-course';
   });
 });

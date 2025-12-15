@@ -58,11 +58,11 @@
     <section class="card" style="padding:28px; width:100%; max-width:900px; margin:0 auto;">
       <form id="course-form" aria-label="Add Course Form">
         <div class="review-field">
-          <input id="course-code" placeholder="e.g., GEMATMW" maxlength="7" required aria-describedby="code-error" style="width:100%;" list="course-code-list" />
+          <input id="course-code" placeholder="e.g., CS101 or GEMATMW" maxlength="8" required aria-describedby="code-error" style="width:100%;" list="course-code-list" />
           <datalist id="course-code-list"></datalist>
           <label>Course Code</label>
           </div>
-        <div id="code-error" style="color:#dc2626; font-weight:600; display:none;">Code must be exactly 7 uppercase letters.</div>
+        <div id="code-error" style="color:#dc2626; font-weight:600; display:none;">Code must be 3–8 uppercase letters or numbers.</div>
 
         <div class="review-field" style="margin-top:14px;">
           <input id="course-name" placeholder="e.g., Mathematics in The Modern World" required aria-describedby="name-error" style="width:100%;" />
@@ -114,14 +114,42 @@
       const codeErr = document.getElementById('code-error');
       const nameErr = document.getElementById('name-error');
       const resultEl = document.getElementById('course-result');
+      function primaryColor() {
+        try {
+          const cs = getComputedStyle(document.documentElement);
+          const v = cs.getPropertyValue('--primary').trim();
+          return v || '#065f46';
+        } catch (_) { return '#065f46'; }
+      }
+      function showOverlay(msg) {
+        const ov = document.createElement('div');
+        ov.style.position='fixed';
+        ov.style.inset='0';
+        ov.style.background='rgba(0,0,0,0.35)';
+        ov.style.zIndex='9999';
+        ov.style.display='flex';
+        ov.style.alignItems='center';
+        ov.style.justifyContent='center';
+        const box = document.createElement('div');
+        box.style.background='#fff';
+        box.style.padding='16px 20px';
+        box.style.borderRadius='12px';
+        box.style.boxShadow='0 8px 24px rgba(0,0,0,0.18)';
+        box.style.fontWeight='700';
+        box.style.color=primaryColor();
+        box.textContent = msg || 'Redirecting...';
+        ov.appendChild(box);
+        document.body.appendChild(ov);
+        return ov;
+      }
 
-      const codeRe = /^[A-Z]{7}$/;
-      // Validation: exactly 7 uppercase letters, no digits/specials
+      const codeRe = /^[A-Z0-9]{3,8}$/;
+      // Validation: 3–8 uppercase alphanumeric (A–Z, 0–9)
       function validateCode(raw){
         const code = String(raw||'').trim();
         if (!code) return { ok:false, reason:'empty' };
-        if (code.length !== 7) return { ok:false, reason:'length' };
-        if (/[^A-Za-z]/.test(code)) return { ok:false, reason:'lettersOnly' };
+        if (code.length < 3 || code.length > 8) return { ok:false, reason:'length' };
+        if (/[^A-Za-z0-9]/.test(code)) return { ok:false, reason:'alnumOnly' };
         if (code !== code.toUpperCase()) return { ok:false, reason:'uppercase' };
         return { ok:true, reason:null };
       }
@@ -178,8 +206,8 @@
         const name = (nameInput.value || '').trim();
         const v = validateCode(code);
         if (!v.ok) {
-          codeErr.textContent = v.reason==='length' ? 'Code must be exactly 7 characters.'
-            : v.reason==='lettersOnly' ? 'Code must contain letters only (A–Z).'
+          codeErr.textContent = v.reason==='length' ? 'Code must be 3–8 characters.'
+            : v.reason==='alnumOnly' ? 'Code must contain only letters or numbers (A–Z, 0–9).'
             : v.reason==='uppercase' ? 'Code must be uppercase (A–Z).'
             : 'Course code is required.';
           codeErr.style.display = 'block';
@@ -200,8 +228,19 @@
             resultEl.textContent = j.error || 'Submission failed';
             return;
           }
-          resultEl.style.color = '#065f46';
-          resultEl.innerHTML = `Course created. <a href="/subject?id=${j.id}">Open page</a>`;
+          resultEl.style.color = primaryColor();
+          const ref = sessionStorage.getItem('referrer');
+          const ov = showOverlay(ref==='add-professor' ? 'Returning to Add Professor...' : ref==='review' ? 'Returning to Review...' : 'Opening subject page...');
+          if (ref === 'add-professor') {
+            sessionStorage.setItem('refReturn', JSON.stringify({ from: 'add-course', createdCode: String(code).toUpperCase() }));
+            setTimeout(() => { window.location.href = '/add-professor'; }, 800);
+          } else if (ref === 'review') {
+            sessionStorage.setItem('refReturn', JSON.stringify({ from: 'add-course', createdCode: String(code).toUpperCase() }));
+            setTimeout(() => { window.location.href = '/review'; }, 800);
+          } else {
+            resultEl.innerHTML = `Course created. <a href="/subject?id=${j.id}">Open page</a>`;
+            setTimeout(() => { window.location.href = `/subject?id=${j.id}`; }, 900);
+          }
         } catch (err) {
           resultEl.style.color = '#dc2626';
           resultEl.textContent = 'Network error. Please try again.';

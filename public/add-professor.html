@@ -278,6 +278,46 @@
           resultEl.textContent = 'Network error. Please try again.';
         }
       });
+      try {
+        const addCourseLink = document.getElementById('link-add-course') || document.querySelector('a[href="/add-course"]');
+        if (addCourseLink) {
+          addCourseLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            try {
+              const name = nameInput?.value || '';
+              const selected = Array.from(document.querySelectorAll('#selected-courses .chip')).map(el => String(el.textContent||'').trim().toUpperCase());
+              const prev = JSON.parse(sessionStorage.getItem('refData') || '{}');
+              prev.addProfessor = { name, courses: selected };
+              sessionStorage.setItem('refData', JSON.stringify(prev));
+              sessionStorage.setItem('referrer', 'add-professor');
+            } catch (_) {}
+            window.location.href = '/add-course';
+          });
+        }
+        const ref = sessionStorage.getItem('referrer');
+        const raw = sessionStorage.getItem('refData');
+        const rr = sessionStorage.getItem('refReturn');
+        const data = raw ? JSON.parse(raw).addProfessor || {} : {};
+        if (ref === 'add-professor' && data) {
+          if (nameInput && data.name) nameInput.value = data.name;
+          if (Array.isArray(data.courses)) {
+            data.courses.forEach(c => {
+              const chip = document.createElement('span');
+              chip.className='chip'; chip.textContent=String(c||'').toUpperCase();
+              chips.appendChild(chip);
+            });
+          }
+        }
+        if (rr) {
+          const back = JSON.parse(rr);
+          if (back && back.from === 'add-course' && back.createdCode) {
+            const chip = document.createElement('span');
+            chip.className='chip'; chip.textContent=String(back.createdCode).toUpperCase();
+            chips.appendChild(chip);
+            sessionStorage.removeItem('refReturn');
+          }
+        }
+      } catch (_) {}
     });
   </script>
   <!-- Ensure app.js is available globally across pages -->
