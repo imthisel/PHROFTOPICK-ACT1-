@@ -1078,10 +1078,10 @@ input:checked + .slider { background: #00693e; }
 input:checked + .slider:before { transform: translateX(18px); }
 
 /* ===== Minimal dark mode support (class added by JS) ===== */
-html.dark body { background: #0f1214 !important; color: #e6e6e6; }
 html.dark body,
 html.dark #index-page {
   background-color: #0f1214 !important;
+  color: #e6e6e6;
   background-image:
     linear-gradient(to right, var(--pattern-color-dark) 1px, transparent 1px) !important,
     linear-gradient(to bottom, var(--pattern-color-dark) 1px, transparent 1px) !important;
