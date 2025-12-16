@@ -855,7 +855,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!force && (now - lastFetchTs) < FETCH_COOLDOWN_MS && courseList.length) return courseList;
     try {
       const school = localStorage.getItem('selectedSchool')||'dlsu';
-      const res = await fetch(`/api/subjects?school=${school}`);
+      // Request all subjects (default + user-added) by using a broad query
+      const res = await fetch(`/api/subjects?school=${school}&q=%25`);
       // Handle permissions or failures gracefully
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
@@ -909,14 +910,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
   async function ensureFreshSuggestions() {
+    // Show loading state while fetching
+    if (courseSuggest) {
+      courseSuggest.innerHTML = `<li role="option" style="padding:8px 10px; color:#6b7280;">Loading courses...</li>`;
+      courseSuggest.style.display='block';
+      courseEl.setAttribute('aria-expanded','true');
+    }
     await fetchAllCourses(false);
     renderCourseSuggestions(courseEl.value);
   }
   courseEl.addEventListener('input', ensureFreshSuggestions);
-  courseEl.addEventListener('focus', async () => { await fetchAllCourses(true); renderCourseSuggestions(courseEl.value); });
+  courseEl.addEventListener('focus', async () => {
+    if (courseSuggest) {
+      courseSuggest.innerHTML = `<li role="option" style="padding:8px 10px; color:#6b7280;">Loading courses...</li>`;
+      courseSuggest.style.display='block';
+      courseEl.setAttribute('aria-expanded','true');
+    }
+    await fetchAllCourses(true);
+    renderCourseSuggestions(courseEl.value);
+  });
   document.addEventListener('click', (e)=>{ if(!courseSuggest.contains(e.target) && e.target!==courseEl){ courseSuggest.style.display='none'; courseEl.setAttribute('aria-expanded','false'); }});
   // Initial load
-  fetchAllCourses(true).then(()=> renderCourseSuggestions(''));
+  fetchAllCourses(true).then(()=> renderCourseSuggestions('')).catch(()=>{
+    if (courseSuggest) {
+      courseSuggest.innerHTML = `<li role="option" style="padding:8px 10px; color:#dc2626;">Failed to load courses</li>`;
+      courseSuggest.style.display='block';
+      courseEl.setAttribute('aria-expanded','true');
+    }
+  });
+
+  // Real-time updates: refresh periodically and when tab gains focus
+  let pollTimer = setInterval(async () => {
+    await fetchAllCourses(true);
+    // Only re-render if the suggestions are open or input has focus
+    if (document.activeElement === courseEl || (courseSuggest && courseSuggest.style.display === 'block')) {
+      renderCourseSuggestions(courseEl.value);
+    }
+  }, 15000);
+  document.addEventListener('visibilitychange', async () => {
+    if (!document.hidden) {
+      await fetchAllCourses(true);
+      if (document.activeElement === courseEl || (courseSuggest && courseSuggest.style.display === 'block')) {
+        renderCourseSuggestions(courseEl.value);
+      }
+    }
+  });
 
   addCourseBtn.addEventListener('click', () => {
     try {
