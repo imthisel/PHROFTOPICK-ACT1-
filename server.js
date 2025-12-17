@@ -219,6 +219,12 @@ app.get('/add-course', (req, res) => {
 app.get('/oauth-success', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'oauth-success.html'));
 });
+app.get('/terms', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'terms.html'));
+});
+app.get('/privacy-policy', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'privacy-policy.html'));
+});
 
 // Redirect old .html URLs (top-level only) to extensionless versions
 app.use((req, res, next) => {
