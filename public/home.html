@@ -53,17 +53,52 @@
       background: linear-gradient(135deg, #f8fffe 0%, #f0f9f4 50%, #fef5f5 100%);
     }
 
-    /* ========== HEADER ========== */
+    /* ========== HERO WRAPPER & DIAGONAL BG ========== */
+    .hero-wrapper {
+      position: relative;
+      width: 100%;
+      min-height: 85vh; /* Occupy significant screen space */
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 80px; /* Space before next section */
+    }
+
+    .hero-diagonal-bg {
+      position: absolute;
+      top: -20%; /* Moved up significantly */
+      left: 0;
+      width: 100%;
+      height: 90%; /* Adjusted height to balance the lift */
+      /* Blue -> Green -> Red gradient */
+      background: linear-gradient(110deg, #3b82f6 0%, #10b981 50%, #ef4444 100%);
+      background-size: 200% 200%;
+      animation: gradient-move 10s ease infinite;
+      transform: skewY(-12deg);
+      transform-origin: top left;
+      z-index: 1;
+      border-bottom-right-radius: 80px;
+    }
+
+    @keyframes gradient-move {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ========== HEADER OVERRIDES ========== */
     .landing-header {
-      background: linear-gradient(135deg, #00693e 0%, #004d2b 100%);
+      background: transparent !important; /* Make transparent */
+      box-shadow: none !important;
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 1350px;
+      margin: 0 auto;
       padding: 16px 40px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 4px 20px rgba(0,105,62,0.15);
-      position: sticky;
-      top: 0;
-      z-index: 100;
     }
 
     .logo-section {
@@ -78,13 +113,13 @@
       border-radius: 12px;
       background: white;
       padding: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
     .brand-name {
       font-size: 28px;
       font-weight: 700;
-      color: white;
+      color: white; /* Reverted to white */
       letter-spacing: -0.5px;
     }
 
@@ -105,7 +140,7 @@
 
     .btn-login {
       background: transparent;
-      color: white;
+      color: white; /* Reverted to white */
       border-color: rgba(255,255,255,0.3);
     }
 
@@ -125,66 +160,229 @@
       box-shadow: 0 6px 20px rgba(255,255,255,0.3);
     }
 
-    /* ========== HERO SECTION ========== */
-    .hero {
-      max-width: 1200px;
-      margin: 80px auto;
-      padding: 0 40px;
-      text-align: center;
+    /* ========== HERO CONTENT (Stripe Layout) ========== */
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 60px 40px 100px 40px; /* More top padding for breathing room */
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 60px; /* Space between text and visuals */
     }
 
-    .hero h1 {
-      font-size: 56px;
-      font-weight: 800;
-      background: linear-gradient(135deg, #00693e 0%, #dc2626 50%, #2563eb 100%);
+    .hero-text {
+      flex: 1;
+      max-width: 600px;
+      text-align: left; /* Strict left alignment like Stripe */
+      margin-left: 200px; /* Shift text more to the right as requested */
+      padding-top: 0; /* Moved up (was 40px) */
+      z-index: 10; /* Ensure text is above background elements */
+    }
+
+    .hero-text h1 {
+      font-size: 84px; /* Massive size like Stripe */
+      font-weight: 900;
+      margin-bottom: 70px; /* Increased to push subtitle down (was 24px) */
+      line-height: 1.05;
+      letter-spacing: -2px; /* Tight tracking */
+      
+      /* Darker Gradient Font Styling */
+      background: linear-gradient(to right, #0f172a 0%, #064e3b 50%, #7f1d1d 100%);
       -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: 20px;
-      line-height: 1.2;
+      -webkit-text-fill-color: transparent;
+      color: #0f172a; /* Fallback */
+      
+      text-shadow: none; /* Clean look */
+      filter: none;
     }
 
     .hero-subtitle {
       font-size: 22px;
-      color: #555;
-      margin-bottom: 40px;
-      font-weight: 400;
+      color: #374151; /* Dark gray */
+      margin-bottom: 30px; /* Reduced to pull button up (was 40px) */
+      font-weight: 500;
+      line-height: 1.6;
+      max-width: 480px; /* Limit width for readability */
     }
 
     .cta-button {
-      background: linear-gradient(135deg, #00693e 0%, #004d2b 100%);
-      color: white;
-      padding: 18px 48px;
-      border-radius: 50px;
-      font-size: 18px;
-      font-weight: 700;
+      background: white;
+      color: #3c4043; /* Google Grey */
+      box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08); /* Stripe-ish shadow */
       border: none;
-      cursor: pointer;
-      box-shadow: 0 10px 30px rgba(0,105,62,0.3);
-      transition: all 0.4s ease;
-      position: relative;
-      overflow: hidden;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 50px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+      margin-top: 24px; /* Adjusted to keep button position stable */
+    }
+    
+    .cta-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+      background: white;
+      color: #202124;
     }
 
-    .cta-button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 15px 40px rgba(0,105,62,0.4);
+    .google-logo-svg {
+      width: 24px;
+      height: 24px;
     }
 
     .cta-button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transition: left 0.5s;
+      display: none; /* Remove previous gradient overlay if any */
     }
 
-    .cta-button:hover::before {
-      left: 100%;
+    /* ========== HERO VISUALS (IMAGES) ========== */
+    .hero-visuals {
+      flex: 1;
+      height: 600px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 20px;
+      align-content: center;
+      padding-right: 40px;
+      margin-right: -80px;
+      margin-top: -40px; /* Moved visuals up slightly */
+      transform: rotate(-6deg) scale(0.9);
+      perspective: 1000px;
     }
+
+    .image-card {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      transition: all 0.3s ease;
+      background: white;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .image-card:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      z-index: 5;
+    }
+
+    .image-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    
+    /* Remove old card specific styles */
+    .card-1, .card-2 {
+      display: none; 
+    }
+
+    /* Lightbox Modal */
+    .lightbox-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      cursor: zoom-out;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .lightbox-modal.active {
+      display: flex;
+    }
+    
+    .lightbox-content {
+      max-width: 90%;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 0 50px rgba(0,0,0,0.5);
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+    
+    .lightbox-modal.active .lightbox-content {
+      transform: scale(1);
+    }
+
+    @keyframes float-1 {
+      0%, 100% { transform: rotate(-6deg) translateY(0); }
+      50% { transform: rotate(-6deg) translateY(-15px); }
+    }
+
+    @keyframes float-2 {
+      0%, 100% { transform: rotate(6deg) translateY(0); }
+      50% { transform: rotate(6deg) translateY(-15px); }
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 1024px) {
+      .hero-content {
+        flex-direction: column;
+        text-align: center;
+        padding-top: 40px;
+      }
+
+      .hero-text {
+        text-align: center;
+        max-width: 800px;
+        margin-bottom: 60px;
+        margin-left: 0; /* Reset desktop margin */
+      }
+      
+      .hero-visuals {
+        width: 100%;
+        height: auto;
+        min-height: 500px;
+        transform: none; /* Remove rotation on tablet/mobile for simpler layout */
+        margin-right: 0;
+        padding-right: 0;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero-diagonal-bg {
+        transform: skewY(-10deg);
+        height: 130%;
+        top: -15%;
+      }
+
+      .hero-text h1 {
+        font-size: 42px;
+        margin-bottom: 30px; /* Reset margin for mobile */
+      }
+      
+      .hero-visuals {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 0 20px;
+      }
+      
+      .landing-header {
+        padding: 16px 20px;
+      }
+    }
+
 
     /* ========== FEATURES GRID ========== */
     .features {
@@ -447,24 +645,65 @@
 </head>
 <body>
 
-  <!-- ========== HEADER ========== -->
-  <header class="landing-header">
-    <div class="logo-section">
-      <img src="images/default-logo.png" alt="Phroftopick Logo" class="logo-img">
-      <h1 class="brand-name">Phroftopick</h1>
-    </div>
-    <div class="auth-buttons">
-      <button class="auth-btn btn-login" onclick="openAuthModal()">Log In</button>
-      <button class="auth-btn btn-signup" onclick="openAuthModal()">Sign Up</button>
-    </div>
-  </header>
+  <div class="hero-wrapper">
+    <div class="hero-diagonal-bg"></div>
 
-  <!-- ========== HERO SECTION ========== -->
-  <section class="hero">
-    <h1>Find Your Perfect Professor</h1>
-    <p class="hero-subtitle">Honest reviews, transparent experiences, and study resources for DLSU, Ateneo, UP, and Benilde students.</p>
-    <button class="cta-button" onclick="openAuthModal()">Let's Get Started →</button>
-  </section>
+    <!-- ========== HEADER ========== -->
+    <header class="landing-header">
+      <div class="logo-section">
+        <img src="images/default-logo.png" alt="Phroftopick Logo" class="logo-img">
+        <h1 class="brand-name">Phroftopick</h1>
+      </div>
+      <div class="auth-buttons">
+        <button class="auth-btn btn-login" onclick="openAuthModal()">Log In</button>
+        <button class="auth-btn btn-signup" onclick="openAuthModal()">Sign Up</button>
+      </div>
+    </header>
+
+    <!-- ========== HERO SECTION ========== -->
+    <div class="hero-content">
+      <!-- Left Column: Text Content -->
+      <div class="hero-text">
+        <h1>Find Your<br>Perfect<br>Professor</h1>
+        <p class="hero-subtitle">
+          Honest reviews, transparent experiences, and study resources for DLSU, Ateneo, UP, and Benilde students.
+        </p>
+        <button class="cta-button" onclick="window.location.href='/auth/google'">
+          <!-- Google 'G' Logo SVG -->
+          <svg class="google-logo-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Continue with School Email
+        </button>
+      </div>
+
+      <!-- Right Column: App Preview -->
+      
+      <div class="hero-visuals">
+        <div class="image-card">
+          <img src="images/home-pic1.png" alt="Platform Preview 1" onerror="this.src='https://placehold.co/400x300/ffffff/00693e?text=Preview+1'">
+        </div>
+        <div class="image-card">
+          <img src="images/home-pic2.png" alt="Platform Preview 2" onerror="this.src='https://placehold.co/400x300/ffffff/00693e?text=Preview+2'">
+        </div>
+        <div class="image-card">
+          <img src="images/home-pic3.png" alt="Platform Preview 3" onerror="this.src='https://placehold.co/400x300/ffffff/00693e?text=Preview+3'">
+        </div>
+        <div class="image-card">
+          <img src="images/home-pic4.png" alt="Platform Preview 4" onerror="this.src='https://placehold.co/400x300/ffffff/00693e?text=Preview+4'">
+        </div>
+        <div class="image-card">
+          <img src="images/home-pic5.png" alt="Platform Preview 5" onerror="this.src='https://placehold.co/400x300/ffffff/00693e?text=Preview+5'">
+        </div>
+        <div class="image-card">
+          <img src="images/home-pic6.png" alt="Platform Preview 6" onerror="this.src='https://placehold.co/400x300/ffffff/00693e?text=Preview+6'">
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ========== FEATURES ========== -->
   <section class="features">
@@ -595,6 +834,11 @@
     </div>
   </div>
 
+  <!-- ========== LIGHTBOX MODAL ========== -->
+  <div class="lightbox-modal" id="lightboxModal" onclick="closeLightbox()">
+    <img src="" alt="Full Screen Preview" class="lightbox-content" id="lightboxImage">
+  </div>
+
   <script>
     // Clear any logout flags when landing page is accessed
     try {
@@ -629,7 +873,22 @@
         document.getElementById('authModal').classList.remove('active');
       }
     });
-  </script>
 
+    // Lightbox Logic
+    const lightboxModal = document.getElementById('lightboxModal');
+    const lightboxImage = document.getElementById('lightboxImage');
+    const imageCards = document.querySelectorAll('.image-card img');
+
+    imageCards.forEach(img => {
+      img.parentElement.addEventListener('click', () => {
+        lightboxImage.src = img.src;
+        lightboxModal.classList.add('active');
+      });
+    });
+
+    function closeLightbox() {
+      lightboxModal.classList.remove('active');
+    }
+  </script>
 </body>
 </html>
