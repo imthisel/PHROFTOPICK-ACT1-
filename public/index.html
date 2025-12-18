@@ -164,6 +164,18 @@
     #index-page .card { border: 2px solid #e5e7eb; border-radius: 18px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); transition: all var(--t) var(--ease); }
     #index-page .card:hover { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(0,0,0,0.12); border-color: var(--primary); }
     #index-page .card h3 { margin: 6px 0 8px; }
+
+    /* ===== Domain Validation Banner ===== */
+    .domain-banner { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:12px; padding:12px 16px; border-radius:12px; background: linear-gradient(110deg, #3b82f6 0%, #10b981 50%, #ef4444 100%); background-size: 200% 200%; animation: gradient-move 10s ease infinite; color:#fff; }
+    .domain-banner label { font-weight:700; }
+    .domain-banner input { flex:1; min-width:240px; max-width:420px; border-radius:10px; padding:10px 12px; border:2px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.15); color:#fff; }
+    .domain-banner input::placeholder { color: rgba(255,255,255,0.8); }
+    .domain-banner .domains { display:flex; flex-wrap:wrap; gap:8px; }
+    .domain-chip { background: rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:9999px; font-size:12px; font-weight:700; border:1px solid rgba(255,255,255,0.35); }
+    .domain-feedback { width:100%; font-size:13px; margin-top:6px; }
+    .domain-feedback.error { color:#fee2e2; }
+    .domain-feedback.success { color:#d1fae5; }
+    @media (max-width: 768px) { .domain-banner { flex-direction:column; align-items:flex-start; } .domain-banner input{ width:100%; } }
   </style>
 </head>
 
@@ -177,6 +189,17 @@
         <button id="nav-subjects" class="auth-btn" aria-controls="spa-container" aria-label="Show subjects">Subjects</button>
         <button id="nav-notes" class="auth-btn" aria-controls="spa-container" aria-label="Show notes">Notes</button>
         <button id="nav-reviews" class="auth-btn" aria-controls="spa-container" aria-label="Show reviews">Reviews</button>
+      </div>
+      <div class="domain-banner" role="region" aria-label="Email domain validation">
+        <label for="school-email">School Email</label>
+        <input id="school-email" type="email" inputmode="email" autocomplete="email" placeholder="name@dlsu.edu.ph" aria-describedby="domain-feedback" aria-invalid="false">
+        <div class="domains" aria-label="Approved domains">
+          <span class="domain-chip">@dlsu.edu.ph</span>
+          <span class="domain-chip">@ateneo.edu</span>
+          <span class="domain-chip">@upd.edu.ph</span>
+          <span class="domain-chip">@benilde.edu.ph</span>
+        </div>
+        <div id="domain-feedback" class="domain-feedback" aria-live="polite"></div>
       </div>
       <div class="search-panel" id="subjects-search-panel" style="position: relative; display:none;">
         <input
@@ -462,6 +485,41 @@
       if(btnNotes){ btnNotes.addEventListener('click', ()=>{ setActive(btnNotes); applySubjectVisibilityState(true); loadNotes(); }); }
       if(btnReviews){ btnReviews.addEventListener('click', ()=>{ setActive(btnReviews); applySubjectVisibilityState(true); loadReviews(); }); }
       if(btnSubjects) { setActive(btnSubjects); applySubjectVisibilityState(false); loadSubjects(); }
+    })();
+  </script>
+  <script>
+    // ===== Client-side Email Domain Validation =====
+    (function(){
+      const APPROVED_DOMAINS = new Set(['dlsu.edu.ph','ateneo.edu','upd.edu.ph','benilde.edu.ph']);
+      const emailInput = document.getElementById('school-email');
+      const feedbackEl = document.getElementById('domain-feedback');
+      if (!emailInput || !feedbackEl) return;
+
+      function validateEmailDomain(value){
+        const v = String(value || '').trim().toLowerCase();
+        const validFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        if (!validFormat) return { ok:false, reason:'Enter a valid email address.' };
+        const domain = v.split('@').pop();
+        const ok = APPROVED_DOMAINS.has(domain);
+        return ok ? { ok:true, domain } : { ok:false, reason:`Only ${Array.from(APPROVED_DOMAINS).map(d=>'@'+d).join(', ')} are allowed.` };
+      }
+
+      function updateUI(){
+        const res = validateEmailDomain(emailInput.value);
+        if (res.ok){
+          emailInput.setAttribute('aria-invalid','false');
+          feedbackEl.className = 'domain-feedback success';
+          feedbackEl.textContent = `Domain approved: @${res.domain}`;
+        } else {
+          emailInput.setAttribute('aria-invalid','true');
+          feedbackEl.className = 'domain-feedback error';
+          feedbackEl.textContent = res.reason;
+        }
+      }
+
+      emailInput.addEventListener('input', updateUI);
+      emailInput.addEventListener('blur', updateUI);
+      updateUI();
     })();
   </script>
 

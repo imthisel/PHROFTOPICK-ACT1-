@@ -628,10 +628,15 @@
     /* ========== FOOTER ========== */
     .footer {
       text-align: center;
-      padding: 40px 20px;
-      background: linear-gradient(135deg, #00693e 0%, #004d2b 100%);
+      padding: 60px 20px;
+      /* Blue -> Green -> Red gradient like top */
+      background: linear-gradient(110deg, #3b82f6 0%, #10b981 50%, #ef4444 100%);
+      background-size: 200% 200%;
+      animation: gradient-move 10s ease infinite;
       color: white;
       margin-top: 100px;
+      position: relative;
+      overflow: hidden;
     }
 
     .footer p {

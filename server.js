@@ -26,6 +26,28 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 const ENV = process.env.NODE_ENV || 'development';
+// Approved domains for school emails
+const APPROVED_EMAIL_DOMAINS = new Set(['dlsu.edu.ph','ateneo.edu','upd.edu.ph','benilde.edu.ph']);
+
+// Simple in-memory rate limiter (per IP+path)
+function createRateLimiter({ windowMs = 60_000, limit = 30 }) {
+  const buckets = new Map();
+  return function rateLimiter(req, res, next) {
+    const key = `${req.ip}|${req.path}`;
+    const now = Date.now();
+    let entry = buckets.get(key);
+    if (!entry || (now - entry.start) > windowMs) {
+      entry = { start: now, count: 0 };
+      buckets.set(key, entry);
+    }
+    entry.count++;
+    if (entry.count > limit) {
+      return res.status(429).json({ error: 'Too many requests' });
+    }
+    next();
+  };
+}
+const authLimiter = createRateLimiter({ windowMs: 60_000, limit: 20 });
 const DB_DIR = (() => {
   const isWritable = (dir) => {
     try {
@@ -519,6 +541,16 @@ passport.use(new GoogleStrategy({
   passReqToCallback: true
 }, (req, accessToken, refreshToken, profile, done) => {
   const school = req.query.school || 'dlsu';
+  try {
+    const email = profile.emails && profile.emails[0] && profile.emails[0].value || '';
+    const lower = String(email).trim().toLowerCase();
+    const domain = lower.includes('@') ? lower.split('@').pop() : '';
+    const verified = profile._json && typeof profile._json.email_verified !== 'undefined' ? !!profile._json.email_verified : true;
+    if (!lower || !domain || !APPROVED_EMAIL_DOMAINS.has(domain) || !verified) {
+      try { logAudit({ school, entity_type: 'auth', entity_id: null, action: 'unauthorized_domain', actor_type: 'google', actor_id: profile.id, details: `email=${lower}` }); } catch (_) {}
+      return done(null, false, { message: 'unauthorized_domain' });
+    }
+  } catch (_) {}
   findOrCreateUserByOAuth(school, 'google', profile.id, profile, done);
 }));
 
@@ -532,6 +564,15 @@ passport.use(new FacebookStrategy({
   passReqToCallback: true
 }, (req, accessToken, refreshToken, profile, done) => {
   const school = req.query.school || 'dlsu';
+  try {
+    const email = profile.emails && profile.emails[0] && profile.emails[0].value || '';
+    const lower = String(email).trim().toLowerCase();
+    const domain = lower.includes('@') ? lower.split('@').pop() : '';
+    if (!lower || !domain || !APPROVED_EMAIL_DOMAINS.has(domain)) {
+      try { logAudit({ school, entity_type: 'auth', entity_id: null, action: 'unauthorized_domain', actor_type: 'facebook', actor_id: profile.id, details: `email=${lower}` }); } catch (_) {}
+      return done(null, false, { message: 'unauthorized_domain' });
+    }
+  } catch (_) {}
   findOrCreateUserByOAuth(school, 'facebook', profile.id, profile, done);
 }));
 
@@ -1006,7 +1047,7 @@ app.all('/api/auth/signup', (req, res) => {
 });
 
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', authLimiter, (req, res) => {
   const school = req.query.school || 'dlsu';
   const db = getDb(school);
   const { school_id_or_email, password } = req.body;
@@ -1015,7 +1056,18 @@ app.post('/api/auth/login', (req, res) => {
     return res.status(400).json({ error: 'Missing credentials' });
   }
 
+  // Domain whitelist enforcement for email login
+  try {
+    const lower = String(school_id_or_email || '').trim().toLowerCase();
+    const domain = lower.includes('@') ? lower.split('@').pop() : '';
+    if (!domain || !APPROVED_EMAIL_DOMAINS.has(domain)) {
+      try { logAudit({ school, entity_type:'auth', action:'unauthorized_domain', actor_type:'password_login', details:`email=${lower}` }); } catch (_) {}
+      db.close();
+      return res.status(403).json({ error: 'Unauthorized domain' });
+    }
+  } catch (_) {}
 
+  
   db.get('SELECT * FROM users WHERE school_id_or_email = ?', [school_id_or_email], async (err, user) => {
     if (err || !user) {
       db.close();
@@ -1031,7 +1083,7 @@ app.post('/api/auth/login', (req, res) => {
 
 
 // OAuth Start
-app.get('/auth/google', (req, res, next) => {
+app.get('/auth/google', authLimiter, (req, res, next) => {
   const school = req.query.school || 'dlsu';
   passport.authenticate('google', {
     scope: ['profile', 'email'],
@@ -1041,46 +1093,62 @@ app.get('/auth/google', (req, res, next) => {
 });
 
 
-app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'], session: true }));
+app.get('/auth/facebook', authLimiter, passport.authenticate('facebook', { scope: ['email'], session: true }));
 
 
 // OAuth Callbacks
-app.get('/auth/google/callback', (req, res, next) => {
+app.get('/auth/google/callback', authLimiter, (req, res, next) => {
   const school = req.query.state || 'dlsu';
-  passport.authenticate('google', {
-    failureRedirect: '/auth/failure',
-    session: true
-  })(req, res, next);
-}, (req, res) => {
-  const school = req.query.state || 'dlsu';
-  const db = getDb(school);
-  
-  // ✅ Fetch fresh user data to include photo
-  db.get('SELECT id, display_name, photo_path FROM users WHERE id = ?', [req.user.id], (err, user) => {
-    db.close();
-    
-    if (err || !user) {
-      return res.redirect('/auth/failure');
+  passport.authenticate('google', (err, user, info) => {
+    if (err) return res.status(500).send('Authentication error');
+    if (!user) {
+      const reason = info && info.message;
+      if (reason === 'unauthorized_domain') return res.status(403).send('Forbidden: unauthorized or unverified email domain');
+      return res.status(401).send('Authentication failed');
     }
-    
-    // after user created / found in DB
-const token = jwt.sign({ id: user.id, school }, JWT_SECRET);
-const photoParam = user.photo_path ? `&photo=${encodeURIComponent(user.photo_path)}` : '';
-res.redirect(`/oauth-success.html?token=${token}&display=${encodeURIComponent(user.display_name || 'You')}&school=${school}${photoParam}`);
-
-  });
+    req.login(user, (lerr) => {
+      if (lerr) return res.status(500).send('Login error');
+      const db = getDb(school);
+      db.get('SELECT id, display_name, photo_path FROM users WHERE id = ?', [user.id], (e, row) => {
+        db.close();
+        if (e || !row) return res.status(500).send('User fetch error');
+        const token = jwt.sign({ id: row.id, school }, JWT_SECRET);
+        const photoParam = row.photo_path ? `&photo=${encodeURIComponent(row.photo_path)}` : '';
+        res.redirect(`/oauth-success.html?token=${token}&display=${encodeURIComponent(row.display_name || 'You')}&school=${school}${photoParam}`);
+      });
+    });
+  })(req, res, next);
 });
 
 
-app.get('/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/auth/failure', session: true }), (req, res) => {
+app.get('/auth/facebook/callback', authLimiter, (req, res, next) => {
   const school = req.query.school || 'dlsu';
-  const token = jwt.sign({ id: req.user.id, school }, JWT_SECRET);
-  res.redirect(`/oauth-success.html?token=${token}&display=${encodeURIComponent(req.user.display_name)}&school=${school}`);
+  passport.authenticate('facebook', (err, user, info) => {
+    if (err) return res.status(500).send('Authentication error');
+    if (!user) return res.status(401).send('Authentication failed');
+    // Enforce domain based on stored user email
+    const db = getDb(school);
+    db.get('SELECT id, email, display_name FROM users WHERE id = ?', [user.id], (e, row) => {
+      if (e || !row) { db.close(); return res.status(500).send('User fetch error'); }
+      const lower = String(row.email || '').trim().toLowerCase();
+      const domain = lower.includes('@') ? lower.split('@').pop() : '';
+      if (!domain || !APPROVED_EMAIL_DOMAINS.has(domain)) {
+        try { logAudit({ school, entity_type:'auth', action:'unauthorized_domain', actor_type:'facebook', actor_id:user.id, details:`email=${lower}` }); } catch (_) {}
+        db.close();
+        return res.status(403).send('Forbidden: unauthorized email domain');
+      }
+      const token = jwt.sign({ id: user.id, school }, JWT_SECRET);
+      db.close();
+      res.redirect(`/oauth-success.html?token=${token}&display=${encodeURIComponent(row.display_name || 'You')}&school=${school}`);
+    });
+  })(req, res, next);
 });
 
 
 app.get('/auth/failure', (req, res) => {
-  res.status(401).send('Authentication failed');
+  const reason = req.query.reason || '';
+  const code = reason === 'domain' ? 403 : 401;
+  res.status(code).send(code === 403 ? 'Forbidden: unauthorized domain' : 'Authentication failed');
 });
 
 
