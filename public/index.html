@@ -164,18 +164,28 @@
     #index-page .card { border: 2px solid #e5e7eb; border-radius: 18px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); transition: all var(--t) var(--ease); }
     #index-page .card:hover { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(0,0,0,0.12); border-color: var(--primary); }
     #index-page .card h3 { margin: 6px 0 8px; }
-
-    /* ===== Domain Validation Banner ===== */
-    .domain-banner { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:12px; padding:12px 16px; border-radius:12px; background: linear-gradient(110deg, #3b82f6 0%, #10b981 50%, #ef4444 100%); background-size: 200% 200%; animation: gradient-move 10s ease infinite; color:#fff; }
-    .domain-banner label { font-weight:700; }
-    .domain-banner input { flex:1; min-width:240px; max-width:420px; border-radius:10px; padding:10px 12px; border:2px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.15); color:#fff; }
-    .domain-banner input::placeholder { color: rgba(255,255,255,0.8); }
-    .domain-banner .domains { display:flex; flex-wrap:wrap; gap:8px; }
-    .domain-chip { background: rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:9999px; font-size:12px; font-weight:700; border:1px solid rgba(255,255,255,0.35); }
-    .domain-feedback { width:100%; font-size:13px; margin-top:6px; }
-    .domain-feedback.error { color:#fee2e2; }
-    .domain-feedback.success { color:#d1fae5; }
-    @media (max-width: 768px) { .domain-banner { flex-direction:column; align-items:flex-start; } .domain-banner input{ width:100%; } }
+    /* Guidelines modal styles */
+    .guidelines-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 10000; }
+    .guidelines-modal.active { display: flex; }
+    .guidelines-content { background:#fff; border-radius:16px; box-shadow:0 24px 48px rgba(0,0,0,0.25); max-width:920px; width:94%; padding:0; min-height:560px; transform: scale(0.95); transition: transform 300ms ease, opacity 300ms ease; opacity:.95; position:relative; }
+    .guidelines-modal.active .guidelines-content { transform: scale(1.12); opacity:1; }
+    .modal-close { position:absolute; top:12px; right:12px; background:transparent; border:none; font-size:20px; cursor:pointer; color:#6b7280; z-index:2; }
+    .guidelines-grid { display:grid; grid-template-columns:1.2fr 1fr; }
+    .guidelines-left { padding:32px; background: linear-gradient(180deg,#f9fafb 0%,#eef2ff 100%); border-top-left-radius:16px; border-bottom-left-radius:16px; min-height:560px; display:flex; flex-direction:column; justify-content:center; }
+    .guidelines-right { min-height:560px; border-top-right-radius:16px; border-bottom-right-radius:16px; display:flex; padding:20px; }
+    .screen-card { background:#fff; border-radius:12px; box-shadow:0 12px 30px rgba(0,0,0,0.12); overflow:hidden; display:flex; align-items:center; justify-content:center; width:100%; }
+    .screen-card img { width:100%; height:100%; object-fit:contain; }
+    .guidelines-title { font-size:28px; font-weight:800; color:#111827; margin-bottom:6px; }
+    .guidelines-sub { color:#6b7280; margin-bottom:18px; font-size:15px; }
+    .guidelines-cta { display:inline-flex; align-items:center; justify-content:center; gap:10px; border:2px solid #d1d5db; border-radius:14px; padding:12px 18px; font-weight:500; cursor:pointer; transition:all 200ms ease; background:#fff; width:94%; margin:12px auto; }
+    .guidelines-cta:hover { transform: translateY(-2px); box-shadow:0 10px 24px rgba(0,0,0,0.12); border-color:#9ca3af; }
+    .guidelines-cta svg { width:22px; height:22px; }
+    .guidelines-text { color:#374151; line-height:1.7; margin-top:16px; }
+    .guidelines-links { margin-top:12px; display:flex; gap:16px; flex-wrap:wrap; }
+    .guidelines-links a { color:#2563eb; font-weight:700; text-decoration:none; font-size:14px; }
+    .guidelines-links a:hover { text-decoration:underline; }
+    .modal-close:hover { color:#111827; }
+    
   </style>
 </head>
 
@@ -189,17 +199,6 @@
         <button id="nav-subjects" class="auth-btn" aria-controls="spa-container" aria-label="Show subjects">Subjects</button>
         <button id="nav-notes" class="auth-btn" aria-controls="spa-container" aria-label="Show notes">Notes</button>
         <button id="nav-reviews" class="auth-btn" aria-controls="spa-container" aria-label="Show reviews">Reviews</button>
-      </div>
-      <div class="domain-banner" role="region" aria-label="Email domain validation">
-        <label for="school-email">School Email</label>
-        <input id="school-email" type="email" inputmode="email" autocomplete="email" placeholder="name@dlsu.edu.ph" aria-describedby="domain-feedback" aria-invalid="false">
-        <div class="domains" aria-label="Approved domains">
-          <span class="domain-chip">@dlsu.edu.ph</span>
-          <span class="domain-chip">@ateneo.edu</span>
-          <span class="domain-chip">@upd.edu.ph</span>
-          <span class="domain-chip">@benilde.edu.ph</span>
-        </div>
-        <div id="domain-feedback" class="domain-feedback" aria-live="polite"></div>
       </div>
       <div class="search-panel" id="subjects-search-panel" style="position: relative; display:none;">
         <input
@@ -220,6 +219,31 @@
   <div id="modal" class="modal hidden">
     <div class="modal-inner" id="modal-content"></div>
     <button id="modal-close">✕</button>
+  </div>
+  <div class="guidelines-modal" id="guidelinesModal" role="dialog" aria-modal="true" aria-labelledby="guidelinesTitle" aria-describedby="guidelinesDesc" onclick="closeGuidelinesModal(event)">
+    <div class="guidelines-content" onclick="event.stopPropagation()">
+      <button class="modal-close" aria-label="Close" onclick="closeGuidelinesModal(event)">✕</button>
+      <div class="guidelines-grid">
+        <div class="guidelines-left">
+          <h2 id="guidelinesTitle" class="guidelines-title">Log in or sign up now!</h2>
+          <p class="guidelines-sub">Use your school email address to continue with Phroftopick.</p>
+          <button class="guidelines-cta" onclick="startSchoolEmailLogin()" aria-label="Continue with School Email">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Continue with School Email
+          </button>
+          <p id="guidelinesDesc" class="guidelines-text">By using Phroftopick, you agree to follow the guidelines outlined in the Terms of Use and Privacy Policy of Phroftopick.</p>
+          <div class="guidelines-links">
+            <a href="/terms" target="_blank" rel="noopener">Terms of Use</a>
+            <a href="/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>
+          </div>
+        </div>
+        <div class="guidelines-right" aria-hidden="true">
+          <div class="screen-card">
+            <img src="images/home-pic1.png" alt="App preview" onerror="this.src='https://placehold.co/800x500/ffffff/00693e?text=Preview'">
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ===== CONTENT ===== -->
@@ -256,6 +280,19 @@
         console.warn("⚠️ Change School button not found");
       }
     }
+  </script>
+  <script>
+    function openGuidelinesModal(){ const m=document.getElementById('guidelinesModal'); m && m.classList.add('active'); }
+    function closeGuidelinesModal(event){ const t=event?event.target:null; if(!t || t.id==='guidelinesModal' || t.classList.contains('modal-close')) { const m=document.getElementById('guidelinesModal'); m && m.classList.remove('active'); } }
+    function startSchoolEmailLogin(){ const btn=document.querySelector('.guidelines-cta'); if(btn){ btn.classList.add('clicked'); setTimeout(()=>{ window.location.href='/auth/google'; }, 400);} else { window.location.href='/auth/google'; } }
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const m=document.getElementById('guidelinesModal'); m && m.classList.remove('active'); } });
+    // Intercept header auth buttons
+    document.addEventListener('click', (e)=>{
+      const el = e.target.closest('.auth-btn');
+      if (!el) return;
+      const txt = (el.textContent||'').trim().toLowerCase();
+      if (txt==='log in' || txt==='login' || txt==='sign up') { e.preventDefault(); openGuidelinesModal(); }
+    });
   </script>
   <script>
     (function(){
@@ -487,41 +524,7 @@
       if(btnSubjects) { setActive(btnSubjects); applySubjectVisibilityState(false); loadSubjects(); }
     })();
   </script>
-  <script>
-    // ===== Client-side Email Domain Validation =====
-    (function(){
-      const APPROVED_DOMAINS = new Set(['dlsu.edu.ph','ateneo.edu','upd.edu.ph','benilde.edu.ph']);
-      const emailInput = document.getElementById('school-email');
-      const feedbackEl = document.getElementById('domain-feedback');
-      if (!emailInput || !feedbackEl) return;
-
-      function validateEmailDomain(value){
-        const v = String(value || '').trim().toLowerCase();
-        const validFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-        if (!validFormat) return { ok:false, reason:'Enter a valid email address.' };
-        const domain = v.split('@').pop();
-        const ok = APPROVED_DOMAINS.has(domain);
-        return ok ? { ok:true, domain } : { ok:false, reason:`Only ${Array.from(APPROVED_DOMAINS).map(d=>'@'+d).join(', ')} are allowed.` };
-      }
-
-      function updateUI(){
-        const res = validateEmailDomain(emailInput.value);
-        if (res.ok){
-          emailInput.setAttribute('aria-invalid','false');
-          feedbackEl.className = 'domain-feedback success';
-          feedbackEl.textContent = `Domain approved: @${res.domain}`;
-        } else {
-          emailInput.setAttribute('aria-invalid','true');
-          feedbackEl.className = 'domain-feedback error';
-          feedbackEl.textContent = res.reason;
-        }
-      }
-
-      emailInput.addEventListener('input', updateUI);
-      emailInput.addEventListener('blur', updateUI);
-      updateUI();
-    })();
-  </script>
+  
 
   <script src="js/app.js"></script>
 
