@@ -372,8 +372,9 @@
           </div>`;
           function formatPH(ts){
             try{
-              return new Intl.DateTimeFormat('en-PH',{timeZone:'Asia/Manila',year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(ts));
-            }catch(_){ return String(ts).slice(0,16); }
+              const s = new Intl.DateTimeFormat('en-PH',{timeZone:'Asia/Manila',year:'numeric',month:'long',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(ts));
+              return s + ' (PST)';
+            }catch(_){ return String(ts); }
           }
           const html = heading + `<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px;">` +
             list.map(n=>`
@@ -435,7 +436,7 @@
           }
           const html = heading + `<div class="reviews-list">` +
             list.map(v=>{
-              const stars = Math.max(0, Math.min(5, Math.round(Number(v.rating||0))));
+              const stars = parseInt(v.rating || 0, 10) || 0;
               const starDisplay = '★'.repeat(stars) + '☆'.repeat(5 - stars);
               const avatarSrc = v.anonymous ? 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'56\' height=\'56\'%3E%3Crect fill=\'%23f3f4f6\' width=\'56\' height=\'56\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-size=\'24\'%3EA%3C/text%3E%3C/svg%3E' : (v.photo_path || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'56\' height=\'56\'%3E%3Crect fill=\'%23f3f4f6\' width=\'56\' height=\'56\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-size=\'24\'%3E👤%3C/text%3E%3C/svg%3E');
               const displayName = v.anonymous ? 'Anonymous' : (v.display_name || 'User');
@@ -445,7 +446,7 @@
               ].filter(Boolean).join(' • ');
               const tags = (v.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
               const courseDisplay = (v.course_code||'').toString().toUpperCase().slice(0,7);
-              const phDate = formatPH(v.created_at);
+              const phDate = v.created_at_pst || formatPH(v.created_at);
               const badges = [];
               if (v.would_take_again === 'Yes') badges.push('<span class="badge badge-success">✓ Would take again</span>');
               if (v.would_take_again === 'No') badges.push('<span class="badge badge-danger">✗ Would not take again</span>');
@@ -467,7 +468,7 @@
                   </div>
                 </div>
                 <div class="review-content">
-                  ${courseDisplay ? `<p><strong>Course:</strong> ${courseDisplay}</p>` : ''}
+                  <p><strong>Course:</strong> ${courseDisplay || 'N/A'}</p>
                   <p>${String(v.review_text||'')}</p>
                   ${tags.length ? `<div class="review-tags">${tags.map(t => `<span class=\"review-tag\">${t}</span>`).join('')}</div>` : ''}
                 </div>

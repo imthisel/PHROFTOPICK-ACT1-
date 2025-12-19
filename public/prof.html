@@ -672,16 +672,7 @@
             const tags = r.tags ? r.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
             const courseDisplay = (r.course_code || '').toString().toUpperCase().slice(0,7);
             
-            // Format date/time for Philippines timezone
-            const phDate = r.created_at ? new Date(r.created_at).toLocaleString('en-PH', { 
-              timeZone: 'Asia/Manila',
-              month: 'numeric',
-              day: 'numeric', 
-              year: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit',
-              hour12: true
-            }) : '';
+            const phDate = r.created_at_pst || '';
             
             // Build footer items with emphasis
             const footerItems = [];

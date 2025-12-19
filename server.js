@@ -78,6 +78,45 @@ const DB_DIR = (() => {
 
 // Admin roles and helpers
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin-secret';
+
+// ===== Timezone helpers (Asia/Manila) =====
+function formatPSTDisplay(isoTs) {
+  try {
+    const d = new Date(isoTs);
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Manila',
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }).formatToParts(d);
+    const val = (t) => (parts.find(p => p.type === t) || {}).value || '';
+    const month = val('month');
+    const day = val('day');
+    const year = val('year');
+    const hour = val('hour');
+    const minute = val('minute');
+    const ampm = val('dayPeriod');
+    return `${month} ${day}, ${year} ${hour}:${minute} ${ampm} PST`;
+  } catch (_) {
+    return String(isoTs || '');
+  }
+}
+
+function validateAsiaManilaOffset() {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', timeZoneName: 'short' }).formatToParts(new Date());
+    const tzName = (parts.find(p => p.type === 'timeZoneName') || {}).value || '';
+    const ok = /GMT\+8/i.test(tzName) || /UTC\+8/i.test(tzName) || /\+?8/.test(tzName) || /PST/i.test(tzName);
+    if (!ok) console.warn('⚠️ Asia/Manila timeZoneName unexpected:', tzName);
+    else console.log('✅ Asia/Manila timezone validated:', tzName);
+  } catch (e) {
+    console.warn('⚠️ Asia/Manila timezone validation error:', e.message);
+  }
+}
+validateAsiaManilaOffset();
 const ADMIN_PASSWORD_VIEWER = process.env.ADMIN_PASSWORD_VIEWER || 'admin-view';
 const ADMIN_PASSWORD_MOD = process.env.ADMIN_PASSWORD_MOD || 'admin-mod';
 const ADMIN_PASSWORD_ADMIN = process.env.ADMIN_PASSWORD_ADMIN || ADMIN_PASSWORD;
@@ -947,7 +986,8 @@ app.get('/api/profs/:id/reviews', (req, res) => {
     (err, rows) => {
       db.close();
       if (err) return res.status(500).json({ error: 'DB error' });
-      res.json({ reviews: rows });
+      const withPst = (rows || []).map(r => ({ ...r, created_at_pst: formatPSTDisplay(r.created_at) }));
+      res.json({ reviews: withPst });
     }
   );
 });
@@ -1874,7 +1914,10 @@ app.get('/api/reviews/recent', (req, res) => {
   const db = getDb(school);
   const limit = Math.min(parseInt(req.query.limit || '5', 10) || 5, 10);
   const sql = `
-    SELECT pr.id, pr.prof_id, pr.user_id, pr.display_name, pr.anonymous, pr.course_code, pr.review_text, pr.rating, pr.created_at,
+    SELECT pr.id, pr.prof_id, pr.user_id, pr.display_name, pr.anonymous,
+           pr.course_code, pr.review_text, pr.rating, pr.created_at,
+           pr.would_take_again, pr.attainable_4, pr.deadline_leniency,
+           pr.workload_rating, pr.tags, pr.photo_path, pr.view_count,
            p.name AS professor_name,
            s.code AS subject_code, s.name AS subject_name
     FROM prof_reviews pr
@@ -1885,7 +1928,8 @@ app.get('/api/reviews/recent', (req, res) => {
   db.all(sql, [limit], (err, rows) => {
     db.close();
     if (err) return res.status(500).json({ error: 'DB error' });
-    res.json({ reviews: rows || [] });
+    const withPst = (rows || []).map(r => ({ ...r, created_at_pst: formatPSTDisplay(r.created_at) }));
+    res.json({ reviews: withPst });
   });
 });
 
