@@ -310,6 +310,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Serve uploaded files even if UPLOADS_DIR is outside /public
 // uploadsDir is initialized later; serving is configured after initialization
 
+// Serve favicon at the root for crawlers (Google site icon)
+app.get('/favicon.ico', (req, res) => {
+  try {
+    const iconPath = path.join(__dirname, 'public', 'images', 'favicon.png');
+    if (fs.existsSync(iconPath)) {
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.type('png');
+      return res.sendFile(iconPath);
+    }
+  } catch (_) {}
+  res.status(404).end();
+});
+
 
 // =================== DATABASE INIT ===================
 const schema = `
