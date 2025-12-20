@@ -287,6 +287,12 @@ app.get('/privacy-policy', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'privacy-policy.html'));
 });
 
+// Google Search Console verification file (must be served with .html filename)
+app.get('/google87c5bf40ddaa1a87.html', (req, res) => {
+  res.type('text/html');
+  res.sendFile(path.join(__dirname, 'public', 'google87c5bf40ddaa1a87.html'));
+});
+
 // Redirect old .html URLs (top-level only) to extensionless versions
 app.use((req, res, next) => {
   const m = req.path.match(/^\/([^\/]+)\.html$/);
