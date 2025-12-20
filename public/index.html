@@ -79,15 +79,17 @@
     #index-page .container { max-width: 1120px; }
     :root { --header-height: 64px; }
     /* Fixed controls bar (nav + search) */
-    #index-controls { 
-      position: fixed !important; 
-      top: var(--header-height) !important; 
-      left: 0; 
-      right: 0; 
-      z-index: 1000; 
-      transform: translateZ(0);
-      -webkit-transform: translateZ(0);
-      width: 100%;
+    @media (min-width: 768px) {
+      #index-controls { 
+        position: fixed !important; 
+        top: var(--header-height) !important; 
+        left: 0; 
+        right: 0; 
+        z-index: 1000; 
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        width: 100%;
+      }
     }
     #index-controls .index-controls-inner { max-width: 1120px; margin: 0 auto; padding: 10px 16px; }
     /* Typography: Inter for headings, Poppins for body */
@@ -159,6 +161,13 @@
     #subjects-search-panel { background: #fff; border: 2px solid #e5e7eb; border-radius: 16px; padding: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); margin-top: var(--controls-gap-y); }
     /* Spacer to prevent overlap with fixed controls */
     #index-controls-spacer { height: 120px; }
+    @media (max-width: 767px) {
+      #index-controls { 
+        position: static !important; 
+        top: auto !important; 
+      }
+      #index-controls-spacer { height: 0; }
+    }
     #subjects-search-panel input { border-radius: 12px; padding: 12px 14px; }
     #subjects-search-panel #btn-search, #subjects-search-panel #btn-list-all { border-radius: 12px; }
 
