@@ -296,7 +296,31 @@
   <script>
     function openGuidelinesModal(){ const m=document.getElementById('guidelinesModal'); m && m.classList.add('active'); }
     function closeGuidelinesModal(event){ const t=event?event.target:null; if(!t || t.id==='guidelinesModal' || t.classList.contains('modal-close')) { const m=document.getElementById('guidelinesModal'); m && m.classList.remove('active'); } }
-    function startSchoolEmailLogin(){ const btn=document.querySelector('.guidelines-cta'); if(btn){ btn.classList.add('clicked'); setTimeout(()=>{ window.location.href='/auth/google'; }, 400);} else { window.location.href='/auth/google'; } }
+    async function startSchoolEmailLogin(){ const btn=document.querySelector('.guidelines-cta'); const school = localStorage.getItem('selectedSchool')||'dlsu'; try{ const modal = document.getElementById('guidelinesModal'); if(btn){ btn.classList.add('clicked'); } const res = await fetch(`/api/auth/verified-accounts?school=${school}`); let data = await res.json().catch(()=>({})); let accounts = Array.isArray(data.accounts)? data.accounts : []; if(!accounts.length){ try{ accounts = JSON.parse(localStorage.getItem('auth_accounts')||'[]'); }catch(_){ accounts = []; } } const container = document.getElementById('modal-content'); const hasAccounts = accounts.length>0; const html = `
+      <div class="container" style="padding:16px;">
+        <h2 style="margin:0 0 12px; font-size:22px; font-weight:800; letter-spacing:-0.3px;">Choose an account</h2>
+        <div style="display:grid; grid-template-columns:1fr; gap:12px;">
+          ${hasAccounts? accounts.map(a=>`
+            <button class="auth-btn" data-email="${a.email||''}" data-provider="${a.provider||''}" style="display:flex; align-items:center; justify-content:space-between;">
+              <span style="display:flex; align-items:center; gap:10px;">
+                <img src="${a.photo_url||'/images/default-logo.png'}" alt="avatar" style="width:28px; height:28px; border-radius:50%; object-fit:cover;">
+                <span style="font-weight:700;">${a.display_name||a.email||'Account'}</span>
+              </span>
+              <span style="font-size:12px; color:#6b7280;">${a.email||''}</span>
+            </button>
+          `).join('') : `<div class="card" style="padding:16px; text-align:center; color:#374151;">No verified accounts found</div>`}
+        </div>
+        <div style="margin-top:14px; display:flex; align-items:center; gap:10px;">
+          <button id="add-account-btn" class="auth-btn" style="font-weight:800;">Add another account</button>
+          <button id="cancel-account-select" class="auth-btn secondary">Cancel</button>
+        </div>
+      </div>`;
+      const modalShell = document.getElementById('modal'); const closeBtn = document.getElementById('modal-close'); if(container){ container.innerHTML = html; } if(modalShell){ modalShell.classList.remove('hidden'); }
+      const bindSelect = () => { container.querySelectorAll('.auth-btn[data-email]').forEach(btn=>{ btn.onclick = () => { sessionStorage.setItem('post_auth_redirect', '/index'); const p = btn.getAttribute('data-provider')||'google'; window.location.href = `/auth/${p}`; }; }); const addBtn = document.getElementById('add-account-btn'); if(addBtn){ addBtn.onclick = () => { sessionStorage.setItem('post_auth_redirect', '/index'); window.location.href = '/auth/google'; }; } const cancelBtn = document.getElementById('cancel-account-select'); if(cancelBtn){ cancelBtn.onclick = () => { if(modalShell){ modalShell.classList.add('hidden'); } if(modal){ modal.classList.remove('active'); } }; } if(closeBtn){ closeBtn.onclick = () => { if(modalShell){ modalShell.classList.add('hidden'); } if(modal){ modal.classList.remove('active'); } }; }
+      }; bindSelect();
+    } catch(_){ if(btn){ setTimeout(()=>{ window.location.href='/auth/google'; }, 400);} else { window.location.href='/auth/google'; } }
+    }
+    try{ window.__test_startSchoolEmailLogin = startSchoolEmailLogin; }catch(_){}
     document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ const m=document.getElementById('guidelinesModal'); m && m.classList.remove('active'); } });
     // Intercept header auth buttons
     document.addEventListener('click', (e)=>{

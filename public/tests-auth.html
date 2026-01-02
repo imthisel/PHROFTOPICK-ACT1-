@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Auth Flow Tests</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body{font-family:Poppins,system-ui;margin:0;padding:20px;color:#111827}
+    .result{padding:12px;border-radius:12px;margin-bottom:8px}
+    .pass{background:#d1fae5;color:#065f46}
+    .fail{background:#fee2e2;color:#991b1b}
+    iframe{width:100%;height:720px;border:1px solid #e5e7eb;border-radius:12px;margin-top:16px}
+  </style>
+</head>
+<body>
+  <h1>Auth Flow Tests</h1>
+  <div id="results"></div>
+  <iframe id="app" src="/index.html"></iframe>
+  <script>
+    const results = document.getElementById('results');
+    function log(ok, msg){ const d=document.createElement('div'); d.className='result '+(ok?'pass':'fail'); d.textContent=msg; results.appendChild(d); }
+    const iframe = document.getElementById('app');
+    iframe.addEventListener('load', async () => {
+      const win = iframe.contentWindow;
+      try{
+        const originalFetch = win.fetch;
+        win.fetch = async (url) => {
+          if(String(url).includes('/api/auth/verified-accounts')){
+            return { ok:true, json: async () => ({ accounts: [ { email:'student@dlsu.edu.ph', display_name:'DLSU Student', photo_url:'/images/dlsu-logo.png', provider:'google' } ] }) };
+          }
+          return originalFetch(url);
+        };
+        const before = win.document.getElementById('modal');
+        const btn = win.document.querySelector('.guidelines-cta');
+        if(!btn){ log(false, 'Login CTA not found'); return; }
+        await win.__test_startSchoolEmailLogin();
+        const modal = win.document.getElementById('modal');
+        const listButtons = modal.querySelectorAll('.auth-btn[data-email]');
+        log(listButtons.length>0, 'Account selection screen appears before domain errors');
+        const addBtn = win.document.getElementById('add-account-btn');
+        const origHref = win.location.href;
+        const origReplace = win.location.replace;
+        let navigated = '';
+        win.location.replace = (h) => { navigated = h; };
+        addBtn.click();
+        setTimeout(()=>{ log(navigated.includes('/auth/google'), 'Add another account integrates with existing auth'); }, 100);
+        const headerAuth = win.document.querySelector('.auth-btn');
+        log(!!headerAuth, 'Existing login methods available');
+      } catch(e){ log(false, 'Tests failed: '+e.message); }
+    });
+  </script>
+</body>
+</html>
