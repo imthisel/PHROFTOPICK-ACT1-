@@ -508,30 +508,69 @@
 
     /* 4. SCHOOLS SUPPORTED */
     .schools-section {
-      background: white;
+      background: linear-gradient(to bottom, #ffffff, #f9fafb);
       border-top: 1px solid #eee;
+      position: relative;
     }
     
     .schools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      margin-top: 40px;
+      justify-items: center;
+    }
+
+    .school-card {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 240px;
+      height: 160px;
       display: flex;
-      justify-content: center;
       align-items: center;
-      gap: 60px;
-      flex-wrap: wrap;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+      border: 1px solid rgba(0,0,0,0.05);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .school-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: #eee;
+      transition: all 0.3s ease;
+    }
+
+    /* Individual brand colors for hover borders */
+    .school-card:nth-child(1):hover::before { background: #00693e; } /* DLSU Green */
+    .school-card:nth-child(2):hover::before { background: #00693e; } /* Benilde Green */
+    .school-card:nth-child(3):hover::before { background: #003366; } /* Ateneo Blue */
+    .school-card:nth-child(4):hover::before { background: #7b1113; } /* UP Maroon */
+
+    .school-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
     }
     
     .school-logo {
       height: 80px;
       width: auto;
-      filter: grayscale(100%);
-      opacity: 0.6;
-      transition: all 0.4s ease;
-      cursor: pointer;
+      max-width: 100%;
+      object-fit: contain;
+      filter: none; /* Full color */
+      opacity: 1;
+      transition: transform 0.3s ease;
     }
     
-    .school-logo:hover {
-      filter: grayscale(0%);
-      opacity: 1;
+    .school-card:hover .school-logo {
       transform: scale(1.1);
     }
 
@@ -1114,8 +1153,11 @@
   <!-- ========== 3. FEATURES SECTION ========== -->
   <section class="features-section">
     <div class="section-container">
-      <h2 class="section-title">Why Students Choose Us</h2>
-      <p class="section-subtitle">Everything you need to survive your semester.</p>
+      <div style="text-align: center;">
+        <span class="about-badge">Features</span>
+        <h2 class="section-title">Why Students Choose Us</h2>
+        <p class="section-subtitle">Everything you need to survive your semester.</p>
+      </div>
       
       <div class="features-grid">
         <!-- Feature 1 -->
@@ -1160,14 +1202,25 @@
   <!-- ========== 4. SCHOOLS SUPPORTED ========== -->
   <section class="schools-section">
     <div class="section-container">
-      <h2 class="section-title">Schools Supported</h2>
-      <p class="section-subtitle">Proudly serving the Big Four universities.</p>
+      <div style="text-align: center;">
+        <span class="about-badge">Universities</span>
+        <h2 class="section-title">Schools Supported</h2>
+        <p class="section-subtitle">Proudly serving the Big Four universities.</p>
+      </div>
       
       <div class="schools-grid">
-        <img src="images/dlsu-logo.png" alt="DLSU Manila" class="school-logo" title="DLSU Manila">
-        <img src="images/benilde-logo.png" alt="DLSU Benilde" class="school-logo" title="DLSU Benilde">
-        <img src="images/ateneo-logo.png" alt="Ateneo de Manila" class="school-logo" title="Ateneo de Manila">
-        <img src="images/up-logo.png" alt="UP Diliman" class="school-logo" title="UP Diliman">
+        <div class="school-card" title="DLSU Manila">
+          <img src="images/dlsu-logo.png" alt="DLSU Manila" class="school-logo">
+        </div>
+        <div class="school-card" title="DLSU Benilde">
+          <img src="images/benilde-logo.png" alt="DLSU Benilde" class="school-logo">
+        </div>
+        <div class="school-card" title="Ateneo de Manila">
+          <img src="images/ateneo-logo.png" alt="Ateneo de Manila" class="school-logo">
+        </div>
+        <div class="school-card" title="UP Diliman">
+          <img src="images/up-logo.png" alt="UP Diliman" class="school-logo">
+        </div>
       </div>
     </div>
   </section>
@@ -1175,8 +1228,11 @@
   <!-- ========== 5. PRICING SECTION ========== -->
   <section class="pricing-section">
     <div class="section-container">
-      <h2 class="section-title">Simple Pricing</h2>
-      <p class="section-subtitle">Invest in your grades for less than the price of a coffee.</p>
+      <div style="text-align: center;">
+        <span class="about-badge">Pricing</span>
+        <h2 class="section-title">Simple Pricing</h2>
+        <p class="section-subtitle">Invest in your grades for less than the price of a coffee.</p>
+      </div>
       
       <div class="pricing-grid">
         <!-- Free Plan -->
@@ -1195,7 +1251,7 @@
 
         <!-- Premium Plan -->
         <div class="pricing-card featured">
-          <span class="about-badge" style="background:#e6f4ea; color:#00693e;">Most Popular</span>
+          <span class="about-badge" style="background:#e6f4ea; color:#00693e; margin-bottom: 20px;">Most Popular</span>
           <h3>Subject Pass</h3>
           <div class="price-amount">₱200</div>
           <p class="price-period">One-time payment</p>
@@ -1214,6 +1270,7 @@
   <!-- ========== 6. DATA SOURCES (SCROLLABLE) ========== -->
   <section class="sources-section">
     <div class="section-container" style="text-align: center; margin-bottom: 40px;">
+      <span class="about-badge">Transparency</span>
       <h2 class="section-title" style="margin-bottom: 10px;">Our Data Sources</h2>
       <p style="color: #666;">We aggregate reviews from trusted communities.</p>
     </div>
@@ -1246,7 +1303,10 @@
   <!-- ========== 7. FAQ SECTION ========== -->
   <section class="faq-section">
     <div class="section-container">
-      <h2 class="section-title">Frequently Asked Questions</h2>
+      <div style="text-align: center;">
+        <span class="about-badge">Support</span>
+        <h2 class="section-title">Frequently Asked Questions</h2>
+      </div>
 
       <div class="faq-item">
         <div class="faq-question">
