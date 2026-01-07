@@ -34,19 +34,12 @@
         return out;
       }
       const qs = parseQS();
-      // expected: token, display, school, photo, email (email optional)
+      // expected: token, display, school, photo (photo is optional)
       if (qs.token) {
         try {
           localStorage.setItem('token', qs.token);
           if (qs.display) localStorage.setItem('user_display', qs.display);
           if (qs.photo) localStorage.setItem('user_photo', qs.photo);
-          if (qs.email) localStorage.setItem('user_email', qs.email);
-          try {
-            const existing = JSON.parse(localStorage.getItem('auth_accounts')||'[]');
-            const acct = { email: qs.email||'', display_name: qs.display||'', photo_url: qs.photo||'', provider: qs.provider||'google' };
-            const next = Array.isArray(existing)? existing.filter(a=>a.email!==acct.email).concat([acct]) : [acct];
-            localStorage.setItem('auth_accounts', JSON.stringify(next));
-          } catch(_){ }
         } catch (err) { console.error('Failed to store auth token', err); }
       } else {
         console.warn('No token in URL — oauth might have failed');

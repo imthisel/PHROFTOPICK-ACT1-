@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -178,7 +178,7 @@
       flex: 1;
       max-width: 600px;
       text-align: left; /* Strict left alignment like Stripe */
-      margin-left: 192px;
+      margin-left: 200px; /* Shift text more to the right as requested */
       padding-top: 0; /* Moved up (was 40px) */
       z-index: 10; /* Ensure text is above background elements */
     }
@@ -342,14 +342,14 @@
         text-align: center;
         max-width: 800px;
         margin-bottom: 60px;
-        margin-left: 0; /* Reset desktop margin */
+        margin-left: 0;
       }
       
       .hero-visuals {
         width: 100%;
         height: auto;
         min-height: 500px;
-        transform: none; /* Remove rotation on tablet/mobile for simpler layout */
+        transform: none;
         margin-right: 0;
         padding-right: 0;
         display: grid;
@@ -369,7 +369,7 @@
 
       .hero-text h1 {
         font-size: 42px;
-        margin-bottom: 30px; /* Reset margin for mobile */
+        margin-bottom: 30px;
       }
       
       .hero-visuals {
@@ -381,7 +381,337 @@
       .landing-header {
         padding: 16px 20px;
       }
+      
+      .features-grid, .schools-grid, .pricing-grid {
+        grid-template-columns: 1fr !important;
+      }
+      
+      .section-title {
+        font-size: 32px !important;
+      }
     }
+
+
+    /* ========== NEW SECTIONS STYLING ========== */
+    
+    /* Global Section Styles */
+    section {
+      padding: 100px 20px;
+      position: relative;
+    }
+    
+    .section-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 42px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: #1a1a1a;
+      letter-spacing: -1px;
+    }
+    
+    .section-subtitle {
+      text-align: center;
+      font-size: 18px;
+      color: #666;
+      max-width: 700px;
+      margin: 0 auto 60px;
+      line-height: 1.6;
+    }
+
+    /* 2. ABOUT US */
+    .about-section {
+      background: #fff;
+      text-align: center;
+    }
+    
+    .about-badge {
+      display: inline-block;
+      background: #e6f4ea;
+      color: #00693e;
+      padding: 8px 16px;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .about-highlight {
+      font-size: 28px;
+      font-weight: 700;
+      color: #00693e;
+      margin: 30px auto;
+      max-width: 800px;
+      line-height: 1.4;
+    }
+
+    /* 3. FEATURES */
+    .features-section {
+      background: #f9fafb;
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 40px;
+    }
+    
+    .feature-item {
+      background: white;
+      padding: 40px;
+      border-radius: 24px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(0,0,0,0.05);
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+    }
+    
+    .feature-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+      border-color: #00693e;
+    }
+    
+    .feature-icon-box {
+      background: #e6f4ea;
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+      color: #00693e;
+    }
+    
+    .feature-content h3 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #1a1a1a;
+    }
+    
+    .feature-content p {
+      font-size: 16px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    /* 4. SCHOOLS SUPPORTED */
+    .schools-section {
+      background: white;
+      border-top: 1px solid #eee;
+    }
+    
+    .schools-grid {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 60px;
+      flex-wrap: wrap;
+    }
+    
+    .school-logo {
+      height: 80px;
+      width: auto;
+      filter: grayscale(100%);
+      opacity: 0.6;
+      transition: all 0.4s ease;
+      cursor: pointer;
+    }
+    
+    .school-logo:hover {
+      filter: grayscale(0%);
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    /* 5. PRICING */
+    .pricing-section {
+      background: #f0f9f4; /* Subtle green tint */
+    }
+    
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 40px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+    .pricing-card {
+      background: white;
+      padding: 50px 40px;
+      border-radius: 30px;
+      text-align: center;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      position: relative;
+    }
+    
+    .pricing-card.featured {
+      border-color: #00693e;
+      box-shadow: 0 20px 50px rgba(0,105,62,0.15);
+      transform: scale(1.05);
+      z-index: 2;
+    }
+    
+    .pricing-card:hover {
+      transform: translateY(-10px);
+    }
+    
+    .pricing-card.featured:hover {
+      transform: scale(1.05) translateY(-10px);
+    }
+    
+    .price-amount {
+      font-size: 48px;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin: 20px 0;
+    }
+    
+    .price-period {
+      font-size: 16px;
+      color: #888;
+      font-weight: 400;
+    }
+    
+    .pricing-features {
+      list-style: none;
+      margin: 30px 0;
+      text-align: left;
+    }
+    
+    .pricing-features li {
+      margin-bottom: 12px;
+      color: #555;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .check-icon {
+      color: #00693e;
+      font-weight: bold;
+    }
+    
+    .btn-pricing {
+      display: inline-block;
+      padding: 14px 30px;
+      border-radius: 50px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+    
+    .btn-pricing.outline {
+      border: 2px solid #ddd;
+      color: #555;
+    }
+    
+    .btn-pricing.outline:hover {
+      border-color: #1a1a1a;
+      color: #1a1a1a;
+    }
+    
+    .btn-pricing.primary {
+      background: #00693e;
+      color: white;
+      box-shadow: 0 4px 15px rgba(0,105,62,0.3);
+    }
+    
+    .btn-pricing.primary:hover {
+      background: #005230;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,105,62,0.4);
+    }
+
+    /* 6. DATA SOURCES (Marquee) */
+    .sources-section {
+      padding: 60px 0;
+      background: white;
+      overflow: hidden;
+      border-top: 1px solid #eee;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .marquee-container {
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .marquee-container::before,
+    .marquee-container::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      width: 150px;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+    
+    .marquee-container::before {
+      left: 0;
+      background: linear-gradient(to right, white, transparent);
+    }
+    
+    .marquee-container::after {
+      right: 0;
+      background: linear-gradient(to left, white, transparent);
+    }
+    
+    .marquee-track {
+      display: flex;
+      gap: 60px;
+      width: max-content;
+      animation: scroll 40s linear infinite;
+    }
+    
+    .marquee-track:hover {
+      animation-play-state: paused;
+    }
+    
+    .source-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 20px;
+      font-weight: 600;
+      color: #555;
+      white-space: nowrap;
+      padding: 10px 20px;
+      background: #f9fafb;
+      border-radius: 12px;
+      border: 1px solid #eee;
+    }
+    
+    .source-icon {
+      font-size: 24px;
+    }
+    
+    @keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* 7. FAQ */
+    .faq-section {
+      background: #fff;
+    }
+
 
 
     /* ========== FEATURES GRID ========== */
@@ -628,7 +958,7 @@
     /* ========== FOOTER ========== */
     .footer {
       text-align: center;
-      padding: 36px 20px;
+      padding: 60px 20px;
       /* Blue -> Green -> Red gradient like top */
       background: linear-gradient(110deg, #3b82f6 0%, #10b981 50%, #ef4444 100%);
       background-size: 200% 200%;
@@ -644,7 +974,7 @@
       opacity: 0.9;
     }
 
-    .footer-inner { max-width: 1200px; margin: 0 auto 10px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 24px; }
+    .footer-inner { max-width: 1200px; margin: 0 auto 18px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 24px; }
     .footer-logo { height: 40px; width: 40px; border-radius: 10px; background: white; padding: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
     .footer-links { display: flex; gap: 20px; justify-content: center; }
     .footer-links a { color: white; font-weight: 700; text-decoration: none; opacity: 0.9; }
@@ -652,10 +982,7 @@
     .footer-socials { display: flex; gap: 12px; }
     .social-btn { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,0.4); border-radius: 10px; transition: all 200ms ease; }
     .social-btn:hover { transform: translateY(-2px); background: rgba(255,255,255,0.1); }
-    .footer-copy { text-align: left; font-size: 13px; opacity: 0.9; }
-    .footer-bottom { max-width: 1200px; margin: 0 auto; padding-top: 8px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.25); }
-    .back-to-top { background: transparent; color: #ffffff; border: 2px solid rgba(255,255,255,0.6); border-radius: 9999px; padding: 10px 16px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
-    .back-to-top:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+    .footer-copy { text-align: center; font-size: 13px; opacity: 0.9; }
 
     /* ========== GUIDELINES MODAL ========== */
     .guidelines-modal {
@@ -687,11 +1014,9 @@
 
     .guidelines-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 0; align-items: stretch; }
     .guidelines-left { padding: 32px 32px 28px; background: linear-gradient(180deg, #f9fafb 0%, #eef2ff 100%); border-top-left-radius: 16px; border-bottom-left-radius: 16px; min-height: 560px; display: flex; flex-direction: column; justify-content: center; }
-    .guidelines-right { min-height: 560px; border-top-right-radius: 16px; border-bottom-right-radius: 16px; padding: 0; display: block; overflow: hidden; }
-    .guidelines-right img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    @keyframes zoomFade { from { transform: scale(1.02); opacity: 0; } to { transform: scale(1.12); opacity: 1; } }
-    .img-animate { animation: zoomFade 500ms ease forwards; }
-    .auth-btn.btn-clicked, .cta-button.btn-clicked { transform: translateY(-2px) scale(1.02); box-shadow: 0 10px 24px rgba(0,0,0,0.18); }
+    .guidelines-right { min-height: 560px; border-top-right-radius: 16px; border-bottom-right-radius: 16px; padding: 20px; display: flex; }
+    .screen-card { background: #fff; border-radius: 12px; box-shadow: 0 12px 30px rgba(0,0,0,0.12); overflow: hidden; display: flex; align-items: center; justify-content: center; width: 100%; }
+    .screen-card img { width: 100%; height: 100%; object-fit: contain; }
 
     .guidelines-title { font-size: 28px; font-weight: 800; color: #111827; margin-bottom: 6px; }
     .guidelines-sub { color: #6b7280; margin-bottom: 18px; font-size: 15px; }
@@ -722,8 +1047,8 @@
         <h1 class="brand-name">Phroftopick</h1>
       </div>
       <div class="auth-buttons">
-        <button class="auth-btn btn-login" onclick="openGuidelinesModal(event)">Log In</button>
-        <button class="auth-btn btn-signup" onclick="openGuidelinesModal(event)">Sign Up</button>
+        <button class="auth-btn btn-login" onclick="openGuidelinesModal()">Log In</button>
+        <button class="auth-btn btn-signup" onclick="openGuidelinesModal()">Sign Up</button>
       </div>
     </header>
 
@@ -735,7 +1060,7 @@
         <p class="hero-subtitle">
           Honest reviews, transparent experiences, and study resources for DLSU, Ateneo, UP, and Benilde students.
         </p>
-        <button class="cta-button" onclick="openGuidelinesModal(event)">
+        <button class="cta-button" onclick="openGuidelinesModal()">
           <!-- Google 'G' Logo SVG -->
           <svg class="google-logo-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -772,115 +1097,211 @@
     </div>
   </div>
 
-  <!-- ========== FEATURES ========== -->
-  <section class="features">
-    <h2 class="section-title">Why Use Our Platform?</h2>
-    <div class="features-grid">
+  <!-- ========== 2. ABOUT US SECTION ========== -->
+  <section class="about-section">
+    <div class="section-container">
+      <span class="about-badge">About Us</span>
+      <h2 class="section-title">What Makes Us Different?</h2>
+      <p class="about-highlight">
+        "We compile all reviews in one website."
+      </p>
+      <p class="section-subtitle">
+        Phroftopick is the first platform to aggregate professor reviews, study materials, and subject guides from across the internet — putting everything you need in one place.
+      </p>
+    </div>
+  </section>
+
+  <!-- ========== 3. FEATURES SECTION ========== -->
+  <section class="features-section">
+    <div class="section-container">
+      <h2 class="section-title">Why Students Choose Us</h2>
+      <p class="section-subtitle">Everything you need to survive your semester.</p>
       
-      <div class="feature-card">
-        <span class="feature-icon">🎭</span>
-        <h3>Post Anonymously</h3>
-        <p>Share honest reviews and experiences without revealing your identity.</p>
-      </div>
+      <div class="features-grid">
+        <!-- Feature 1 -->
+        <div class="feature-item">
+          <div class="feature-icon-box">🎭</div>
+          <div class="feature-content">
+            <h3>Post Anonymously</h3>
+            <p>Share your honest experiences without fear. Your identity is protected so you can help others make informed choices.</p>
+          </div>
+        </div>
 
-      <div class="feature-card">
-        <span class="feature-icon">✉️</span>
-        <h3>No School Email Required</h3>
-        <p>You can sign up and use the platform with any email — fast and hassle-free.</p>
-      </div>
+        <!-- Feature 2 -->
+        <div class="feature-item">
+          <div class="feature-icon-box">📚</div>
+          <div class="feature-content">
+            <h3>Subject Pages & Materials</h3>
+            <p>Access a treasure trove of past exams, notes, and reviewers. View recent materials to ace your next test.</p>
+          </div>
+        </div>
 
-      <div class="feature-card">
-        <span class="feature-icon">🗣️</span>
-        <h3>No Censorship of Experiences</h3>
-        <p>We believe students deserve transparency. You can freely express your experiences and opinions about professors.<br><small style="color:#999;">(Note: We still moderate extreme harassment, threats, or illegal content to keep the platform safe.)</small></p>
-      </div>
+        <!-- Feature 3 -->
+        <div class="feature-item">
+          <div class="feature-icon-box">⭐</div>
+          <div class="feature-content">
+            <h3>Highest Rated Professors</h3>
+            <p>Find the best professor per subject instantly. Our algorithm highlights the top-rated choices based on student feedback.</p>
+          </div>
+        </div>
 
-      <div class="feature-card">
-        <span class="feature-icon">🎓</span>
-        <h3>Easily Find Professors for GEs</h3>
-        <p>Quickly discover which professors are teaching General Education courses — no need to browse Facebook groups or spreadsheets.</p>
+        <!-- Feature 4 -->
+        <div class="feature-item">
+          <div class="feature-icon-box">🗣️</div>
+          <div class="feature-content">
+            <h3>No Censorship</h3>
+            <p>We believe in full transparency. Read unfiltered experiences — the good, the bad, and the real.</p>
+          </div>
+        </div>
       </div>
-
-      <div class="feature-card">
-        <span class="feature-icon">🔍</span>
-        <h3>Search Professors and Subjects</h3>
-        <p>Not just a professor-rating site — get insights on both professors and specific courses.</p>
-      </div>
-
-      <div class="feature-card">
-        <span class="feature-icon">📚</span>
-        <h3>Affordable Access to Subject Notes</h3>
-        <p>Get premium subject notes and study resources for only <span class="price-badge">₱200 today</span></p>
-        <span class="warning-badge">⚠️ Price will increase to ₱399 by 2026 — grab it now while it's 50% off!</span>
-      </div>
-
     </div>
   </section>
 
-  <!-- ========== ABOUT SECTION ========== -->
-  <section class="about">
-    <h2>What is Phroftopick?</h2>
-    <p>A website that tries to compile all reviews from Facebook groups, Reddit, existing websites, etc. for all the Big Four schools (DLSU, Ateneo, UP, Benilde).</p>
+  <!-- ========== 4. SCHOOLS SUPPORTED ========== -->
+  <section class="schools-section">
+    <div class="section-container">
+      <h2 class="section-title">Schools Supported</h2>
+      <p class="section-subtitle">Proudly serving the Big Four universities.</p>
+      
+      <div class="schools-grid">
+        <img src="images/dlsu-logo.png" alt="DLSU Manila" class="school-logo" title="DLSU Manila">
+        <img src="images/benilde-logo.png" alt="DLSU Benilde" class="school-logo" title="DLSU Benilde">
+        <img src="images/ateneo-logo.png" alt="Ateneo de Manila" class="school-logo" title="Ateneo de Manila">
+        <img src="images/up-logo.png" alt="UP Diliman" class="school-logo" title="UP Diliman">
+      </div>
+    </div>
   </section>
 
-  <!-- ========== FAQ SECTION ========== -->
-  <section class="faq">
-    <h2 class="section-title">Frequently Asked Questions</h2>
+  <!-- ========== 5. PRICING SECTION ========== -->
+  <section class="pricing-section">
+    <div class="section-container">
+      <h2 class="section-title">Simple Pricing</h2>
+      <p class="section-subtitle">Invest in your grades for less than the price of a coffee.</p>
+      
+      <div class="pricing-grid">
+        <!-- Free Plan -->
+        <div class="pricing-card">
+          <h3>Basic Access</h3>
+          <div class="price-amount">Free</div>
+          <p class="price-period">Forever</p>
+          <ul class="pricing-features">
+            <li><span class="check-icon">✓</span> Search Professors</li>
+            <li><span class="check-icon">✓</span> Read & Post Reviews</li>
+            <li><span class="check-icon">✓</span> View General Ratings</li>
+            <li><span class="check-icon">✓</span> Community Forum Access</li>
+          </ul>
+          <a href="#" class="btn-pricing outline" onclick="openGuidelinesModal()">Get Started</a>
+        </div>
 
-    <div class="faq-item">
-      <div class="faq-question">
-        <span class="faq-icon">❓</span>
-        Is this website free to use?
-      </div>
-      <div class="faq-answer">
-        Yes — viewing and making professor reviews is completely free. We also offer optional paid features such as access to detailed subject notes and study resources.
+        <!-- Premium Plan -->
+        <div class="pricing-card featured">
+          <span class="about-badge" style="background:#e6f4ea; color:#00693e;">Most Popular</span>
+          <h3>Subject Pass</h3>
+          <div class="price-amount">₱200</div>
+          <p class="price-period">One-time payment</p>
+          <ul class="pricing-features">
+            <li><span class="check-icon">✓</span> <strong>Everything in Free</strong></li>
+            <li><span class="check-icon">✓</span> Access Subject Notes</li>
+            <li><span class="check-icon">✓</span> Download Past Exams</li>
+            <li><span class="check-icon">✓</span> Advanced Professor Insights</li>
+          </ul>
+          <a href="#" class="btn-pricing primary" onclick="openGuidelinesModal()">Get Access</a>
+        </div>
       </div>
     </div>
+  </section>
 
-    <div class="faq-item">
-      <div class="faq-question">
-        <span class="faq-icon">📖</span>
-        What do I get if I upgrade to the Subject Page?
-      </div>
-      <div class="faq-answer">
-        Upgrading gives you access to premium features, including:<br>
-        ✅ Curated subject notes<br>
-        ✅ Study guides & reviewer materials<br>
-        ✅ Tips from students who previously took the class<br>
-        ✅ Access to exclusive future academic tools & updates
+  <!-- ========== 6. DATA SOURCES (SCROLLABLE) ========== -->
+  <section class="sources-section">
+    <div class="section-container" style="text-align: center; margin-bottom: 40px;">
+      <h2 class="section-title" style="margin-bottom: 10px;">Our Data Sources</h2>
+      <p style="color: #666;">We aggregate reviews from trusted communities.</p>
+    </div>
+    
+    <div class="marquee-container">
+      <div class="marquee-track">
+        <!-- Original Set -->
+        <div class="source-item"><span class="source-icon">🤖</span> Reddit r/dlsu</div>
+        <div class="source-item"><span class="source-icon">👥</span> Facebook Groups</div>
+        <div class="source-item"><span class="source-icon">🦅</span> Ateneo Profs to Pick</div>
+        <div class="source-item"><span class="source-icon">💚</span> DLSU Community Forum</div>
+        <div class="source-item"><span class="source-icon">✊</span> UP Diliman Files</div>
+        <div class="source-item"><span class="source-icon">🏫</span> Benilde Hive</div>
+        <div class="source-item"><span class="source-icon">🌐</span> Student Websites</div>
+        <div class="source-item"><span class="source-icon">💬</span> Discord Servers</div>
+        
+        <!-- Duplicate Set for Infinite Scroll -->
+        <div class="source-item"><span class="source-icon">🤖</span> Reddit r/dlsu</div>
+        <div class="source-item"><span class="source-icon">👥</span> Facebook Groups</div>
+        <div class="source-item"><span class="source-icon">🦅</span> Ateneo Profs to Pick</div>
+        <div class="source-item"><span class="source-icon">💚</span> DLSU Community Forum</div>
+        <div class="source-item"><span class="source-icon">✊</span> UP Diliman Files</div>
+        <div class="source-item"><span class="source-icon">🏫</span> Benilde Hive</div>
+        <div class="source-item"><span class="source-icon">🌐</span> Student Websites</div>
+        <div class="source-item"><span class="source-icon">💬</span> Discord Servers</div>
       </div>
     </div>
+  </section>
 
-    <div class="faq-item">
-      <div class="faq-question">
-        <span class="faq-icon">💳</span>
-        How do I know I will get access after paying?
+  <!-- ========== 7. FAQ SECTION ========== -->
+  <section class="faq-section">
+    <div class="section-container">
+      <h2 class="section-title">Frequently Asked Questions</h2>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span class="faq-icon">❓</span>
+          Is this website free to use?
+        </div>
+        <div class="faq-answer">
+          Yes — viewing and making professor reviews is completely free. We also offer optional paid features such as access to detailed subject notes and study resources.
+        </div>
       </div>
-      <div class="faq-answer">
-        We use trusted and secure Philippine payment providers like PayMongo to process payments. Access to your purchased pages is automatically unlocked after payment — no manual waiting or approval needed.
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span class="faq-icon">📖</span>
+          What do I get if I upgrade to the Subject Page?
+        </div>
+        <div class="faq-answer">
+          Upgrading gives you access to premium features, including:<br>
+          ✅ Curated subject notes<br>
+          ✅ Study guides & reviewer materials<br>
+          ✅ Tips from students who previously took the class<br>
+          ✅ Access to exclusive future academic tools & updates
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span class="faq-icon">💳</span>
+          How do I know I will get access after paying?
+        </div>
+        <div class="faq-answer">
+          We use trusted and secure Philippine payment providers like PayMongo to process payments. Access to your purchased pages is automatically unlocked after payment — no manual waiting or approval needed.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span class="faq-icon">🏫</span>
+          Is this an official university website?
+        </div>
+        <div class="faq-answer">
+          No. We are an independent platform created by students to help fellow students choose professors and prepare better for their subjects. We are not affiliated with DLSU, Ateneo, UP, or Benilde.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span class="faq-icon">🔒</span>
+          Is this website safe?
+        </div>
+        <div class="faq-answer">
+          Yes. We use secure login and authentication systems such as Google OAuth to protect user accounts and ensure your data remains private.
+        </div>
       </div>
     </div>
-
-    <div class="faq-item">
-      <div class="faq-question">
-        <span class="faq-icon">🏫</span>
-        Is this an official university website (DLSU, Ateneo, UP, Benilde, etc.)?
-      </div>
-      <div class="faq-answer">
-        No. We are an independent platform created by students to help fellow students choose professors and prepare better for their subjects.
-      </div>
-    </div>
-
-    <div class="faq-item">
-      <div class="faq-question">
-        <span class="faq-icon">🔒</span>
-        Is this website safe?
-      </div>
-      <div class="faq-answer">
-        Yes. We use secure login and authentication systems such as Google OAuth to protect user accounts and ensure your data remains private.
-      </div>
-    </div>
-
   </section>
 
   <!-- ========== FOOTER ========== -->
@@ -905,10 +1326,7 @@
         </a>
       </div>
     </div>
-    <div class="footer-bottom">
-      <div class="footer-copy">©2025 Phroftopick. All rights reserved.</div>
-      <button id="backToTop" class="back-to-top" type="button">Back to top ↑</button>
-    </div>
+    <div class="footer-copy">©2025 Phroftopick. All rights reserved.</div>
   </footer>
 
   <!-- ========== AUTH MODAL ========== -->
@@ -947,7 +1365,9 @@
           </div>
         </div>
         <div class="guidelines-right" aria-hidden="true">
-          <img id="guidelinesPreview" class="img-animate" src="images/home-pic1.png" alt="App preview" onerror="this.src='https://placehold.co/800x500/ffffff/00693e?text=Preview'">
+          <div class="screen-card">
+            <img src="images/home-pic1.png" alt="App preview" onerror="this.src='https://placehold.co/800x500/ffffff/00693e?text=Preview'">
+          </div>
         </div>
       </div>
     </div>
@@ -967,19 +1387,9 @@
       }
     }
 
-    function openGuidelinesModal(e) {
-      if (e && e.target) {
-        e.target.classList.add('btn-clicked');
-        setTimeout(() => e.target.classList.remove('btn-clicked'), 400);
-      }
+    function openGuidelinesModal() {
       const m = document.getElementById('guidelinesModal');
       m.classList.add('active');
-      const img = document.getElementById('guidelinesPreview');
-      if (img) {
-        img.classList.remove('img-animate');
-        void img.offsetWidth; // restart animation
-        img.classList.add('img-animate');
-      }
     }
     function closeGuidelinesModal(event) {
       const target = event ? event.target : null;
@@ -992,13 +1402,7 @@
       const btn = document.querySelector('.guidelines-cta');
       if (btn) {
         btn.classList.add('clicked');
-        const img = document.getElementById('guidelinesPreview');
-        if (img) {
-          img.classList.remove('img-animate');
-          void img.offsetWidth;
-          img.classList.add('img-animate');
-        }
-        setTimeout(() => { window.location.href = '/auth/google'; }, 450);
+        setTimeout(() => { window.location.href = '/auth/google'; }, 400);
       } else {
         window.location.href = '/auth/google';
       }
@@ -1038,12 +1442,6 @@
 
     function closeLightbox() {
       lightboxModal.classList.remove('active');
-    }
-    const backBtn = document.getElementById('backToTop');
-    if (backBtn) {
-      backBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
     }
   </script>
 </body>

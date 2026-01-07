@@ -22,11 +22,7 @@
       if (l) { l.href = location.origin + location.pathname + location.search; }
     });
   </script>
-  <meta name="theme-color" content="#00693e">
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
-  <link rel="icon" type="image/png" sizes="48x48" href="/images/favicon.png">
-  <link rel="apple-touch-icon" href="/images/favicon.png">
-  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" href="images/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@600;700;800&display=swap" rel="stylesheet">
@@ -108,39 +104,6 @@
     .download-btn:hover { background: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,105,62,0.3); }
     .spinner { width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    .ranking-section { background: #fff; border: 2px solid #e5e7eb; border-radius: 20px; padding: 32px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); margin-top: 32px; }
-    .ranking-section h2 { margin: 0 0 16px; font-size: 24px; font-weight: 700; color: #111827; }
-    .ranking-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
-    .sort-toggle { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); border: 2px solid #d1d5db; border-radius: 12px; padding: 10px 14px; font-weight: 700; color: #374151; cursor: pointer; transition: all 0.2s ease; }
-    .sort-toggle:hover { border-color: var(--primary); background: #eef2ff; }
-    .dir-indicator { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 6px; background: #e5e7eb; color: #111827; font-size: 14px; }
-    .select { padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; color: #374151; background: #fff; }
-    .select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0,105,62,0.1); }
-    .num-input { width: 160px; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; }
-    .num-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0,105,62,0.1); }
-    .ranking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-    .rank-card { background: linear-gradient(135deg, #fff 0%, #f9fafb 100%); border: 2px solid #e5e7eb; border-radius: 16px; padding: 20px; transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease, opacity 200ms ease; }
-    .rank-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); border-color: var(--primary); }
-    .rank-top { display: flex; align-items: center; justify-content: space-between; }
-    .rank-name { font-weight: 800; font-size: 18px; color: #111827; }
-    .rank-meta { display: flex; gap: 12px; align-items: center; color: #6b7280; font-size: 13px; margin-top: 8px; }
-    .rank-badge { display: inline-flex; align-items: center; gap: 6px; background: #f3f4f6; color: #111827; border-radius: 9999px; padding: 6px 10px; font-weight: 700; }
-    .list-anim { opacity: 0; transform: translateY(6px); }
-    .list-anim.show { opacity: 1; transform: translateY(0); transition: opacity 200ms ease, transform 200ms ease; }
-    .quizzes-section { background: #fff; border: 2px solid #e5e7eb; border-radius: 20px; padding: 32px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); margin-top: 32px; }
-    .quizzes-section h2 { margin: 0 0 16px; font-size: 24px; font-weight: 700; color: #111827; }
-    .quizzes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-    .quiz-card { background: linear-gradient(135deg, #fff 0%, #f9fafb 100%); border: 2px solid #e5e7eb; border-radius: 16px; padding: 20px; transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease; }
-    .quiz-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); border-color: var(--primary); }
-    .quiz-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .quiz-title { font-weight: 800; font-size: 18px; color: #111827; }
-    .quiz-meta { display: flex; gap: 10px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
-    .status-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 9999px; padding: 6px 10px; font-weight: 700; font-size: 12px; }
-    .status-badge.completed { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46; border: 1px solid #6ee7b7; }
-    .status-badge.in-progress { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color: #1e40af; border: 1px solid #93c5fd; }
-    .status-badge.not-started { background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); color: #374151; border: 1px solid #d1d5db; }
-    .difficulty-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 9999px; padding: 6px 10px; font-weight: 700; font-size: 12px; background:#fef3c7; border:1px solid #fcd34d; color:#92400e; }
   </style>
   
   <link rel="stylesheet" href="css/mobile-override.css">
@@ -197,31 +160,6 @@
         </div>
       </div>
     </section>
-    
-    <section class="quizzes-section" aria-labelledby="quizzes-title">
-      <h2 id="quizzes-title">📝 Quizzes</h2>
-      <div id="quizzes-list" class="quizzes-grid" aria-live="polite">
-        <div style="text-align:center;padding:48px;color:#6b7280;">
-          <div class="spinner"></div>
-          <p>Loading quizzes...</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="ranking-section" aria-labelledby="prof-ranking-title">
-      <h2 id="prof-ranking-title">🏆 Professor Rankings</h2>
-      <div class="ranking-controls">
-        <button id="sortToggle" class="sort-toggle" aria-label="Toggle sort direction">
-          <span id="sortLabel">Highest to lowest</span>
-          <span id="sortDir" class="dir-indicator">↓</span>
-        </button>
-        <select id="deptFilter" class="select" aria-label="Filter by specialization">
-          <option value="">All specializations</option>
-        </select>
-        <input id="minReviews" class="num-input" type="number" min="0" step="1" value="0" aria-label="Minimum reviews" placeholder="Min reviews">
-      </div>
-      <div id="rankingList" class="ranking-grid" aria-live="polite"></div>
-    </section>
   </main>
 
   <script>
@@ -254,7 +192,6 @@
 
       await loadSubject();
       await loadResources();
-      await loadQuizzes();
     });
 
     const fileInput = document.getElementById('file-input');
@@ -349,108 +286,6 @@
         listDiv.innerHTML = '<p style="color:#dc2626;text-align:center;">Failed to load resources</p>';
       }
     }
-
-    async function loadQuizzes() {
-      const listDiv = document.getElementById('quizzes-list');
-      try {
-        const res = await fetch(`/api/subjects/${subjectId}/quizzes?school=${school}`);
-        const data = await res.json().catch(() => ({}));
-        const quizzes = Array.isArray(data.quizzes) ? data.quizzes : [];
-        if (!quizzes.length) {
-          listDiv.innerHTML = '<div style="text-align:center;padding:48px;color:#6b7280;"><div style="font-size:64px;margin-bottom:16px;opacity:0.5;">📝</div><div style="font-size:18px;font-weight:600;color:#374151;">No quizzes yet</div><p style="margin-top:8px;font-size:14px;">Check back later for quizzes.</p></div>';
-          return;
-        }
-        listDiv.innerHTML = quizzes.map(q => {
-          const statusRaw = String(q.status || 'not-started').toLowerCase();
-          const status = ['completed','in-progress','not-started'].includes(statusRaw) ? statusRaw : 'not-started';
-          const statusLabel = status === 'completed' ? 'Completed' : (status === 'in-progress' ? 'In progress' : 'Not started');
-          const diff = String(q.difficulty || '').trim();
-          const title = q.title || 'Quiz';
-          return `
-            <div class="quiz-card list-anim" data-status="${status}" data-difficulty="${diff}">
-              <div class="quiz-top">
-                <div class="quiz-title">${title}</div>
-                <span class="status-badge ${status}">${statusLabel}</span>
-              </div>
-              <div class="quiz-meta">
-                ${diff ? `<span class="difficulty-badge">${diff}</span>` : ''}
-              </div>
-            </div>
-          `;
-        }).join('');
-        requestAnimationFrame(() => { document.querySelectorAll('.list-anim').forEach(el => el.classList.add('show')); });
-      } catch (err) {
-        listDiv.innerHTML = '<p style="color:#dc2626;text-align:center;">Failed to load quizzes</p>';
-      }
-    }
-
-    let profs = [];
-    let sortDir = 'desc';
-    let dept = '';
-    let minRev = 0;
-
-    async function loadRankings() {
-      try {
-        const res = await fetch(`/api/subjects/${subjectId}/profs?school=${school}`);
-        const data = await res.json();
-        profs = (data.professors || []).map(p => ({
-          id: p.id,
-          name: p.name || '',
-          rating_avg: Number(p.rating_avg || 0),
-          rating_count: Number(p.rating_count || 0),
-          specialization: String(p.teaching_style || '').trim(),
-          workload: String(p.workload || '').trim()
-        }));
-        initDeptFilter();
-        renderRankings();
-      } catch (_) {
-        document.getElementById('rankingList').innerHTML = '<div style="text-align:center;padding:24px;color:#6b7280;">Failed to load rankings</div>';
-      }
-    }
-
-    function initDeptFilter() {
-      const select = document.getElementById('deptFilter');
-      const set = new Set(profs.map(p => p.specialization).filter(v => v));
-      if (set.size === 0) {
-        select.style.display = 'none';
-        return;
-      }
-      select.innerHTML = '<option value="">All specializations</option>' + Array.from(set).sort().map(v => `<option value="${v}">${v}</option>`).join('');
-    }
-
-    function renderRankings() {
-      const list = document.getElementById('rankingList');
-      const filtered = profs.filter(p => (dept ? p.specialization === dept : true) && p.rating_count >= minRev);
-      const sorted = filtered.sort((a,b) => sortDir === 'desc' ? (b.rating_avg - a.rating_avg || b.rating_count - a.rating_count) : (a.rating_avg - b.rating_avg || a.rating_count - b.rating_count));
-      const html = sorted.map(p => `
-        <div class="rank-card list-anim">
-          <div class="rank-top">
-            <div class="rank-name">${p.name}</div>
-            <div class="rank-badge">⭐ ${p.rating_avg.toFixed(2)}</div>
-          </div>
-          <div class="rank-meta">
-            <span>📝 ${p.rating_count} reviews</span>
-            ${p.specialization ? `<span>🎓 ${p.specialization}</span>` : ''}
-          </div>
-        </div>
-      `).join('');
-      list.innerHTML = html || '<div style="text-align:center;padding:24px;color:#6b7280;">No professors match filters</div>';
-      requestAnimationFrame(() => {
-        document.querySelectorAll('.list-anim').forEach(el => el.classList.add('show'));
-      });
-      document.getElementById('sortLabel').textContent = sortDir === 'desc' ? 'Highest to lowest' : 'Lowest to highest';
-      document.getElementById('sortDir').textContent = sortDir === 'desc' ? '↓' : '↑';
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('sortToggle').addEventListener('click', () => { sortDir = sortDir === 'desc' ? 'asc' : 'desc'; renderRankings(); });
-      document.getElementById('deptFilter').addEventListener('change', (e) => { dept = e.target.value; renderRankings(); });
-      document.getElementById('minReviews').addEventListener('input', (e) => { const v = parseInt(e.target.value||'0',10)||0; minRev = Math.max(0, v); renderRankings(); });
-      loadRankings();
-      setInterval(loadRankings, 20000);
-      document.addEventListener('visibilitychange', () => { if (!document.hidden) loadRankings(); });
-      window.addEventListener('phrof:reviewsUpdated', () => loadRankings());
-    });
 
     function getFileIcon(filename) {
       const ext = filename.split('.').pop().toLowerCase();

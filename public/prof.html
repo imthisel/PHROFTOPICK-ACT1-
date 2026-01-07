@@ -22,11 +22,7 @@
       if (l) { l.href = location.origin + location.pathname + location.search; }
     });
   </script>
-  <meta name="theme-color" content="#00693e">
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
-  <link rel="icon" type="image/png" sizes="48x48" href="/images/favicon.png">
-  <link rel="apple-touch-icon" href="/images/favicon.png">
-  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" href="images/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@600;700;800&display=swap" rel="stylesheet">
@@ -676,7 +672,16 @@
             const tags = r.tags ? r.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
             const courseDisplay = (r.course_code || '').toString().toUpperCase().slice(0,7);
             
-            const phDate = r.created_at_pst || '';
+            // Format date/time for Philippines timezone
+            const phDate = r.created_at ? new Date(r.created_at).toLocaleString('en-PH', { 
+              timeZone: 'Asia/Manila',
+              month: 'numeric',
+              day: 'numeric', 
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            }) : '';
             
             // Build footer items with emphasis
             const footerItems = [];
