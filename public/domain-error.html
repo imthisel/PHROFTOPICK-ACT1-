@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>School Email Required</title>
+  <title>Invalid Domain</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -20,7 +20,7 @@
     .brand-name { font-weight: 800; font-size: 20px; color: var(--text); }
     .content { padding: 28px; display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 28px; }
     .badge { display: inline-block; padding: 8px 14px; border-radius: 999px; background: var(--mint); color: var(--green); font-weight: 700; font-size: 13px; }
-    h1 { margin: 16px 0 8px; font-size: 30px; color: var(--text); }
+    h1 { margin: 16px 0 8px; font-size: 30px; color: var(--text); display:flex; align-items:center; gap:12px; }
     .lead { color: var(--sub); font-size: 15px; margin-bottom: 16px; }
     .panel { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 16px; padding: 18px; }
     .panel h2 { margin: 0 0 8px; font-size: 18px; color: var(--text); }
@@ -30,6 +30,8 @@
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 16px; border-radius: 12px; text-decoration: none; font-weight: 700; border: 2px solid #d1d5db; color: var(--text); background: #fff; transition: all .2s ease; }
     .btn:hover { transform: translateY(-2px); border-color: #9ca3af; box-shadow: 0 10px 24px rgba(0,0,0,0.12); }
     .btn.primary { border-color: var(--green); color: #fff; background: var(--green); }
+    .error-icon { width: 28px; height: 28px; color: #dc2626; flex-shrink:0; }
+    .ref { margin-top: 10px; color: #6b7280; font-size: 12px; }
     .logos { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; align-items: center; }
     .logo-card { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; height: 140px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(0,0,0,0.06); position: relative; overflow: hidden; }
     .logo-card::after { content: ''; position: absolute; left: 0; top: 0; width: 100%; height: 4px; background: #eee; }
@@ -51,12 +53,15 @@
         <div class="brand-name">Phroftopick</div>
       </div>
     </div>
-    <div class="content">
-      <div>
-        <span class="badge">Sign Up Help</span>
-        <h1>School Email Required</h1>
-        <p class="lead">Only school-affiliated email addresses are permitted. Please use your official university email to continue.</p>
-        <div class="panel">
+    <div class="content" role="main">
+      <div id="error-block" role="alert" aria-labelledby="error-title" aria-live="assertive">
+        <span class="badge" aria-label="Login Error">Login Error</span>
+        <h1 id="error-title">
+          <svg class="error-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10.012 10.012 0 0 0 12 2Zm1 15h-2v-2h2Zm0-4h-2V7h2Z"/></svg>
+          Invalid Domain
+        </h1>
+        <p class="lead">Gmail accounts are not supported. Please use your company email.</p>
+        <div class="panel" aria-label="Accepted domains and next steps">
           <h2>Accepted Email Domains</h2>
           <div class="domains">
             <div class="domain">dlsu.edu.ph</div>
@@ -65,11 +70,12 @@
             <div class="domain">upd.edu.ph</div>
           </div>
           <div class="actions">
-            <a class="btn primary" href="/auth/google">Try a different school email</a>
-            <a class="btn" href="/home">Go back to Home</a>
-            <a class="btn" href="mailto:support@phroftopick.com">Contact Support</a>
+            <a class="btn primary" href="/auth/google" aria-label="Try a different email">Try a different email</a>
+            <a class="btn" href="/home" aria-label="Return to Login">Return to Login</a>
+            <a class="btn" href="mailto:support@phroftopick.com" aria-label="Contact Support">Contact Support</a>
           </div>
-          <p class="note">If you do not have a school email, request one from your university’s IT services.</p>
+          <p class="note">If you do not have an official email, request one from your school or company IT.</p>
+          <p class="ref" id="err-ref" aria-label="Error reference code"></p>
         </div>
       </div>
       <div>
@@ -87,8 +93,11 @@
     (function(){
       try {
         const params = new URLSearchParams(window.location.search);
-        const p = params.get('provider');
+        const p = params.get('provider') || 'GEN';
         if (p) sessionStorage.setItem('lastProvider', p);
+        const ref = 'DOM-' + (Date.now().toString(36).toUpperCase()) + '-' + p.toUpperCase();
+        var el = document.getElementById('err-ref');
+        if (el) el.textContent = 'Reference Code: ' + ref;
       } catch(e) {}
     })();
   </script>
