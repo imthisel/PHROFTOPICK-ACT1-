@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>School Email Required</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --green:#00693e; --mint:#e6f4ea; --text:#1a1a1a; --sub:#6b7280; --bg:#f9fafb; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: linear-gradient(110deg, #3b82f6 0%, #10b981 50%, #ef4444 100%); background-size: 200% 200%; animation: gm 12s ease infinite; display: flex; align-items: center; justify-content: center; }
+    @keyframes gm { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+    .wrap { width: 100%; max-width: 980px; margin: 24px; background: #fff; border-radius: 24px; box-shadow: 0 24px 64px rgba(0,0,0,0.18); overflow: hidden; }
+    .header { padding: 28px 28px 12px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #eee; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand img { height: 40px; width: 40px; border-radius: 10px; }
+    .brand-name { font-weight: 800; font-size: 20px; color: var(--text); }
+    .content { padding: 28px; display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 28px; }
+    .badge { display: inline-block; padding: 8px 14px; border-radius: 999px; background: var(--mint); color: var(--green); font-weight: 700; font-size: 13px; }
+    h1 { margin: 16px 0 8px; font-size: 30px; color: var(--text); }
+    .lead { color: var(--sub); font-size: 15px; margin-bottom: 16px; }
+    .panel { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 16px; padding: 18px; }
+    .panel h2 { margin: 0 0 8px; font-size: 18px; color: var(--text); }
+    .domains { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 10px; margin-top: 10px; }
+    .domain { background: white; border: 1.5px dashed #d1d5db; border-radius: 12px; padding: 10px 12px; font-weight: 700; color: var(--text); text-align: center; }
+    .actions { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; margin-top: 18px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 16px; border-radius: 12px; text-decoration: none; font-weight: 700; border: 2px solid #d1d5db; color: var(--text); background: #fff; transition: all .2s ease; }
+    .btn:hover { transform: translateY(-2px); border-color: #9ca3af; box-shadow: 0 10px 24px rgba(0,0,0,0.12); }
+    .btn.primary { border-color: var(--green); color: #fff; background: var(--green); }
+    .logos { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; align-items: center; }
+    .logo-card { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; height: 140px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(0,0,0,0.06); position: relative; overflow: hidden; }
+    .logo-card::after { content: ''; position: absolute; left: 0; top: 0; width: 100%; height: 4px; background: #eee; }
+    .logos .logo-card:nth-child(1)::after { background: #00693e; }
+    .logos .logo-card:nth-child(2)::after { background: #00693e; }
+    .logos .logo-card:nth-child(3)::after { background: #003366; }
+    .logos .logo-card:nth-child(4)::after { background: #7b1113; }
+    .logo-img { height: 80px; width: auto; max-width: 80%; object-fit: contain; }
+    .note { margin-top: 14px; color: var(--sub); font-size: 13px; }
+    .footer { padding: 14px 28px 24px; text-align: center; color: #6b7280; font-size: 13px; border-top: 1px solid #eee; }
+    @media (max-width: 860px) { .content { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="brand">
+        <img src="images/default-logo.png" alt="Phroftopick">
+        <div class="brand-name">Phroftopick</div>
+      </div>
+    </div>
+    <div class="content">
+      <div>
+        <span class="badge">Sign Up Help</span>
+        <h1>School Email Required</h1>
+        <p class="lead">Only school-affiliated email addresses are permitted. Please use your official university email to continue.</p>
+        <div class="panel">
+          <h2>Accepted Email Domains</h2>
+          <div class="domains">
+            <div class="domain">dlsu.edu.ph</div>
+            <div class="domain">benilde.edu.ph</div>
+            <div class="domain">ateneo.edu</div>
+            <div class="domain">upd.edu.ph</div>
+          </div>
+          <div class="actions">
+            <a class="btn primary" href="/auth/google">Try a different school email</a>
+            <a class="btn" href="/home">Go back to Home</a>
+            <a class="btn" href="mailto:support@phroftopick.com">Contact Support</a>
+          </div>
+          <p class="note">If you do not have a school email, request one from your university’s IT services.</p>
+        </div>
+      </div>
+      <div>
+        <div class="logos">
+          <div class="logo-card"><img class="logo-img" src="images/dlsu-logo.png" alt="DLSU"></div>
+          <div class="logo-card"><img class="logo-img" src="images/benilde-logo.png" alt="Benilde"></div>
+          <div class="logo-card"><img class="logo-img" src="images/ateneo-logo.png" alt="Ateneo"></div>
+          <div class="logo-card"><img class="logo-img" src="images/up-logo.png" alt="UP Diliman"></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">©2025 Phroftopick. All rights reserved.</div>
+  </div>
+  <script>
+    (function(){
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const p = params.get('provider');
+        if (p) sessionStorage.setItem('lastProvider', p);
+      } catch(e) {}
+    })();
+  </script>
+</body>
+</html>

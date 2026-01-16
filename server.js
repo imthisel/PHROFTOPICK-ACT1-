@@ -1103,7 +1103,7 @@ app.get('/auth/google/callback', authLimiter, (req, res, next) => {
     if (err) return res.status(500).send('Authentication error');
     if (!user) {
       const reason = info && info.message;
-      if (reason === 'unauthorized_domain') return res.status(403).send('Forbidden: unauthorized or unverified email domain');
+      if (reason === 'unauthorized_domain') return res.status(403).redirect(`/domain-error.html?provider=google&school=${encodeURIComponent(school)}`);
       return res.status(401).send('Authentication failed');
     }
     req.login(user, (lerr) => {
@@ -1135,7 +1135,7 @@ app.get('/auth/facebook/callback', authLimiter, (req, res, next) => {
       if (!domain || !APPROVED_EMAIL_DOMAINS.has(domain)) {
         try { logAudit({ school, entity_type:'auth', action:'unauthorized_domain', actor_type:'facebook', actor_id:user.id, details:`email=${lower}` }); } catch (_) {}
         db.close();
-        return res.status(403).send('Forbidden: unauthorized email domain');
+        return res.status(403).redirect(`/domain-error.html?provider=facebook&school=${encodeURIComponent(school)}`);
       }
       const token = jwt.sign({ id: user.id, school }, JWT_SECRET);
       db.close();
@@ -1148,7 +1148,8 @@ app.get('/auth/facebook/callback', authLimiter, (req, res, next) => {
 app.get('/auth/failure', (req, res) => {
   const reason = req.query.reason || '';
   const code = reason === 'domain' ? 403 : 401;
-  res.status(code).send(code === 403 ? 'Forbidden: unauthorized domain' : 'Authentication failed');
+  if (code === 403) return res.status(403).redirect('/domain-error.html');
+  res.status(401).send('Authentication failed');
 });
 
 
