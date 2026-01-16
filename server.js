@@ -248,6 +248,11 @@ app.get('/privacy-policy', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'privacy-policy.html'));
 });
 
+// Domain error (extensionless)
+app.get('/domain-error', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'domain-error.html'));
+});
+
 // Redirect old .html URLs (top-level only) to extensionless versions
 app.use((req, res, next) => {
   const m = req.path.match(/^\/([^\/]+)\.html$/);
